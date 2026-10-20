@@ -59,7 +59,7 @@ struct DotCountRow: View {
 
 #Preview {
     ZStack {
-        Theme.paper.ignoresSafeArea()
+        PaperBackground()
         DotGridBackground()
         VStack(alignment: .leading, spacing: 12) {
             DotCountRow(count: 3)

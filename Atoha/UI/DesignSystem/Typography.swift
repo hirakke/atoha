@@ -1,38 +1,72 @@
 import SwiftUI
 
 /// 文字のトークン。画面ごとにサイズを決めず、ここから選ぶ。
+/// 見出しと本文は太めのゴシック、補足（ラベル）は等幅。
 enum AType {
-    case title   // 17 medium
-    case body    // 15
-    case small   // 13
-    case label   // 11, quiet, 少し字間を空ける
+    case display // 24 black：画面の名前
+    case title   // 17 heavy
+    case body    // 15 semibold
+    case small   // 13 medium
+    case label   // 11 等幅、控えめ、少し字間を空ける
 
     var font: Font {
         switch self {
-        case .title: Theme.mono(17, weight: .medium)
-        case .body: Theme.mono(15)
-        case .small: Theme.mono(13)
-        case .label: Theme.mono(11)
+        case .display: Theme.sans(24, weight: .black)
+        case .title: Theme.sans(17, weight: .heavy)
+        case .body: Theme.sans(15, weight: .semibold)
+        case .small: Theme.sans(13, weight: .medium)
+        case .label: Theme.mono(11, weight: .medium)
         }
     }
 
-    var tracking: CGFloat { self == .label ? 0.6 : 0 }
+    var tracking: CGFloat {
+        switch self {
+        case .label: 0.6
+        case .display: -0.4
+        default: 0
+        }
+    }
+
     var color: Color { self == .label ? Theme.quiet : Theme.ink }
 
     var uiFont: UIFont {
         switch self {
-        case .title: .monospacedSystemFont(ofSize: 17, weight: .medium)
-        case .body: .monospacedSystemFont(ofSize: 15, weight: .regular)
-        case .small: .monospacedSystemFont(ofSize: 13, weight: .regular)
-        case .label: .monospacedSystemFont(ofSize: 11, weight: .regular)
+        case .display: .systemFont(ofSize: 24, weight: .black)
+        case .title: .systemFont(ofSize: 17, weight: .heavy)
+        case .body: .systemFont(ofSize: 15, weight: .semibold)
+        case .small: .systemFont(ofSize: 13, weight: .medium)
+        case .label: .monospacedSystemFont(ofSize: 11, weight: .medium)
         }
     }
 }
 
+/// アクセントの面の上など、文字の色をまとめて変えたいときに使う。
+private struct ATypeInkKey: EnvironmentKey {
+    static let defaultValue: Color? = nil
+}
+
+extension EnvironmentValues {
+    var atypeInk: Color? {
+        get { self[ATypeInkKey.self] }
+        set { self[ATypeInkKey.self] = newValue }
+    }
+}
+
+private struct ATypeModifier: ViewModifier {
+    let type: AType
+    let color: Color?
+    @Environment(\.atypeInk) private var ink
+
+    func body(content: Content) -> some View {
+        let resolved = color ?? ink.map { type == .label ? $0.opacity(0.8) : $0 } ?? type.color
+        content.font(type.font).tracking(type.tracking).foregroundStyle(resolved)
+    }
+}
+
 extension View {
-    /// 文字のトークンを当てる。色を渡さなければトークンの色。
+    /// 文字のトークンを当てる。色を渡さなければトークンの色（atypeInk があればそれ）。
     func atype(_ type: AType, color: Color? = nil) -> some View {
-        font(type.font).tracking(type.tracking).foregroundStyle(color ?? type.color)
+        modifier(ATypeModifier(type: type, color: color))
     }
 }
 

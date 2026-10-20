@@ -16,7 +16,7 @@ struct CaptureView: View {
 
     var body: some View {
         ZStack {
-            Theme.paper.ignoresSafeArea()
+            PaperBackground()
             DotGridBackground().ignoresSafeArea().opacity(confirmed == nil ? 0.5 : 1)
 
             if let confirmed {

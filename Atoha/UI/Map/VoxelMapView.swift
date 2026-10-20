@@ -46,11 +46,12 @@ struct VoxelMapView: View {
 
     var body: some View {
         let _ = observedSignature
+        let palette = Theme.paletteID
         RealityView { content in
             scene.build(&content)
         } update: { _ in
             scene.onSelect = onSelect
-            scene.setScheme(colorScheme)
+            scene.setScheme(colorScheme, palette: palette)
             scene.update(items: items, axes: axes, selectedID: selectedID, mode: mode)
         }
         .onGeometryChange(for: CGSize.self) { $0.size } action: { viewSize = $0 }
@@ -148,7 +149,8 @@ final class VoxelMapScene {
     private var scheme: ColorScheme = .light
     private var ink = UIColor.black
     private var inkMaterial = VoxelMesh.unlit(.black)
-    private let accentMaterial = VoxelMesh.unlit(Theme.accentUIColor)
+    private var accentMaterial = VoxelMesh.unlit(Theme.accentUIColor)
+    private var paletteID = Theme.paletteID
     private let wireMesh = VoxelMesh.wireBox(half: SIMD3(repeating: Float(VoxelMapScene.voxel) / 2), thickness: 0.010)
     private let boxMesh = MeshResource.generateBox(size: Float(VoxelMapScene.voxel))
 
@@ -222,9 +224,10 @@ final class VoxelMapScene {
         referenceAttitude = nil
     }
 
-    func setScheme(_ s: ColorScheme) {
-        guard s != scheme else { return }
+    func setScheme(_ s: ColorScheme, palette: String) {
+        guard s != scheme || palette != paletteID else { return }
         scheme = s
+        paletteID = palette
         if built { refreshColors() }
     }
 
@@ -232,8 +235,9 @@ final class VoxelMapScene {
         let style: UIUserInterfaceStyle = scheme == .dark ? .dark : .light
         ink = Theme.inkUIColor.resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
         inkMaterial = VoxelMesh.unlit(ink)
-        for node in nodes.values where !node.accent { node.visual?.model?.materials = [inkMaterial] }
-        for node in dying where !node.accent { node.visual?.model?.materials = [inkMaterial] }
+        accentMaterial = VoxelMesh.unlit(Theme.accentUIColor.resolvedColor(with: UITraitCollection(userInterfaceStyle: style)))
+        for node in nodes.values { node.visual?.model?.materials = [node.accent ? accentMaterial : inkMaterial] }
+        for node in dying { node.visual?.model?.materials = [node.accent ? accentMaterial : inkMaterial] }
         axisDotsEntity?.model?.materials = [inkMaterial]
         for l in labelEntities { l.model?.materials = [inkMaterial] }
         for e in edgeBuckets.values { e.model?.materials = [inkMaterial] }

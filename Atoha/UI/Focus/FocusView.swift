@@ -14,7 +14,7 @@ struct FocusView: View {
     var body: some View {
         @Bindable var router = router
         ZStack {
-            Theme.paper.ignoresSafeArea()
+            PaperBackground()
             DotGridBackground().ignoresSafeArea().opacity(0.5)
 
             VStack(spacing: 28) {
@@ -51,7 +51,7 @@ struct FocusView: View {
                 }
                 if let item, item.focusSeconds > 0 {
                     HStack(spacing: 8) {
-                        SectionLabel("合計")
+                        SectionLabel("合計", ruled: false)
                         TimeText(seconds: item.focusSeconds)
                     }
                 }

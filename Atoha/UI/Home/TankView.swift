@@ -17,10 +17,11 @@ struct TankView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
+        let palette = Theme.paletteID
         RealityView { content in
             scene.build(&content)
         } update: { _ in
-            scene.setScheme(colorScheme)
+            scene.setScheme(colorScheme, palette: palette)
             scene.update(cubes: cubes)
             scene.setActive(visible && scenePhase == .active)
         }
@@ -71,6 +72,7 @@ final class TankScene {
     private var isActive = false
     private var built = false
     private var scheme: ColorScheme = .light
+    private var paletteID = Theme.paletteID
 
     func build(_ content: inout RealityViewCameraContent) {
         guard !built else { return }
@@ -105,9 +107,10 @@ final class TankScene {
         if let cubes = pending { pending = nil; update(cubes: cubes) }
     }
 
-    func setScheme(_ s: ColorScheme) {
-        guard s != scheme || !built else { return }
+    func setScheme(_ s: ColorScheme, palette: String) {
+        guard s != scheme || palette != paletteID || !built else { return }
         scheme = s
+        paletteID = palette
         if built { refreshColors() }
     }
 
@@ -118,7 +121,7 @@ final class TankScene {
         var outline = VoxelMesh.unlit(ink)
         outline.blending = .transparent(opacity: 0.35)
         tankOutline?.model?.materials = [outline]
-        accentMaterial = VoxelMesh.unlit(Theme.accentUIColor)
+        accentMaterial = VoxelMesh.unlit(Theme.accentUIColor.resolvedColor(with: UITraitCollection(userInterfaceStyle: style)))
         for b in bodies.values { look(b.node, accent: b.accent) }
     }
 

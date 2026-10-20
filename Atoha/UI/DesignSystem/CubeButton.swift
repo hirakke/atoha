@@ -7,8 +7,9 @@ enum CubeMetrics {
 }
 
 enum CubeVariant {
+    case accent     // アクセントの面、2ptの墨の枠
     case primary    // 墨の面、紙の字
-    case secondary  // 紙の面、1ptの墨の枠
+    case secondary  // 紙の面、2ptの墨の枠
     case quiet      // 枠なし、静かな字
     case flat       // 分節の選ばれていない側（薄い枠、押し出しなし）
 }
@@ -30,13 +31,14 @@ struct CubeFace: ViewModifier {
 
     private var foreground: Color {
         switch variant {
+        case .accent: Theme.onAccent
         case .primary: Theme.paper
         case .secondary, .flat: Theme.ink
         case .quiet: Theme.quiet
         }
     }
 
-    private var extruded: Bool { variant == .primary || variant == .secondary }
+    private var extruded: Bool { variant != .quiet && variant != .flat }
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: Theme.radius)
@@ -49,15 +51,17 @@ struct CubeFace: ViewModifier {
             .frame(maxWidth: fill ? .infinity : nil)
             .background {
                 switch variant {
+                case .accent: shape.fill(Theme.accent).overlay(shape.strokeBorder(Theme.ink, lineWidth: Theme.stroke))
                 case .primary: shape.fill(Theme.ink)
-                case .secondary: shape.fill(Theme.paper).overlay(shape.strokeBorder(Theme.ink, lineWidth: 1))
-                case .flat: shape.strokeBorder(Theme.faint, lineWidth: 1)
+                case .secondary: shape.fill(Theme.paper).overlay(shape.strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+                case .flat: shape.fill(Theme.paper).overlay(shape.strokeBorder(Theme.faint, lineWidth: 1))
                 case .quiet: Color.clear
                 }
             }
             .offset(x: shift, y: shift)
             .background {
-                if extruded { shape.fill(Theme.ink.opacity(0.25)).offset(x: d, y: d) }
+                // 押し出しは墨のベタ。方眼の上で影ではなく「厚み」に見えるように
+                if extruded { shape.fill(Theme.ink).offset(x: d, y: d) }
             }
             .padding(.trailing, extruded ? d : 0)
             .padding(.bottom, extruded ? d : 0)

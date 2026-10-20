@@ -14,7 +14,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Theme.paper.ignoresSafeArea()
+                PaperBackground()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 32) {
                         header
@@ -40,13 +40,13 @@ struct HomeView: View {
 
     private var header: some View {
         HStack {
-            Text("atoha").atype(.title)
-            HStack(spacing: 4) {
+            Text("atoha").atype(.display)
+            HStack(spacing: 3) {
                 ForEach(0..<capacity, id: \.self) { index in
                     Rectangle()
-                        .fill(index < returned.count ? Theme.ink : Color.clear)
-                        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1))
-                        .frame(width: 8, height: 8)
+                        .fill(index < returned.count ? Theme.accent : Theme.paper)
+                        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5))
+                        .frame(width: 10, height: 10)
                 }
             }
             .padding(.leading, 8)
@@ -76,7 +76,7 @@ struct CaptureButton: View {
         .buttonStyle(.cube(.primary, size: .large, fill: true))
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
-        .background(Theme.paper.opacity(0.94))
+        .background(PaperBackground(fullScreen: false))
     }
 }
 
@@ -85,7 +85,7 @@ extension View {
     func paperStatusBar() -> some View {
         overlay(alignment: .top) {
             GeometryReader { proxy in
-                Theme.paper
+                PaperBackground(fullScreen: false)
                     .frame(height: proxy.safeAreaInsets.top)
                     .offset(y: -proxy.safeAreaInsets.top)
             }
@@ -139,9 +139,9 @@ private struct NextCard: View {
     @State private var page = 0
 
     var body: some View {
-        Card {
+        Card(padding: 16, style: .accent) {
             VStack(alignment: .leading, spacing: 10) {
-                SectionLabel("次")
+                SectionLabel("次", ruled: false)
                 TabView(selection: $page) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         NextPage(item: item).tag(index)
@@ -153,7 +153,7 @@ private struct NextCard: View {
                     HStack(spacing: 6) {
                         ForEach(items.indices, id: \.self) { index in
                             Rectangle()
-                                .fill(Theme.ink.opacity(index == page ? 1 : 0.15))
+                                .fill(Theme.onAccent.opacity(index == page ? 1 : 0.3))
                                 .frame(width: 5, height: 5)
                         }
                     }
@@ -175,7 +175,7 @@ private struct NextPage: View {
         // 左に中身（文字と、その下に時間・期限）、右に「やる」。余白を作らない
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(item.text).atype(.body).lineLimit(2)
+                Text(item.text).atype(.title).lineLimit(2)
                 HStack(spacing: 10) {
                     TimeText(seconds: item.focusSeconds)
                     if let deadline = item.deadline { DeadlineLabel(date: deadline) }
@@ -183,7 +183,8 @@ private struct NextPage: View {
             }
             Spacer(minLength: 0)
             Button("やる") { FocusSession.shared.start(item) }
-                .buttonStyle(.cube(.primary))
+                .buttonStyle(.cube(.secondary))
+                .environment(\.atypeInk, nil)
         }
         .padding(.horizontal, 2)
     }

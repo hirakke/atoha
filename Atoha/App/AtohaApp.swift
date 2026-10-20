@@ -73,6 +73,8 @@ struct RootView: View {
             Tab("あとで", systemImage: "cube.transparent", value: "later") { LaterView() }
             Tab("地図", systemImage: "cube", value: "map") { MapScreen() }
         }
+        // 夜の色の組は、明るい設定でも暗い画面として扱う（ステータスバーの文字色など）
+        .preferredColorScheme(ThemeStore.shared.palette.alwaysDark ? .dark : nil)
         // 集中中は、書き出し画面を集中の画面の上に出す（FocusView 側で出す）
         .fullScreenCover(isPresented: Binding(
             get: { router.showCapture && !focus.isActive },

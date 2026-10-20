@@ -54,7 +54,7 @@ struct LaterView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Theme.paper.ignoresSafeArea()
+                PaperBackground()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 32) {
                         header
@@ -83,7 +83,7 @@ struct LaterView: View {
 
     private var header: some View {
         HStack {
-            Text("あとで").atype(.title)
+            Text("あとで").atype(.display)
             Spacer()
             Button("受け取る") {
                 withAnimation { ReturnService.returnAtBreak(in: context) }

@@ -1,32 +1,61 @@
 import SwiftUI
 
-/// 小見出し。
+/// 小見出し。太字の墨と、その下の2ptの罫。
 struct SectionLabel: View {
     let text: String
-    init(_ text: String) { self.text = text }
+    var ruled = true
+    @Environment(\.atypeInk) private var ink
+    init(_ text: String, ruled: Bool = true) { self.text = text; self.ruled = ruled }
 
     var body: some View {
-        Text(text).atype(.label)
+        VStack(alignment: .leading, spacing: 6) {
+            Text(text).font(Theme.sans(12, weight: .black)).foregroundStyle(ink ?? Theme.ink)
+            if ruled { Rectangle().fill(ink ?? Theme.ink).frame(height: Theme.stroke) }
+        }
+        .frame(maxWidth: ruled ? .infinity : nil, alignment: .leading)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 
-/// 1ptの薄い枠の箱。角は立方体のまま。
+enum CardStyle {
+    /// 紙の面に薄い罫の枠
+    case plain
+    /// アクセントの面、2ptの墨の枠と墨の押し出し（次の1つ）
+    case accent
+}
+
+/// 箱。角は立方体のまま。
 struct Card<Content: View>: View {
     var padding: CGFloat = 14
     var opaque = false
+    var style: CardStyle = .plain
     @ViewBuilder var content: Content
 
-    init(padding: CGFloat = 14, opaque: Bool = false, @ViewBuilder content: () -> Content) {
+    init(padding: CGFloat = 14, opaque: Bool = false, style: CardStyle = .plain, @ViewBuilder content: () -> Content) {
         self.padding = padding
         self.opaque = opaque
+        self.style = style
         self.content = content()
     }
 
     var body: some View {
-        content
-            .padding(padding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(opaque ? Theme.paper : Color.clear, in: .rect(cornerRadius: Theme.radius))
-            .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.faint, lineWidth: 1))
+        switch style {
+        case .plain:
+            content
+                .padding(padding)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.paper)
+                .overlay(Rectangle().strokeBorder(Theme.faint, lineWidth: 1))
+        case .accent:
+            content
+                .environment(\.atypeInk, Theme.onAccent)
+                .padding(padding)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.accent)
+                .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+                .background(Rectangle().fill(Theme.ink).offset(x: 6, y: 6))
+                .padding(.trailing, 6)
+                .padding(.bottom, 6)
+        }
     }
 }

@@ -28,10 +28,11 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            Theme.paper.ignoresSafeArea()
+            PaperBackground()
             ScrollView {
                 VStack(alignment: .leading, spacing: 32) {
                     topBar
+                    section("色") { PalettePicker() }
                     section("返す時刻") {
                         row("今夜") { hourMenu($tonightHour) }
                         row("明日の朝") { hourMenu($morningHour) }
@@ -107,7 +108,7 @@ struct SettingsView: View {
 
     private var topBar: some View {
         HStack {
-            Text("設定").atype(.title)
+            Text("設定").atype(.display)
             Spacer()
             Button { dismiss() } label: {
                 Image(systemName: "xmark")
@@ -213,7 +214,7 @@ struct CloudStatusRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            SectionLabel("PCC")
+            SectionLabel("PCC", ruled: false)
             mark
             if status == .ready || status == .approaching {
                 DotCountRow(count: uses, max: CloudAI.dailyBudget, dotSize: 5)
@@ -254,7 +255,7 @@ struct ChatGPTRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            SectionLabel("ChatGPT")
+            SectionLabel("ChatGPT", ruled: false)
             DotMark(kind: auth.isSignedIn ? .errand : .unsorted, size: 7)
             if auth.isSignedIn && ChatGPTStore.reachedToday {
                 Text("上限").atype(.label, color: Theme.accent)
@@ -272,5 +273,39 @@ struct ChatGPTRow: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(auth.isSignedIn ? "ChatGPT ログイン済み" : "ChatGPT 未ログイン")
+    }
+}
+
+/// 色の組を選ぶ。紙の上にアクセントの立方体を置いた見本を並べる。
+private struct PalettePicker: View {
+    @Environment(\.colorScheme) private var scheme
+    private var store = ThemeStore.shared
+
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
+            ForEach(Palette.all) { palette in
+                let tone = scheme == .dark || palette.alwaysDark ? palette.dark : palette.light
+                let on = palette.id == store.palette.id
+                Button { store.palette = palette } label: {
+                    HStack(spacing: 8) {
+                        Rectangle()
+                            .fill(Color(UIColor(hex: tone.accent)))
+                            .overlay(Rectangle().strokeBorder(Color(UIColor(hex: tone.ink)), lineWidth: 1.5))
+                            .frame(width: 16, height: 16)
+                        Text(palette.name)
+                            .font(Theme.sans(13, weight: .bold))
+                            .foregroundStyle(Color(UIColor(hex: tone.ink)))
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 10)
+                    .frame(height: 44)
+                    .background(Color(UIColor(hex: tone.paper)))
+                    .overlay(Rectangle().strokeBorder(on ? Theme.ink : Theme.faint, lineWidth: on ? Theme.stroke : 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(palette.name)
+                .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
     }
 }

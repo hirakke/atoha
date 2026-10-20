@@ -17,7 +17,7 @@ struct AxesView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Theme.paper.ignoresSafeArea()
+                PaperBackground()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 36) {
                         axesSection
@@ -81,7 +81,7 @@ struct AxesView: View {
     private var candidatesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                SectionLabel("候補")
+                SectionLabel("候補", ruled: false)
                 Spacer()
                 if loading {
                     ProgressView().controlSize(.small)

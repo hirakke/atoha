@@ -38,7 +38,7 @@ struct MapScreen: View {
 
     var body: some View {
         ZStack {
-            Theme.paper.ignoresSafeArea()
+            PaperBackground()
 
             if allConcerns.isEmpty {
                 CubeGlyph(.ink(0.15), size: 10)

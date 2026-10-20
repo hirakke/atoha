@@ -5,6 +5,7 @@ import SwiftUI
 struct TimeText: View {
     let seconds: Double
     var compact = false
+    @Environment(\.atypeInk) private var ink
 
     init(seconds: Double, compact: Bool = false) {
         self.seconds = seconds
@@ -24,7 +25,7 @@ struct TimeText: View {
         if let text = Self.format(seconds, compact: compact) {
             HStack(spacing: 4) {
                 if !compact { CubeGlyph(.outline(alpha: 0.45), size: 8) }
-                DotMatrixText(text, size: .tiny, color: Theme.quiet)
+                DotMatrixText(text, size: .tiny, color: ink?.opacity(0.85) ?? Theme.quiet)
             }
         }
     }
