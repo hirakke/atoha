@@ -1,0 +1,85 @@
+name: Atoha
+options:
+  bundleIdPrefix: app.atoha
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    # 実機で動かすための署名（Keiju Hiramoto の開発者アカウント）
+    DEVELOPMENT_TEAM: 6HY8YSMK7C
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  Atoha:
+    type: application
+    platform: iOS
+    sources:
+      - Atoha
+      - AtohaWidget/AtohaActivityAttributes.swift
+    entitlements:
+      path: Atoha/Atoha.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.app.atoha.prototype
+    dependencies:
+      - target: AtohaWidget
+      - target: AtohaWatch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.atoha.prototype
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: atoha
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSSupportsLiveActivities: YES
+        INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+  AtohaWatch:
+    type: application
+    platform: watchOS
+    deploymentTarget: "26.0"
+    sources:
+      - AtohaWatch
+      - Atoha/UI/Dot/DotMatrixText.swift
+      - Atoha/Model/Item.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.atoha.prototype.watchkitapp
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: atoha
+        INFOPLIST_KEY_WKApplication: YES
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: app.atoha.prototype
+        TARGETED_DEVICE_FAMILY: "4"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+  AtohaWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - AtohaWidget
+      - Atoha/UI/Theme.swift
+      - Atoha/UI/Dot/DotMatrixText.swift
+      - Atoha/UI/Dot/DotDecor.swift
+      - Atoha/Intents/CaptureIntent.swift
+    entitlements:
+      path: AtohaWidget/AtohaWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.app.atoha.prototype
+    info:
+      path: AtohaWidget/Info.plist
+      properties:
+        CFBundleDisplayName: atoha
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.atoha.prototype.widget
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
