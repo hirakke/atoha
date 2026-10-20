@@ -18,7 +18,14 @@ struct HomeView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 32) {
                         header
-                        if !returned.isEmpty {
+                        if returned.isEmpty {
+                            // 何もないときに、次に何をすればいいかだけを見せる
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("今やることはありません").atype(.body)
+                                Text("気になったら「あとでに回す」。決めた時刻に、ここへ戻ってきます。")
+                                    .atype(.small, color: Theme.quiet)
+                            }
+                        } else {
                             ReturnedList(items: returned)
                         }
                     }
@@ -53,6 +60,8 @@ struct HomeView: View {
             }
             .padding(.leading, 8)
             .accessibilityHidden(true)
+            Text("\(returned.count)/\(capacity)").atype(.label)
+                .accessibilityLabel("今 \(returned.count) / \(capacity)")
             Spacer()
             Button { showSettings = true } label: {
                 Image(systemName: "gearshape")
@@ -73,7 +82,7 @@ struct CaptureButton: View {
         Button {
             router.showCapture = true
         } label: {
-            Text("あとで")
+            Label("あとでに回す", systemImage: "plus").labelStyle(.titleAndIcon)
         }
         .buttonStyle(.cube(.primary, size: .large, fill: true))
         .padding(.horizontal, 24)
@@ -219,8 +228,8 @@ private struct ReturnedRow: View {
                 DotMatrixText(date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()), size: .medium)
             } else {
                 DotMatrixText("--:--", size: .medium, color: Theme.quiet)
-                Text(timing.label()).atype(.small, color: Theme.quiet)
             }
+            Text(timing.returnMessage()).atype(.small, color: Theme.quiet)
         }
         .frame(maxWidth: .infinity, minHeight: 56)
         .transition(.opacity)
@@ -271,16 +280,19 @@ private struct ReturnedRow: View {
                 HStack(spacing: 8) {
                     action("やる") { FocusSession.shared.start(item) }
                     if mustful { action("できた") { resolve(.done) } }
-                    action("あとで") { withAnimation(.easeOut(duration: 0.15)) { choosing.toggle() } }
+                    action("あとでに回す") { withAnimation(.easeOut(duration: 0.15)) { choosing.toggle() } }
                     action("やめる", emphasized: item.isBothLow) { resolve(.released) }
                 }
                 .padding(.leading, 34)
                 .transition(.opacity)
                 if choosing {
-                    HStack(spacing: 8) {
-                        ForEach(ReturnTiming.allCases) { timing in
-                            Button(timing.label()) { postpone(timing) }
-                                .buttonStyle(.cube(timing == SettingsStore.defaultTiming ? .primary : .secondary, size: .small))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("いつ戻す？").atype(.label)
+                        HStack(spacing: 8) {
+                            ForEach(ReturnTiming.allCases) { timing in
+                                Button(timing.label()) { postpone(timing) }
+                                    .buttonStyle(.cube(timing == SettingsStore.defaultTiming ? .primary : .secondary, size: .small))
+                            }
                         }
                     }
                     .padding(.leading, 34)

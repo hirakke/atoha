@@ -58,6 +58,19 @@ enum ReturnTiming: String, Codable, CaseIterable, Identifiable {
         return calendar.isDate(date, inSameDayAs: now) ? "今夜" : "明日の夜"
     }
 
+    /// 書き出し画面などで、ラベルの下に出す補足（時刻、または「区切りで」）。
+    func detail(now: Date = .now) -> String {
+        guard let date = returnDate(from: now) else { return "区切りで" }
+        return date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
+    }
+
+    /// 回したあとに見せる一言。いつ「今」に戻るか。
+    func returnMessage(now: Date = .now) -> String {
+        guard let date = returnDate(from: now) else { return "今の作業が終わったら、今へ戻ります" }
+        let hm = date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
+        return "\(label(now: now)) \(hm) に今へ戻ります"
+    }
+
     /// 返す時刻。区切りは時刻を持たない。
     func returnDate(from now: Date = .now, calendar: Calendar = .current) -> Date? {
         switch self {

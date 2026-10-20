@@ -31,6 +31,7 @@ struct CaptureView: View {
     private var editor: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
+                Text("あとでに回す").atype(.display)
                 Spacer()
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
@@ -44,22 +45,22 @@ struct CaptureView: View {
                     .frame(maxWidth: .infinity, minHeight: 36, maxHeight: 36)
                 if !text.trimmingCharacters(in: .whitespaces).isEmpty {
                     Button(action: submit) {
-                        Image(systemName: "arrow.turn.down.left")
+                        Text("回す")
                     }
                     .buttonStyle(.cube(.primary))
-                    .accessibilityLabel("あとで")
                     .transition(.opacity)
                 }
             }
 
             Rectangle().fill(Theme.faint).frame(height: 1)
 
+            SectionLabel("今に戻る時", ruled: false)
             CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
-                          detail: { $0.returnDate()?.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()) },
+                          detail: { $0.detail() },
                           selection: $timing, fill: true)
+            Text("やりたい・やらなきゃ（つけなくてもいい）").atype(.label).padding(.top, 12)
             WantMustPicker(want: $want, must: $must, side: 150,
                            onTouch: { FocusingTextField.current?.commitMarkedText() })
-                .padding(.top, 12)
             Spacer()
         }
         .padding(24)
@@ -71,8 +72,8 @@ struct CaptureView: View {
                 DotMatrixText(date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()), size: .large)
             } else {
                 DotMatrixText("--:--", size: .large, color: Theme.quiet)
-                Text(timing.label).atype(.small, color: Theme.quiet)
             }
+            Text(timing.returnMessage()).atype(.small, color: Theme.quiet)
         }
     }
 
@@ -112,6 +113,7 @@ private struct CaptureField: UIViewRepresentable {
     func makeUIView(context: Context) -> FocusingTextField {
         let field = FocusingTextField()
         field.font = AType.title.uiFont
+        field.attributedPlaceholder = NSAttributedString(string: "気になっていること", attributes: [.foregroundColor: Theme.inkUIColor.withAlphaComponent(0.35)])
         field.textColor = Theme.inkUIColor
         field.tintColor = Theme.inkUIColor
         field.returnKeyType = .done

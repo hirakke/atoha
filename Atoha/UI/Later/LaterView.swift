@@ -59,15 +59,25 @@ struct LaterView: View {
                     VStack(alignment: .leading, spacing: 32) {
                         header
                         TankView(cubes: waiting.map { TankCube(id: $0.id, accent: $0.isRated && $0.effectiveWant >= 0.5) })
+                        if waiting.isEmpty {
+                            Text("「あとでに回す」で入れたものが、今に戻るまでここで待ちます。")
+                                .atype(.small, color: Theme.quiet)
+                        }
                         if !ready.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
-                                SectionLabel("空いたら").padding(.bottom, 6)
+                                SectionLabel("今が空いたら戻る")
+                                Text("戻る時は来ていますが、今がいっぱいなので待っています。")
+                                    .atype(.label).padding(.bottom, 6)
                                 ForEach(ready) { LaterRow(item: $0) }
                             }
                         }
                         ForEach(sections) { section in
                             VStack(alignment: .leading, spacing: 4) {
-                                SectionLabel(section.title).padding(.bottom, 6)
+                                if section.id == "break" {
+                                    breakHeader
+                                } else {
+                                    SectionLabel("\(section.title) に戻る").padding(.bottom, 6)
+                                }
                                 ForEach(section.rows.sorted { $0.createdAt < $1.createdAt }) { LaterRow(item: $0) }
                             }
                         }
@@ -84,14 +94,27 @@ struct LaterView: View {
     }
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 10) {
             Text("あとで").atype(.display)
+            Text("\(waiting.count)").atype(.label)
             Spacer()
-            Button("受け取る") {
-                withAnimation { ReturnService.returnAtBreak(in: context) }
+        }
+    }
+
+    /// 「終わったら」の見出し。区切りがついたときに押すボタンを、その対象のすぐ横に置く。
+    private var breakHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .bottom) {
+                Text("終わったら戻る").font(Theme.sans(12, weight: .black)).foregroundStyle(Theme.ink)
+                Spacer()
+                Button("今に戻す") {
+                    withAnimation { ReturnService.returnAtBreak(in: context) }
+                }
+                .buttonStyle(.cube(.secondary))
             }
-            .buttonStyle(.cube(.secondary))
-            .disabled(waiting.isEmpty)
+            Rectangle().fill(Theme.ink).frame(height: Theme.stroke)
+            Text("区切りがついたら押す。集中を終えたときにも戻ります。")
+                .atype(.label).padding(.bottom, 6)
         }
     }
 }
@@ -123,8 +146,9 @@ private struct LaterRow: View {
 
             if open {
                 VStack(alignment: .leading, spacing: 10) {
-                    Button("今受け取る") { receiveNow() }
+                    Button("今に戻す") { receiveNow() }
                         .buttonStyle(.cube(.primary, size: .small))
+                    Text("戻る時を変える").atype(.label)
                     CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
                                   selection: Binding(get: { item.timing }, set: { change(to: $0) }))
                 }

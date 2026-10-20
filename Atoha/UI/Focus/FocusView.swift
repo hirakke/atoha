@@ -87,7 +87,8 @@ struct FocusView: View {
 
     private var controls: some View {
         HStack(spacing: 12) {
-            Button { router.showCapture = true } label: { Text("あとで") }
+            Button { router.showCapture = true } label: { Label("あとで", systemImage: "plus") }
+                .accessibilityLabel("あとでに回す")
                 .buttonStyle(.cube(.secondary, size: .large))
             Button(action: finish) { Text("終わる") }
                 .buttonStyle(.cube(.primary, size: .large, fill: true))

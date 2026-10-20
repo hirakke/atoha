@@ -33,7 +33,7 @@ struct WatchHomeView: View {
                 }
 
                 // タップすると、すぐにシステムの入力（音声・手書き）が開く。
-                TextField("あとで", text: $text, prompt: Text("あとで").foregroundStyle(Theme.paper))
+                TextField("あとでに回す", text: $text, prompt: Text("あとでに回す").foregroundStyle(Theme.paper))
                     .textFieldStyle(.plain)
                     .font(Theme.mono(17, weight: .medium))
                     .multilineTextAlignment(.center)
