@@ -198,7 +198,7 @@ private struct Mark: View {
 
     var body: some View {
         Button { isOn.toggle() } label: {
-            CubeGlyph(isOn ? .accent() : .outline(), size: 16)
+            SquareMark(isOn ? .accent() : .outline(), size: 16)
                 .padding(6)
         }
         .buttonStyle(.cube(.quiet))

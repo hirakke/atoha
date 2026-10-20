@@ -41,7 +41,7 @@ struct MapScreen: View {
             PaperBackground()
 
             if allConcerns.isEmpty {
-                CubeGlyph(.ink(0.15), size: 10)
+                SquareMark(.ink(0.15), size: 10)
                 axesButton
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
@@ -57,7 +57,7 @@ struct MapScreen: View {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 10) {
                         axesButton
-                        CubeGlyph(.outline(), size: 10)
+                        SquareMark(.outline(), size: 10)
                         Text("\(concerns.count)")
                             .atype(.label)
                     }

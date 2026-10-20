@@ -1,12 +1,13 @@
 import SwiftUI
 
-/// 種類を表す小さな立方体。用事＝塗り、気になること・未分類＝枠。
+/// 種類を表す小さな正方形。用事＝塗り、気になること・未分類＝枠。
+/// 画面は平面なので正方形で描く（立方体は 3D の地図と水槽だけ）。
 struct DotMark: View {
     let kind: ItemKind
     var highlighted: Bool = false
     var size: CGFloat = 8
-    /// true なら 2D の図用に、平らな正方形で描く（意味は立方体と同じ）
-    var flat: Bool = false
+    /// 以前の呼び出しとの互換のため残している。いつも正方形で描く
+    var flat: Bool = true
 
     /// 本人の評価。must → 塗りの濃さ、want → アクセントの強さ。
     var rating: (want: Double, must: Double)?
@@ -34,7 +35,7 @@ struct DotMark: View {
     }
 
     var body: some View {
-        if flat { SquareMark(style, size: size) } else { CubeGlyph(style, size: size) }
+        SquareMark(style, size: size)
     }
 }
 

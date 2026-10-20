@@ -69,8 +69,8 @@ struct RootView: View {
     var body: some View {
         @Bindable var router = router
         TabView(selection: $tab) {
-            Tab("今", systemImage: "square.stack.3d.up", value: "now") { HomeView() }
-            Tab("あとで", systemImage: "cube.transparent", value: "later") { LaterView() }
+            Tab("今", systemImage: "square.stack", value: "now") { HomeView() }
+            Tab("あとで", systemImage: "square.dashed", value: "later") { LaterView() }
             Tab("地図", systemImage: "cube", value: "map") { MapScreen() }
         }
         // 夜の色の組は、明るい設定でも暗い画面として扱う（ステータスバーの文字色など）

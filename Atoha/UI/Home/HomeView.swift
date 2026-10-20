@@ -251,7 +251,7 @@ private struct ReturnedRow: View {
                 .frame(width: 40, height: 12, alignment: .trailing)
                 Group {
                     if !item.isRated {
-                        CubeGlyph(.outline(alpha: 0.6, dashed: true), size: 10)
+                        SquareMark(.outline(alpha: 0.6, dashed: true), size: 10)
                             .accessibilityElement()
                             .accessibilityLabel("未評価")
                     } else { Color.clear }

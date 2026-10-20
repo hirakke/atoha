@@ -72,7 +72,7 @@ struct FocusView: View {
         let filled = min(total, Int(elapsed / 60) / step)
         return HStack(spacing: 4) {
             ForEach(0..<total, id: \.self) { i in
-                CubeGlyph(i < filled ? .accent() : .ink(0.15), size: 9)
+                SquareMark(i < filled ? .accent() : .ink(0.15), size: 9)
             }
         }
         .accessibilityHidden(true)
