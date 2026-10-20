@@ -224,7 +224,7 @@ enum AxisEngine {
 
         var result: [AxisCandidate] = []
 
-        // 本人のメモの主成分から（最大2つ）。名前が付けられなければ組み込みの軸に寄せる。
+        // 本人のメモの主成分から（最大2つ）。合う言葉がなければ極は空で、本人が名前を付ける。
         var excludedForPCA = Set(existing.map { $0.negativePole + "|" + $0.positivePole })
         for a in existing { excludedForPCA.insert(a.negativePole); excludedForPCA.insert(a.positivePole) }
         for c in await PersonalPCA.candidates(from: items, excluded: excludedForPCA, limit: 2)

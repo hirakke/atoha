@@ -97,7 +97,7 @@ struct AxesView: View {
             }
             ForEach(candidates) { candidate in
                 CandidateCard(candidate: candidate,
-                              keep: { adopt(negative: candidate.negativePole, positive: candidate.positivePole); drop(candidate) },
+                              keep: { negative, positive in adopt(negative: negative, positive: positive); drop(candidate) },
                               reject: { drop(candidate) })
             }
         }
@@ -140,23 +140,34 @@ struct AxesView: View {
     }
 }
 
-/// 軸の候補。仮の名前と中身の一覧だけを見せる。
+/// 軸の候補。仮の名前と、それぞれの極に寄った自分のメモを見せる。
+/// 合う言葉がなかった候補は極が空で、本人が両側に名前を付ける。
 private struct CandidateCard: View {
     let candidate: AxisCandidate
-    let keep: () -> Void
+    let keep: (_ negative: String, _ positive: String) -> Void
     let reject: () -> Void
+
+    @State private var negative = ""
+    @State private var positive = ""
+
+    private var unnamed: Bool { candidate.negativePole.isEmpty || candidate.positivePole.isEmpty }
+    private var names: (String, String) {
+        unnamed ? (negative.trimmingCharacters(in: .whitespaces), positive.trimmingCharacters(in: .whitespaces))
+                : (candidate.negativePole, candidate.positivePole)
+    }
 
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 10) {
-                Text("\(candidate.negativePole) ↔ \(candidate.positivePole)？")
+                Text(unnamed ? "この違いは？" : "\(candidate.negativePole) ↔ \(candidate.positivePole)？")
                     .atype(.title)
                 // それぞれの極に寄った自分のメモを並べて、どちらの自分かを見比べられるようにする
-                side(candidate.negativePole, candidate.lowSamples)
-                side(candidate.positivePole, candidate.highSamples)
+                side(candidate.negativePole, candidate.lowSamples, field: $negative)
+                side(candidate.positivePole, candidate.highSamples, field: $positive)
                 HStack(spacing: 8) {
-                    Button("残す", action: keep)
+                    Button("残す") { keep(names.0, names.1) }
                         .buttonStyle(.cube(.primary))
+                        .disabled(names.0.isEmpty || names.1.isEmpty || names.0 == names.1)
                     Button("ちがう", action: reject)
                         .buttonStyle(.cube(.secondary))
                 }
@@ -164,10 +175,18 @@ private struct CandidateCard: View {
         }
     }
 
-    @ViewBuilder private func side(_ pole: String, _ texts: [String]) -> some View {
+    @ViewBuilder private func side(_ pole: String, _ texts: [String], field: Binding<String>) -> some View {
         if !texts.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
-                Text(pole).atype(.label, color: Theme.quiet)
+                if unnamed {
+                    TextField("こちらは", text: field)
+                        .atype(.body)
+                        .textFieldStyle(.plain)
+                        .padding(.vertical, 4)
+                        .overlay(alignment: .bottom) { Rectangle().fill(Theme.quiet.opacity(0.4)).frame(height: 1) }
+                } else {
+                    Text(pole).atype(.label, color: Theme.quiet)
+                }
                 ForEach(texts, id: \.self) { text in
                     HStack(spacing: 8) {
                         DotMark(kind: .concern, size: 8)

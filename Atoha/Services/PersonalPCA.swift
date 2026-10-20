@@ -14,6 +14,8 @@ enum PersonalPCA {
         /// 成分の向き（単位ベクトル。`semantic` が false ならハッシュ埋め込みの空間）
         var direction: [Double]
         var semantic: Bool
+        /// 主成分を求めたメモ全体（名付けで、寄り方を比べる基準にする）
+        var poolTexts: [String] = []
     }
 
     static let minimumItems = 8
@@ -24,7 +26,8 @@ enum PersonalPCA {
     static func components(from items: [Item]) async -> [Component] {
         var seen = Set<String>()
         let pool = items
-            .filter { $0.state != .released && ($0.kind == .concern || $0.isRated) }
+            // 用事（牛乳など）は本人の傾向を表さないので入れない
+            .filter { $0.state != .released && $0.kind != .errand }
             .sorted { $0.createdAt > $1.createdAt }
             .filter { seen.insert($0.text).inserted }
             .prefix(maximumItems)
@@ -42,7 +45,7 @@ enum PersonalPCA {
         if !semantic { vectors = texts.map(EmbeddingService.embed) }
 
         return pca(vectors: vectors, weights: weights, texts: texts, count: 3).map {
-            var c = $0; c.semantic = semantic; return c
+            var c = $0; c.semantic = semantic; c.poolTexts = texts; return c
         }
     }
 
@@ -127,16 +130,29 @@ enum PersonalPCA {
                 if cloud { CloudAI.recordUse(of: backend) }
                 if valid(r.negative, r.positive, samples: samples, strict: !cloud) { named = (r.negative, r.positive) }
             }
-            if named == nil, let c = await closestConstruct(to: comp, excluded: excluded.union(usedPoles)) {
-                named = (c.negative, c.positive)
+            var lowSamples = Array(comp.lowTexts.prefix(2))
+            var highSamples = Array(comp.highTexts.prefix(2))
+            if named == nil {
+                // 組み込みの軸は、両端のメモが本当にその向きに寄っているときだけ使う
+                let embed: (String) async -> [Double]? = comp.semantic
+                    ? { await EmbeddingService.semanticEmbed($0) }
+                    : { EmbeddingService.embed($0) }
+                if let m = await PoleNamer.best(low: comp.lowTexts, high: comp.highTexts, pool: comp.poolTexts,
+                                                constructs: AxisEngine.constructs,
+                                                excluded: excluded.union(usedPoles), embed: embed) {
+                    named = (m.construct.negative, m.construct.positive)
+                    lowSamples = m.lowSamples
+                    highSamples = m.highSamples
+                }
             }
-            guard let (neg, pos) = named,
-                  !excluded.contains(neg + "|" + pos), !excluded.contains(pos + "|" + neg),
-                  !usedPoles.contains(neg), !usedPoles.contains(pos) else { continue }
-            usedPoles.insert(neg); usedPoles.insert(pos)
-            result.append(AxisCandidate(id: UUID(), negativePole: neg, positivePole: pos,
-                                        lowSamples: Array(comp.lowTexts.prefix(2)),
-                                        highSamples: Array(comp.highTexts.prefix(2)),
+            if let (neg, pos) = named {
+                guard !excluded.contains(neg + "|" + pos), !excluded.contains(pos + "|" + neg),
+                      !usedPoles.contains(neg), !usedPoles.contains(pos) else { continue }
+                usedPoles.insert(neg); usedPoles.insert(pos)
+            }
+            // 合う言葉がなければ、極は空のまま出して本人に名前を付けてもらう
+            result.append(AxisCandidate(id: UUID(), negativePole: named?.0 ?? "", positivePole: named?.1 ?? "",
+                                        lowSamples: lowSamples, highSamples: highSamples,
                                         explainedVariance: comp.explainedVariance))
         }
         return result
@@ -146,35 +162,5 @@ enum PersonalPCA {
         guard !n.isEmpty, !p.isEmpty, n != p else { return false }
         guard strict else { return true }
         return !samples.contains { $0.contains(n) || $0.contains(p) }
-    }
-
-    /// 成分の方向に、いちばん沿っている組み込みの軸（極のベクトルの差を成分に射影）。
-    private static func closestConstruct(to comp: Component, excluded: Set<String>) async -> PoleConstruct? {
-        func pole(_ words: [String]) async -> [Double]? {
-            var vs: [[Double]] = []
-            for w in words {
-                if comp.semantic {
-                    guard let v = await EmbeddingService.semanticEmbed(w) else { return nil }
-                    vs.append(v)
-                } else {
-                    vs.append(EmbeddingService.embed(w))
-                }
-            }
-            let c = EmbeddingService.centroid(vs)
-            return c.count == comp.direction.count ? c : nil
-        }
-        var best: (PoleConstruct, Double)?
-        for c in AxisEngine.constructs {
-            if excluded.contains(c.negative) || excluded.contains(c.positive)
-                || excluded.contains(c.negative + "|" + c.positive) || excluded.contains(c.positive + "|" + c.negative) { continue }
-            guard let n = await pole([c.negative] + c.negativeWords),
-                  let p = await pole([c.positive] + c.positiveWords) else { continue }
-            let s = zip(zip(p, n), comp.direction).reduce(0.0) { $0 + ($1.0.0 - $1.0.1) * $1.1 }
-            if best == nil || abs(s) > abs(best!.1) { best = (c, s) }
-        }
-        guard let (c, s) = best else { return nil }
-        // 向きが逆なら極を入れ替える（低い側＝負極）
-        return s >= 0 ? c : PoleConstruct(negative: c.positive, positive: c.negative,
-                                          negativeWords: c.positiveWords, positiveWords: c.negativeWords)
     }
 }
