@@ -113,6 +113,16 @@ struct PCCBackend: LanguageBackend {
                                               avoid: avoid, limit: limit, maxChars: 60)
     }
 
+    func namePoles(low: [String], high: [String]) async -> (negative: String, positive: String)? {
+        guard isAvailable else { return nil }
+        let session = LanguageModelSession(model: Self.model, instructions: BatchPrompts.namePolesInstructions)
+        do {
+            let r = try await session.respond(to: BatchPrompts.namePolesPrompt(low: low, high: high), generating: GenPolePair.self)
+            let c = BatchPrompts.clean((r.content.a, r.content.b))
+            return (c.0, c.1)
+        } catch { return nil }
+    }
+
     func groupThemes(_ texts: [String], known: [String]) async -> [String]? {
         guard isAvailable, !texts.isEmpty else { return nil }
         let batch = Array(texts.prefix(batchLimit))

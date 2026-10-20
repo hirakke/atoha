@@ -123,7 +123,7 @@ private struct LaterRow: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Button("今受け取る") { receiveNow() }
                         .buttonStyle(.cube(.primary, size: .small))
-                    CubeSegmented(options: ReturnTiming.allCases, label: \.label,
+                    CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
                                   selection: Binding(get: { item.timing }, set: { change(to: $0) }))
                 }
                 .padding(.leading, 34)

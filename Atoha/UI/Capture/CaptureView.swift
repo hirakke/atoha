@@ -54,7 +54,7 @@ struct CaptureView: View {
 
             Rectangle().fill(Theme.faint).frame(height: 1)
 
-            CubeSegmented(options: ReturnTiming.allCases, label: { $0.label },
+            CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
                           detail: { $0.returnDate()?.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()) },
                           selection: $timing, fill: true)
             WantMustPicker(want: $want, must: $must, side: 150,

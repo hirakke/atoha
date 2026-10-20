@@ -24,6 +24,16 @@ struct ChatGPTBackend: LanguageBackend {
         return filled.count == batch.count ? filled : nil
     }
 
+    func namePoles(low: [String], high: [String]) async -> (negative: String, positive: String)? {
+        guard isAvailable else { return nil }
+        let instructions = BatchPrompts.namePolesInstructions
+            + "\nJSON だけを返す。説明は書かない。形式: {\"a\":\"一人で\",\"b\":\"人と\"}"
+        guard let json = await ask(instructions, BatchPrompts.namePolesPrompt(low: low, high: high)),
+              let a = json["a"] as? String, let b = json["b"] as? String else { return nil }
+        let c = BatchPrompts.clean((a, b))
+        return (c.0, c.1)
+    }
+
     func proposeAxes(from texts: [String], avoid: [String], limit: Int) async -> [ProposedAxis] {
         guard isAvailable, !texts.isEmpty else { return [] }
         let list = texts.prefix(batchLimit).map { "・" + String($0.prefix(60)) }.joined(separator: "\n")

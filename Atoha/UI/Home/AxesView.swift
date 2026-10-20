@@ -151,19 +151,28 @@ private struct CandidateCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("\(candidate.negativePole) ↔ \(candidate.positivePole)？")
                     .atype(.title)
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(candidate.sampleTexts, id: \.self) { text in
-                        HStack(spacing: 8) {
-                            DotMark(kind: .concern, size: 8)
-                            Text(text).atype(.small, color: Theme.quiet).lineLimit(1)
-                        }
-                    }
-                }
+                // それぞれの極に寄った自分のメモを並べて、どちらの自分かを見比べられるようにする
+                side(candidate.negativePole, candidate.lowSamples)
+                side(candidate.positivePole, candidate.highSamples)
                 HStack(spacing: 8) {
                     Button("残す", action: keep)
                         .buttonStyle(.cube(.primary))
                     Button("ちがう", action: reject)
                         .buttonStyle(.cube(.secondary))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func side(_ pole: String, _ texts: [String]) -> some View {
+        if !texts.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(pole).atype(.label, color: Theme.quiet)
+                ForEach(texts, id: \.self) { text in
+                    HStack(spacing: 8) {
+                        DotMark(kind: .concern, size: 8)
+                        Text(text).atype(.small, color: Theme.quiet).lineLimit(1)
+                    }
                 }
             }
         }

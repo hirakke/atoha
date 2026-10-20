@@ -27,6 +27,7 @@
 		53909A665A0D71F18D27653E /* CubeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6670AC23B3B764E5B741C55 /* CubeButton.swift */; };
 		5760CEE6FC6DE6068CE25F69 /* TimeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6131D4A4CC335928C1DE5F0B /* TimeText.swift */; };
 		5C636CDA23437FCE1BBFF54A /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F476922DC4619EB51C27AD /* SampleData.swift */; };
+		62B434EEEF29E51A0AB35226 /* PersonalPCA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95486C4029E2E89937DD0766 /* PersonalPCA.swift */; };
 		63CB5519D571E6F3488C840A /* CubeSegmented.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86A2642AB303F8D121106F1 /* CubeSegmented.swift */; };
 		64C31976D6F31CFBF060F198 /* PCCBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687554505A248D07248E1AEB /* PCCBackend.swift */; };
 		68F8EE5E520F9311872756E1 /* AtohaActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */; };
@@ -36,6 +37,7 @@
 		8358D89E7F2625D499C04311 /* ItemProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286EBC60507FAC61B3630550 /* ItemProcessor.swift */; };
 		84A689AACF34789E2FA564E7 /* DotMatrixText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB16D29D20304F9C0305F0CF /* DotMatrixText.swift */; };
 		88178274F9CA03C1DB4E212B /* AtohaActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */; };
+		8E77F76BE74460405F1E0B83 /* Timeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F26D2CA6100F4A76569E6C /* Timeout.swift */; };
 		952F76FDD7E038239C3BFB6B /* CubeGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFC0A92AC358599C8238C7B /* CubeGlyph.swift */; };
 		98CD02B80DA23FDB36BD9A92 /* CaptureControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E737233AF4867CD2E78DA54C /* CaptureControl.swift */; };
 		9E75F6AD5DD94094905F63E8 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0960E4F93277688BDCE5DF3 /* Item.swift */; };
@@ -51,6 +53,7 @@
 		CB62C65EFAABEED95E02953F /* AtohaAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67D5E35926E9D2CC2A601D8 /* AtohaAI.swift */; };
 		CD868A77319FD55143725238 /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E214C4E3460EB09912F5C797 /* WatchBridge.swift */; };
 		D596C40BA158D9325BCE1ED1 /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C4ECA3ED776A8A4E48CFA /* FocusSession.swift */; };
+		DC6CA1F59264CA386B07B0B1 /* VoxelMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */; };
 		E18D05FADACA63DD64294B4A /* WeekDotStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F9824392F24E5AE16FE53B /* WeekDotStrip.swift */; };
 		E7D0B975281C9385E1D7D185 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2CB09E0B8B11B34B3AEE8 /* Card.swift */; };
 		EB9D97B664048B3D6442112F /* WatchTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62302046C5823B19F386EA37 /* WatchTheme.swift */; };
@@ -120,6 +123,7 @@
 		256E29E8A87EAF12F4DDB417 /* VoxelMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMapView.swift; sourceTree = "<group>"; };
 		286EBC60507FAC61B3630550 /* ItemProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemProcessor.swift; sourceTree = "<group>"; };
 		2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaWatchApp.swift; sourceTree = "<group>"; };
+		3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMesh.swift; sourceTree = "<group>"; };
 		4C1256465E6A6CBB65F08211 /* AxisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxisEngine.swift; sourceTree = "<group>"; };
 		50F1ABB1D49FA8DC3AB45936 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		57AE9E94447E9C440FCB6F7D /* DotMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotMark.swift; sourceTree = "<group>"; };
@@ -139,6 +143,7 @@
 		8FFC0A92AC358599C8238C7B /* CubeGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubeGlyph.swift; sourceTree = "<group>"; };
 		929C4CB011EF655A285056A7 /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
 		92E2CB09E0B8B11B34B3AEE8 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		95486C4029E2E89937DD0766 /* PersonalPCA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalPCA.swift; sourceTree = "<group>"; };
 		9CC0A859F1C1C9E07F200D90 /* Atoha.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atoha.entitlements; sourceTree = "<group>"; };
 		9D60D6CF8EE34F8BC06CB711 /* ChatGPTAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTAuth.swift; sourceTree = "<group>"; };
 		A569BB229901B2F91CFD2E46 /* Atoha.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Atoha.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -147,6 +152,7 @@
 		B0960E4F93277688BDCE5DF3 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		B0F9824392F24E5AE16FE53B /* WeekDotStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekDotStrip.swift; sourceTree = "<group>"; };
 		B173EBFF3191CA404C9A24A8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B3F26D2CA6100F4A76569E6C /* Timeout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timeout.swift; sourceTree = "<group>"; };
 		B67D5E35926E9D2CC2A601D8 /* AtohaAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaAI.swift; sourceTree = "<group>"; };
 		B777E38E45D1B169DE2ED7BB /* AtohaWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AtohaWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B86A2642AB303F8D121106F1 /* CubeSegmented.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubeSegmented.swift; sourceTree = "<group>"; };
@@ -182,6 +188,7 @@
 				BF267BA20210BE92C58FD245 /* Later */,
 				3AC6EFF3F09A53D0A1965477 /* Map */,
 				6DA642AAD56CF17D0B48640F /* Settings */,
+				56A0959DBC7749D1645E1315 /* Voxel */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -247,6 +254,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		56A0959DBC7749D1645E1315 /* Voxel */ = {
+			isa = PBXGroup;
+			children = (
+				3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */,
+			);
+			path = Voxel;
+			sourceTree = "<group>";
+		};
 		57072E548CFBA7C83C4E9BC5 /* Focus */ = {
 			isa = PBXGroup;
 			children = (
@@ -289,6 +304,8 @@
 				286EBC60507FAC61B3630550 /* ItemProcessor.swift */,
 				CB48C9429997C7C0AB2B86FD /* LanguageBackend.swift */,
 				687554505A248D07248E1AEB /* PCCBackend.swift */,
+				95486C4029E2E89937DD0766 /* PersonalPCA.swift */,
+				B3F26D2CA6100F4A76569E6C /* Timeout.swift */,
 				E214C4E3460EB09912F5C797 /* WatchBridge.swift */,
 			);
 			path = Services;
@@ -534,6 +551,7 @@
 				2DF3F3EA600C2339083623C2 /* MapControls.swift in Sources */,
 				39C37D0376DA8714091C1C24 /* MapScreen.swift in Sources */,
 				64C31976D6F31CFBF060F198 /* PCCBackend.swift in Sources */,
+				62B434EEEF29E51A0AB35226 /* PersonalPCA.swift in Sources */,
 				3A8484FCFCBEC5286838E59A /* ReturnService.swift in Sources */,
 				5C636CDA23437FCE1BBFF54A /* SampleData.swift in Sources */,
 				BE6C8844E36F7D7D5B50603E /* SettingsStore.swift in Sources */,
@@ -541,8 +559,10 @@
 				40A80193E4C063B4538B6C59 /* TankView.swift in Sources */,
 				2E549F6A448D597CC1562980 /* Theme.swift in Sources */,
 				5760CEE6FC6DE6068CE25F69 /* TimeText.swift in Sources */,
+				8E77F76BE74460405F1E0B83 /* Timeout.swift in Sources */,
 				B4AD5E87525C82D924061225 /* Typography.swift in Sources */,
 				720AC5F394A3789462BDF84D /* VoxelMapView.swift in Sources */,
+				DC6CA1F59264CA386B07B0B1 /* VoxelMesh.swift in Sources */,
 				3EAD8937BDE1A956B515B81B /* WantMustPad.swift in Sources */,
 				CD868A77319FD55143725238 /* WatchBridge.swift in Sources */,
 				E18D05FADACA63DD64294B4A /* WeekDotStrip.swift in Sources */,

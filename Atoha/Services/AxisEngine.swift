@@ -5,7 +5,11 @@ struct AxisCandidate: Identifiable, Hashable {
     let id: UUID
     var negativePole: String
     var positivePole: String
-    var sampleTexts: [String]
+    /// 低い側（negativePole 寄り）と高い側（positivePole 寄り）の、本人のメモ
+    var lowSamples: [String]
+    var highSamples: [String]
+    /// 主成分分析由来のとき、その成分が全体のばらつきに占める割合（0...1）。それ以外は nil。
+    var explainedVariance: Double? = nil
 }
 
 /// Built-in bipolar constructs (used for pole expansion and as the no-model candidate pool).
@@ -220,11 +224,19 @@ enum AxisEngine {
 
         var result: [AxisCandidate] = []
 
+        // 本人のメモの主成分から（最大2つ）。名前が付けられなければ組み込みの軸に寄せる。
+        var excludedForPCA = Set(existing.map { $0.negativePole + "|" + $0.positivePole })
+        for a in existing { excludedForPCA.insert(a.negativePole); excludedForPCA.insert(a.positivePole) }
+        for c in await PersonalPCA.candidates(from: items, excluded: excludedForPCA, limit: 2)
+        where !existingKeys.contains(pairKey(c.negativePole, c.positivePole)) {
+            result.append(c)
+        }
+
         // PCC が使えれば PCC（多くのメモを一度に見られる）、だめなら iPhone 内のモデル
         let backend = CloudAI.batchBackend
         // iPhone 内の小さなモデルは、メモの言葉をそのまま使ったり気分の軸（疲れ↔元気）を出したりしがち。
         // 軸の候補をモデルに作らせるのは PCC のときだけにし、それ以外は組み込みの軸から選ぶ。
-        if AtohaAI.prefersModel && backend.isAvailable && CloudAI.isCloud(backend) {
+        if result.count < 3 && AtohaAI.prefersModel && backend.isAvailable && CloudAI.isCloud(backend) {
             let avoid = existing.map { axisKey($0.negativePole, $0.positivePole) }
             let proposals = await backend.proposeAxes(from: Array(texts.prefix(backend.batchLimit)), avoid: avoid, limit: 3)
             CloudAI.recordUse(of: backend)
@@ -234,27 +246,31 @@ enum AxisEngine {
                 let raws = embeddings.map { rawScore($0, negative: p.negative, positive: p.positive) }
                 // Keep a model axis only if it actually separates some of this person's concerns.
                 let samples = sampleTexts(texts: Array(texts), raws: raws, allowWeak: false)
-                guard samples.count >= 2 else { continue }
-                result.append(AxisCandidate(id: UUID(), negativePole: p.negative, positivePole: p.positive, sampleTexts: samples))
+                guard samples.low.count + samples.high.count >= 2 else { continue }
+                let poles = Set(result.flatMap { [$0.negativePole, $0.positivePole] })
+                guard !poles.contains(p.negative), !poles.contains(p.positive) else { continue }
+                result.append(AxisCandidate(id: UUID(), negativePole: p.negative, positivePole: p.positive,
+                                            lowSamples: samples.low, highSamples: samples.high))
                 if result.count == 3 { return result }
             }
         }
 
         // Fallback / fill-up: rank built-in constructs by how well they separate this person's concerns.
         let clusters = cluster(embeddings, threshold: 0.35)
-        var ranked: [(PoleConstruct, Double, [String])] = []
+        var ranked: [(PoleConstruct, Double, (low: [String], high: [String]))] = []
         let taken = existingKeys.union(result.map { pairKey($0.negativePole, $0.positivePole) })
         let takenPoles = Set(result.flatMap { [$0.negativePole, $0.positivePole] })
         for c in constructs where !taken.contains(pairKey(c.negative, c.positive))
             && !takenPoles.contains(c.negative) && !takenPoles.contains(c.positive) {
             let raws = embeddings.map { rawScore($0, negative: c.negative, positive: c.positive) }
             let samples = sampleTexts(texts: Array(texts), raws: raws, allowWeak: false)
-            guard samples.count >= 2 else { continue }
+            guard samples.low.count + samples.high.count >= 2 else { continue }
             ranked.append((c, separation(raws, clusters: clusters), samples))
         }
         ranked.sort { $0.1 > $1.1 }
-        for (c, _, samples) in ranked.prefix(3 - result.count) {
-            result.append(AxisCandidate(id: UUID(), negativePole: c.negative, positivePole: c.positive, sampleTexts: samples))
+        for (c, _, samples) in ranked.prefix(max(0, 3 - result.count)) {
+            result.append(AxisCandidate(id: UUID(), negativePole: c.negative, positivePole: c.positive,
+                                        lowSamples: samples.low, highSamples: samples.high))
         }
         return result
     }
@@ -266,21 +282,15 @@ enum AxisEngine {
         return s[0] + "|" + s[1]
     }
 
-    /// 2–4 texts: up to 2 from each pole's extreme. Items with ~no signal are skipped unless `allowWeak`.
-    private static func sampleTexts(texts: [String], raws: [Double], allowWeak: Bool) -> [String] {
-        let minSignal = 0.03
+    /// Up to 2 texts from each pole's extreme. Items with ~no signal are skipped unless `allowWeak`.
+    private static func sampleTexts(texts: [String], raws: [Double], allowWeak: Bool) -> (low: [String], high: [String]) {
+        let minSignal = allowWeak ? 0 : 0.03
         let order = raws.indices.sorted { raws[$0] < raws[$1] }
-        var picks: [Int] = []
-        picks += order.prefix(2).filter { raws[$0] < -minSignal }
-        picks += order.reversed().prefix(2).filter { raws[$0] > minSignal && !picks.contains($0) }
-        if picks.count < 2 && allowWeak {
-            for i in raws.indices.sorted(by: { abs(raws[$0]) > abs(raws[$1]) }) where !picks.contains(i) {
-                picks.append(i)
-                if picks.count >= 2 { break }
-            }
-        }
+        let low = order.prefix(2).filter { raws[$0] < -minSignal }
+        let high = order.reversed().prefix(2).filter { raws[$0] > minSignal && !low.contains($0) }
         var seen = Set<String>()
-        return picks.map { texts[$0] }.filter { seen.insert($0).inserted }.prefix(4).map { $0 }
+        let pick = { (ids: [Int]) in ids.map { texts[$0] }.filter { seen.insert($0).inserted } }
+        return (pick(low), pick(high))
     }
 
     /// Item-level spread plus between-cluster spread of raw scores.

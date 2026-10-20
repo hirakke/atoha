@@ -215,7 +215,7 @@ private struct ReturnedRow: View {
                 DotMatrixText(date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()), size: .medium)
             } else {
                 DotMatrixText("--:--", size: .medium, color: Theme.quiet)
-                Text(timing.label).atype(.small, color: Theme.quiet)
+                Text(timing.label()).atype(.small, color: Theme.quiet)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 56)
@@ -275,7 +275,7 @@ private struct ReturnedRow: View {
                 if choosing {
                     HStack(spacing: 8) {
                         ForEach(ReturnTiming.allCases) { timing in
-                            Button(timing.label) { postpone(timing) }
+                            Button(timing.label()) { postpone(timing) }
                                 .buttonStyle(.cube(timing == SettingsStore.defaultTiming ? .primary : .secondary, size: .small))
                         }
                     }

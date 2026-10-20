@@ -18,6 +18,12 @@ protocol LanguageBackend {
     /// まとめ処理：各メモに「まとまり」の名前を付ける。`known` は既存のまとまり名（なるべく再利用させる）。
     /// 戻り値は texts と同じ順の名前。答えられないときは nil。
     func groupThemes(_ texts: [String], known: [String]) async -> [String]?
+    /// 2つのメモのグループの違いを、対になる短い言葉で表す（negative = low 側、positive = high 側）。答えられないときは nil。
+    func namePoles(low: [String], high: [String]) async -> (negative: String, positive: String)?
+}
+
+extension LanguageBackend {
+    func namePoles(low: [String], high: [String]) async -> (negative: String, positive: String)? { nil }
 }
 
 /// まとめ処理と軸の候補のプロンプト。どのモデルでも同じものを使い、渡す量だけを変える。
@@ -61,6 +67,33 @@ struct GenGroupAssignment {
 struct GenGroups {
     @Guide(description: "すべてのメモについて1つずつ")
     var items: [GenGroupAssignment]
+}
+
+@Generable
+struct GenPolePair {
+    @Guide(description: "グループAを表す短い言葉。2〜6文字")
+    var a: String
+    @Guide(description: "グループBを表す短い言葉。2〜6文字")
+    var b: String
+}
+
+extension BatchPrompts {
+    static let namePolesInstructions = """
+    同じ人が書いた2つのメモのグループから、その人自身を知る手がかりになる違いを、対になる短い言葉で表す。
+    何に惹かれるか、どう取り組むのが好きか、何を大事にしているか、という本人の傾向を表す言葉にする。
+    話題の分類（勉強↔遊び）、時期や締め切り、気分や体調は使わない。良し悪しを含まない。メモの単語をそのまま使わない。
+    例: 一人で↔人と、作る↔整える、考える↔動く、深める↔広げる、自分のため↔誰かのため
+    """
+
+    static func namePolesPrompt(low: [String], high: [String]) -> String {
+        func list(_ xs: [String]) -> String { xs.map { "・" + String($0.prefix(60)) }.joined(separator: "\n") }
+        return "グループA:\n\(list(low))\nグループB:\n\(list(high))\nAとBの違いを表す対の言葉。"
+    }
+
+    static func clean(_ pair: (String, String)) -> (String, String) {
+        let t = { (x: String) in String(x.trimmingCharacters(in: .whitespacesAndNewlines).prefix(8)) }
+        return (t(pair.0), t(pair.1))
+    }
 }
 
 struct ProposedAxis {
@@ -143,6 +176,17 @@ struct OnDeviceBackend: LanguageBackend {
         }
     }
 
+    func namePoles(low: [String], high: [String]) async -> (negative: String, positive: String)? {
+        guard isAvailable else { return nil }
+        let session = LanguageModelSession(instructions: BatchPrompts.namePolesInstructions)
+        do {
+            let r = try await session.respond(to: BatchPrompts.namePolesPrompt(low: low, high: high),
+                                              generating: GenPolePair.self)
+            let c = BatchPrompts.clean((r.content.a, r.content.b))
+            return (c.0, c.1)
+        } catch { return nil }
+    }
+
     func proposeAxes(from texts: [String], avoid: [String], limit: Int) async -> [ProposedAxis] {
         guard isAvailable, !texts.isEmpty else { return [] }
         // Keep well inside 4K tokens: ≤24 texts × ≤40 chars.
@@ -154,7 +198,9 @@ struct OnDeviceBackend: LanguageBackend {
 
 extension BatchPrompts {
     static let axesInstructions = """
-    メモ全体から、その人の関心やものごとへの向き合い方の違いを表す「対の軸」を出す。
+    メモ全体から、その人自身を知る手がかりになる「対の軸」を出す。
+    何に惹かれるか、どう取り組むのが好きか、何を大事にしているか、という本人の傾向を表す軸にする。
+    話題の分類（勉強↔遊び）や時期・締め切りの軸にはしない。
     両極はどちらも良い悪いのない、対等な言葉にする。気分や体調（不安、疲労、元気など）は使わない。
     どちらの極にもメモがいくつか当てはまる軸にする。メモの単語をそのまま使わない。
     例: 一人で↔人と、作る↔整える、今↔将来、考える↔動く、自分のため↔誰かのため、深める↔広げる

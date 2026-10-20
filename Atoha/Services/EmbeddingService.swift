@@ -116,3 +116,77 @@ enum EmbeddingService {
         return l2(sum)
     }
 }
+
+// MARK: - Contextual (semantic) embedding
+
+/// `NLContextualEmbedding`（日本語の文脈つき埋め込み）で文のベクトルを作る。
+/// 単語ごとのベクトルを平均して文のベクトルにする。モデルが使えなければ nil。
+/// `embed`（ハッシュ）とは別物。保存はしない（メモリ上のキャッシュだけ）。
+extension EmbeddingService {
+    private final class SemanticState: @unchecked Sendable {
+        private let lock = NSLock()
+        private var model: NLContextualEmbedding?
+        private var loaded = false
+        private var failed = false
+        private var cache: [String: [Double]] = [:]
+
+        /// (確定済みか, モデル)
+        func status() -> (done: Bool, model: NLContextualEmbedding?) {
+            lock.lock(); defer { lock.unlock() }
+            return (loaded || failed, model)
+        }
+        func finish(_ m: NLContextualEmbedding?) {
+            lock.lock(); defer { lock.unlock() }
+            model = m; loaded = m != nil; failed = m == nil
+        }
+        func cached(_ key: String) -> [Double]? {
+            lock.lock(); defer { lock.unlock() }
+            return cache[key]
+        }
+        func store(_ key: String, _ v: [Double]) {
+            lock.lock(); defer { lock.unlock() }
+            if cache.count > 1000 { cache.removeAll() }
+            cache[key] = v
+        }
+    }
+    private static let semantic = SemanticState()
+
+    private static func loadedSemanticModel() async -> NLContextualEmbedding? {
+        let st = semantic.status()
+        if st.done { return st.model }
+
+        var model: NLContextualEmbedding? = NLContextualEmbedding(language: .japanese)
+        if model == nil { model = NLContextualEmbedding(script: .japanese) }
+        if let m = model {
+            if !m.hasAvailableAssets {
+                // シミュレータなどでは素材の取得が返ってこないことがある
+                let result = await withTimeout(10) { try? await m.requestAssets() }
+                if result != .available { model = nil }
+            }
+            if model != nil { do { try m.load() } catch { model = nil } }
+        }
+        semantic.finish(model)
+        return model
+    }
+
+    /// L2正規化済みの文ベクトル（単語ベクトルの平均）。使えないときは nil。
+    static func semanticEmbed(_ text: String) async -> [Double]? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        if let hit = semantic.cached(trimmed) { return hit }
+        guard let model = await loadedSemanticModel() else { return nil }
+        guard let result = try? model.embeddingResult(for: trimmed, language: .japanese) else { return nil }
+        var sum = [Double](repeating: 0, count: model.dimension)
+        var count = 0
+        result.enumerateTokenVectors(in: trimmed.startIndex..<trimmed.endIndex) { vector, _ in
+            guard vector.count == sum.count else { return true }
+            for i in 0..<vector.count { sum[i] += vector[i] }
+            count += 1
+            return true
+        }
+        guard count > 0 else { return nil }
+        let v = l2(sum.map { $0 / Double(count) })
+        semantic.store(trimmed, v)
+        return v
+    }
+}

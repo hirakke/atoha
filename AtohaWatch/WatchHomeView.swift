@@ -56,7 +56,7 @@ struct WatchHomeView: View {
     private func timingChip(_ option: ReturnTiming) -> some View {
         let selected = option == timing
         return Button { timing = option } label: {
-            Text(option.label)
+            Text(option.label())
                 .font(Theme.mono(11))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -74,7 +74,7 @@ struct WatchHomeView: View {
                 DotMatrixText(hhmm(date), dotSize: 5, spacing: 1.5, color: Theme.accent)
             } else {
                 DotMatrixText("--:--", dotSize: 5, spacing: 1.5, color: Theme.quiet)
-                Text(timing.label).font(Theme.mono(12)).foregroundStyle(Theme.quiet)
+                Text(timing.label()).font(Theme.mono(12)).foregroundStyle(Theme.quiet)
             }
         }
     }

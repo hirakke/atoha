@@ -52,6 +52,12 @@ enum ReturnTiming: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// 今の時刻で見たときの呼び方。21時を過ぎてから「今夜」を選ぶと明日の夜に返るので「明日の夜」と出す。
+    func label(now: Date = .now, calendar: Calendar = .current) -> String {
+        guard self == .tonight, let date = returnDate(from: now, calendar: calendar) else { return label }
+        return calendar.isDate(date, inSameDayAs: now) ? "今夜" : "明日の夜"
+    }
+
     /// 返す時刻。区切りは時刻を持たない。
     func returnDate(from now: Date = .now, calendar: Calendar = .current) -> Date? {
         switch self {
