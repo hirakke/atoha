@@ -26,6 +26,8 @@ struct HomeView: View {
                 }
                 // ボタンの分だけスクロールの下端を空ける（最後の行がボタンに隠れないように）
                 .safeAreaInset(edge: .bottom) { captureButton }
+                // タブバーの下の白いぼかしを消して、方眼を最後まで見せる
+                .scrollEdgeEffectHidden(true, for: .bottom)
             }
             .paperStatusBar()
             .toolbar(.hidden, for: .navigationBar)
@@ -76,7 +78,8 @@ struct CaptureButton: View {
         .buttonStyle(.cube(.primary, size: .large, fill: true))
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
-        .background(PaperBackground(fullScreen: false))
+        // ボタンの下からタブバーの下まで方眼で埋める（スクロールした中身が透けないように）
+        .background(PaperBackground(fullScreen: false).ignoresSafeArea(edges: .bottom))
     }
 }
 

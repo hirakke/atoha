@@ -75,6 +75,8 @@ struct LaterView: View {
                     .padding(24)
                 }
                 .safeAreaInset(edge: .bottom) { CaptureButton() }
+                // タブバーの下の白いぼかしを消して、方眼を最後まで見せる
+                .scrollEdgeEffectHidden(true, for: .bottom)
             }
             .paperStatusBar()
             .toolbar(.hidden, for: .navigationBar)
