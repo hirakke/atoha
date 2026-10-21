@@ -210,8 +210,8 @@ final class TankScene {
 
         let h = Self.half - SIMD3(repeating: Self.radius)
         let damping = expf(-0.9 * dt)
-        // 傾けたぶんだけ（真下からのずれ）横へ押す。真下向きの重さは浮力で打ち消す
-        let tilt = SIMD3<Float>(gravity.x, gravity.y + 1, gravity.z) * 0.45
+        // 水槽はジャイロで動かす：傾けたぶんだけ（真下からのずれ）押す。真下向きの重さは浮力で打ち消す
+        let tilt = SIMD3<Float>(gravity.x, gravity.y + 1, gravity.z) * 1.2
         let ids = Array(bodies.keys)
 
         for id in ids {
@@ -233,12 +233,12 @@ final class TankScene {
                 }
                 continue
             }
-            // 水に浮いている：それぞれの高さへゆるく戻り、遅く大きく、不揃いに漂う
+            // 水に浮いている：動きの主役は傾き。それぞれの高さへはゆるく戻り、自分ではかすかに揺れるだけ
             var acc = tilt
-            if b.pos.y <= h.y { acc.y += (b.rest * h.y - b.pos.y) * 0.8 }
-            acc.x += sinf(time * 0.23 + b.phase.x) * 0.22 + sinf(time * 0.61 + b.phase.y) * 0.08
-            acc.y += sinf(time * 0.31 + b.phase.y) * 0.16 + sinf(time * 0.83 + b.phase.z) * 0.06
-            acc.z += sinf(time * 0.19 + b.phase.z) * 0.12
+            if b.pos.y <= h.y { acc.y += (b.rest * h.y - b.pos.y) * 0.35 }
+            acc.x += sinf(time * 0.23 + b.phase.x) * 0.06
+            acc.y += sinf(time * 0.31 + b.phase.y) * 0.05
+            acc.z += sinf(time * 0.19 + b.phase.z) * 0.04
             b.vel += acc * dt
             b.vel *= damping
             b.pos += b.vel * dt

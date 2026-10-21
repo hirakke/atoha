@@ -33,7 +33,7 @@ enum SampleData {
             inserted.append(item)
         }
         try? context.save()
-        ReturnService.refill(in: context, now: now)
+        ReturnService.acceptTop(2, in: context, now: now)
         Task { @MainActor in
             for item in inserted { await ItemProcessor.process(item, axes: axes) }
             AxisEngine.rescore(items: inserted, axes: axes)

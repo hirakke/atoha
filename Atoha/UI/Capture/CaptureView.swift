@@ -54,7 +54,7 @@ struct CaptureView: View {
 
             Rectangle().fill(Theme.faint).frame(height: 1)
 
-            SectionLabel("今に戻る時", ruled: false)
+            SectionLabel("戻ってくる時", ruled: false)
             CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
                           detail: { $0.detail() },
                           selection: $timing, fill: true)

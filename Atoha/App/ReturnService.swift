@@ -3,15 +3,16 @@ import SwiftData
 import UserNotifications
 import ActivityKit
 
-/// 預かり中のものを返す。
+/// あとでに回したものが戻ってくる。
+/// 戻ってきたもの（戻る時が来たもの）は「今」へ自動では入れず、おすすめとして見せる。今に入れるかは本人が決める。
 @MainActor
 enum ReturnService {
-    /// 返す時刻を過ぎたものを、上限の範囲で返す。
+    /// 起動時・画面に戻ったとき。戻ってきたものの見え方（ライブアクティビティなど）をそろえる。
     static func returnDue(in context: ModelContext, now: Date = .now) {
-        refill(in: context, now: now)
+        sync(in: context)
     }
 
-    /// 「区切り」：区切りで返すものを返せる状態（returnAt = 今）にして、上限の範囲で返す。
+    /// 「区切りがついた」：終わったらで回したものを、戻ってきた状態（returnAt = 今）にする。
     static func returnAtBreak(in context: ModelContext, now: Date = .now) {
         let waiting = ItemState.waiting.rawValue
         let descriptor = FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == waiting })
@@ -20,23 +21,46 @@ enum ReturnService {
                 item.returnAt = now
             }
         }
-        refill(in: context, now: now)
+        sync(in: context)
     }
 
-    /// 返す時が来ているもの（ready）を、優先順位の高い順に、今が上限になるまで返す。
-    /// 今から出たとき・起動時・区切りのときに必ず通る入口。
-    static func refill(in context: ModelContext, now: Date = .now) {
-        let capacity = SettingsStore.nowCapacity
+    /// 今に入っている数。
+    static func nowCount(in context: ModelContext) -> Int {
         let returnedRaw = ItemState.returned.rawValue
-        let used = (try? context.fetchCount(FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == returnedRaw }))) ?? 0
-        let waitingRaw = ItemState.waiting.rawValue
-        let descriptor = FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == waitingRaw })
-        if used < capacity, let items = try? context.fetch(descriptor) {
-            let ready = items.filter { $0.isReady(now: now) }.sorted { $0.priority(now: now) > $1.priority(now: now) }
-            for item in ready.prefix(capacity - used) { item.state = .returned }
-        }
+        return (try? context.fetchCount(FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == returnedRaw }))) ?? 0
+    }
+
+    /// 今にあと何件入れられるか。
+    static func room(in context: ModelContext) -> Int {
+        max(0, SettingsStore.nowCapacity - nowCount(in: context))
+    }
+
+    /// 本人が選んで、今に入れる。上限なら入れずに false。
+    @discardableResult
+    static func accept(_ item: Item, in context: ModelContext) -> Bool {
+        guard item.state == .waiting, room(in: context) > 0 else { return false }
+        let old = item.returnAt
+        item.state = .returned
+        try? context.save()
+        if let old { NotificationScheduler.reschedule(for: old, in: context) }
+        sync(in: context)
+        return true
+    }
+
+    /// 保存して、ライブアクティビティを今の状態に合わせる。今へは何も動かさない。
+    static func sync(in context: ModelContext) {
         try? context.save()
         LiveActivityService.sync(in: context)
+    }
+
+    /// サンプル用：おすすめの上から n 件を今に入れた状態にする。
+    static func acceptTop(_ n: Int, in context: ModelContext, now: Date = .now) {
+        let waitingRaw = ItemState.waiting.rawValue
+        let descriptor = FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == waitingRaw })
+        guard let items = try? context.fetch(descriptor) else { return }
+        let ready = items.filter { $0.isReady(now: now) }.sorted { $0.priority(now: now) > $1.priority(now: now) }
+        for item in ready.prefix(min(n, room(in: context))) { item.state = .returned }
+        sync(in: context)
     }
 }
 

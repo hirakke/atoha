@@ -64,11 +64,11 @@ enum ReturnTiming: String, Codable, CaseIterable, Identifiable {
         return date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
     }
 
-    /// 回したあとに見せる一言。いつ「今」に戻るか。
+    /// 回したあとに見せる一言。いつ戻ってくるか（今に入れるかは、戻ってきたときに選ぶ）。
     func returnMessage(now: Date = .now) -> String {
-        guard let date = returnDate(from: now) else { return "今の作業が終わったら、今へ戻ります" }
+        guard let date = returnDate(from: now) else { return "区切りがついたら戻ってきます" }
         let hm = date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
-        return "\(label(now: now)) \(hm) に今へ戻ります"
+        return "\(label(now: now)) \(hm) に戻ってきます"
     }
 
     /// 返す時刻。区切りは時刻を持たない。

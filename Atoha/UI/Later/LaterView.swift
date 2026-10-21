@@ -7,6 +7,8 @@ struct LaterView: View {
     @Query(sort: \Item.createdAt) private var items: [Item]
 
     private var waiting: [Item] { items.filter { $0.state == .waiting } }
+    /// 今にあと何件入れられるか
+    private var room: Int { max(0, SettingsStore.nowCapacity - items.filter { $0.state == .returned }.count) }
     /// 返す時が来ているが、今がいっぱいで待っているもの（優先順位の高い順）
     private var ready: [Item] {
         let now = Date.now
@@ -66,10 +68,10 @@ struct LaterView: View {
                         }
                         if !ready.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
-                                SectionLabel("今が空いたら戻る")
-                                Text("戻る時は来ていますが、今がいっぱいなので待っています。")
+                                SectionLabel("戻ってきた")
+                                Text(room > 0 ? "おすすめ順。今に入れるものを選ぶ（あと\(room)件）" : "おすすめ順。今がいっぱいなので、今のものが片付いたら入れられます")
                                     .atype(.label).padding(.bottom, 6)
-                                ForEach(ready) { LaterRow(item: $0) }
+                                ForEach(ready) { LaterRow(item: $0, room: room) }
                             }
                             .onPaper(padding: 14)
                         }
@@ -78,9 +80,9 @@ struct LaterView: View {
                                 if section.id == "break" {
                                     breakHeader
                                 } else {
-                                    SectionLabel("\(section.title) に戻る").padding(.bottom, 6)
+                                    SectionLabel("\(section.title) に戻ってくる").padding(.bottom, 6)
                                 }
-                                ForEach(section.rows.sorted { $0.createdAt < $1.createdAt }) { LaterRow(item: $0) }
+                                ForEach(section.rows.sorted { $0.createdAt < $1.createdAt }) { LaterRow(item: $0, room: room) }
                             }
                             .onPaper(padding: 14)
                         }
@@ -108,15 +110,15 @@ struct LaterView: View {
     private var breakHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .bottom) {
-                Text("終わったら戻る").font(Theme.sans(12, weight: .black)).foregroundStyle(Theme.ink)
+                Text("終わったら戻ってくる").font(Theme.sans(12, weight: .black)).foregroundStyle(Theme.ink)
                 Spacer()
-                Button("今に戻す") {
+                Button("区切りがついた") {
                     withAnimation { ReturnService.returnAtBreak(in: context) }
                 }
                 .buttonStyle(.cube(.secondary))
             }
             Rectangle().fill(Theme.ink).frame(height: Theme.stroke)
-            Text("区切りがついたら押す。集中を終えたときにも戻ります。")
+            Text("押すと、ここにあるものが「戻ってきた」に移ります。集中を終えたときも同じ。")
                 .atype(.label).padding(.bottom, 6)
         }
     }
@@ -125,6 +127,8 @@ struct LaterView: View {
 private struct LaterRow: View {
     @Environment(\.modelContext) private var context
     let item: Item
+    /// 今にあと何件入れられるか
+    let room: Int
     @State private var open = false
 
     var body: some View {
@@ -149,8 +153,12 @@ private struct LaterRow: View {
 
             if open {
                 VStack(alignment: .leading, spacing: 10) {
-                    Button("今に戻す") { receiveNow() }
-                        .buttonStyle(.cube(.primary, size: .small))
+                    HStack(spacing: 10) {
+                        Button("今に入れる") { receiveNow() }
+                            .buttonStyle(.cube(.primary, size: .small))
+                            .disabled(room == 0)
+                        if room == 0 { Text("今がいっぱい").atype(.label) }
+                    }
                     Text("戻る時を変える").atype(.label)
                     CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
                                   selection: Binding(get: { item.timing }, set: { change(to: $0) }))
@@ -162,14 +170,9 @@ private struct LaterRow: View {
         .padding(.vertical, 4)
     }
 
+    /// 本人が選んで今に入れる（戻る時が来ていなくても入れられる）
     private func receiveNow() {
-        withAnimation {
-            let old = item.returnAt
-            item.returnAt = .now
-            try? context.save()
-            if let old { NotificationScheduler.reschedule(for: old, in: context) }
-            ReturnService.refill(in: context)
-        }
+        withAnimation { _ = ReturnService.accept(item, in: context) }
     }
 
     private func change(to timing: ReturnTiming) {

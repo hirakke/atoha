@@ -117,7 +117,7 @@ struct FocusView: View {
             item.resolvedAt = .now
         }
         try? context.save()
-        ReturnService.refill(in: context)
+        ReturnService.sync(in: context)
         session.clear()
     }
 
