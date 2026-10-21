@@ -46,7 +46,7 @@ enum ReturnTiming: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .atBreak: "終わったら"
+        case .atBreak: "手が空いたら"
         case .tonight: "今夜"
         case .tomorrowMorning: "明日の朝"
         }
@@ -60,15 +60,15 @@ enum ReturnTiming: String, Codable, CaseIterable, Identifiable {
 
     /// 書き出し画面などで、ラベルの下に出す補足（時刻、または「区切りで」）。
     func detail(now: Date = .now) -> String {
-        guard let date = returnDate(from: now) else { return "区切りで" }
+        guard let date = returnDate(from: now) else { return "時間は決めない" }
         return date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
     }
 
     /// 回したあとに見せる一言。いつ戻ってくるか（今に入れるかは、戻ってきたときに選ぶ）。
     func returnMessage(now: Date = .now) -> String {
-        guard let date = returnDate(from: now) else { return "区切りがついたら戻ってきます" }
+        guard let date = returnDate(from: now) else { return "手が空いたら、「あとで」に出します" }
         let hm = date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
-        return "\(label(now: now)) \(hm) に戻ってきます"
+        return "\(label(now: now)) \(hm) にお知らせします"
     }
 
     /// 返す時刻。区切りは時刻を持たない。

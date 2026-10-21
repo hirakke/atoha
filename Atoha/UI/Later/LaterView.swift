@@ -62,14 +62,14 @@ struct LaterView: View {
                         header
                         TankView(cubes: waiting.map { TankCube(id: $0.id, accent: $0.isRated && $0.effectiveWant >= 0.5) })
                         if waiting.isEmpty {
-                            Text("「あとでに回す」で入れたものが、今に戻るまでここで待ちます。")
+                            Text("「あとでに回す」で入れたものが、ここに並びます。")
                                 .atype(.small, color: Theme.quiet)
                                 .onPaper()
                         }
                         if !ready.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
-                                SectionLabel("戻ってきた")
-                                Text(room > 0 ? "おすすめ順。今に入れるものを選ぶ（あと\(room)件）" : "おすすめ順。今がいっぱいなので、今のものが片付いたら入れられます")
+                                SectionLabel("時間になったもの")
+                                Text(room > 0 ? "おすすめ順です。今に入れられるのはあと\(room)件" : "今がいっぱいです。今のものが終わると入れられます")
                                     .atype(.label).padding(.bottom, 6)
                                 ForEach(Array(ready.enumerated()), id: \.element.id) { index, item in
                                     SuggestionRow(item: item, top: index == 0, room: room)
@@ -82,7 +82,7 @@ struct LaterView: View {
                                 if section.id == "break" {
                                     breakHeader
                                 } else {
-                                    SectionLabel("\(section.title) に戻ってくる").padding(.bottom, 6)
+                                    SectionLabel("\(section.title) にお知らせ").padding(.bottom, 6)
                                 }
                                 ForEach(section.rows.sorted { $0.createdAt < $1.createdAt }) { LaterRow(item: $0, room: room) }
                             }
@@ -112,15 +112,15 @@ struct LaterView: View {
     private var breakHeader: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .bottom) {
-                Text("終わったら戻ってくる").font(Theme.sans(12, weight: .black)).foregroundStyle(Theme.ink)
+                Text("手が空いたら").font(Theme.sans(12, weight: .black)).foregroundStyle(Theme.ink)
                 Spacer()
-                Button("区切りがついた") {
+                Button("手が空いた") {
                     withAnimation { ReturnService.returnAtBreak(in: context) }
                 }
                 .buttonStyle(.cube(.secondary))
             }
             Rectangle().fill(Theme.ink).frame(height: Theme.stroke)
-            Text("押すと、ここにあるものが「戻ってきた」に移ります。集中を終えたときも同じ。")
+            Text("押すと「時間になったもの」に移ります。集中を終えたときも移ります。")
                 .atype(.label).padding(.bottom, 6)
         }
     }
@@ -161,7 +161,7 @@ private struct LaterRow: View {
                             .disabled(room == 0)
                         if room == 0 { Text("今がいっぱい").atype(.label) }
                     }
-                    Text("戻る時を変える").atype(.label)
+                    Text("思い出す時間を変える").atype(.label)
                     CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
                                   selection: Binding(get: { item.timing }, set: { change(to: $0) }))
                 }

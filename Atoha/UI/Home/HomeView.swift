@@ -27,7 +27,7 @@ struct HomeView: View {
                             // 何もないときに、次に何をすればいいかだけを見せる
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("今やることはありません").atype(.body)
-                                Text("気になったら「あとでに回す」。戻ってきたものは「あとで」で選んで今に入れます。")
+                                Text("気になることは「あとでに回す」へ。決めた時間になったら、「あとで」から選んで今に入れます。")
                                     .atype(.small, color: Theme.quiet)
                             }
                             .onPaper()
@@ -36,7 +36,7 @@ struct HomeView: View {
                         }
                         if !suggested.isEmpty {
                             // おすすめ自体は「あとで」に出す。ここでは知らせるだけ
-                            Text("戻ってきたものが \(suggested.count) 件あります。「あとで」で選べます")
+                            Text("時間になったものが \(suggested.count) 件あります（「あとで」）")
                                 .atype(.label)
                         }
                     }
@@ -299,7 +299,7 @@ private struct ReturnedRow: View {
                 .transition(.opacity)
                 if choosing {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("いつ戻す？").atype(.label)
+                        Text("いつ思い出す？").atype(.label)
                         HStack(spacing: 8) {
                             ForEach(ReturnTiming.allCases) { timing in
                                 Button(timing.label()) { postpone(timing) }
