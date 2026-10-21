@@ -17,6 +17,7 @@
 		27F34F2D728DB98B48C83734 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5004564EF3F9999682A50EC /* Theme.swift */; };
 		2DF3F3EA600C2339083623C2 /* MapControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17591DD356B0BA0D9D74CB8C /* MapControls.swift */; };
 		2E549F6A448D597CC1562980 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5004564EF3F9999682A50EC /* Theme.swift */; };
+		3183F1FA06FD004C58919E61 /* PondMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F1EE4ABE20F8451B764C5E /* PondMapView.swift */; };
 		34D15BB0019B4558D122ABC4 /* WatchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24518AD289BABFA8653B0354 /* WatchHomeView.swift */; };
 		39C37D0376DA8714091C1C24 /* MapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8585F743E204047C76DBE51E /* MapScreen.swift */; };
 		3A8484FCFCBEC5286838E59A /* ReturnService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E85306D88B0F32B49FF4A79 /* ReturnService.swift */; };
@@ -33,7 +34,6 @@
 		68F8EE5E520F9311872756E1 /* AtohaActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */; };
 		6A2A8C48A00D37AEFDE3CE4F /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581466A17A22E30ABA54CFBC /* CaptureView.swift */; };
 		6DEFA19C7E21006155CD1294 /* PoleNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C98EC7405C37474D45B2595 /* PoleNamer.swift */; };
-		720AC5F394A3789462BDF84D /* VoxelMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256E29E8A87EAF12F4DDB417 /* VoxelMapView.swift */; };
 		7FE01B10BCE98F73C6B8B948 /* FocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929C4CB011EF655A285056A7 /* FocusView.swift */; };
 		8358D89E7F2625D499C04311 /* ItemProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286EBC60507FAC61B3630550 /* ItemProcessor.swift */; };
 		84A689AACF34789E2FA564E7 /* DotMatrixText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB16D29D20304F9C0305F0CF /* DotMatrixText.swift */; };
@@ -117,12 +117,12 @@
 
 /* Begin PBXFileReference section */
 		0E9860B870BD819E8F3DE055 /* ItemPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemPriority.swift; sourceTree = "<group>"; };
+		16F1EE4ABE20F8451B764C5E /* PondMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PondMapView.swift; sourceTree = "<group>"; };
 		17422227531B7CB838DAF465 /* WantMustPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WantMustPad.swift; sourceTree = "<group>"; };
 		17591DD356B0BA0D9D74CB8C /* MapControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapControls.swift; sourceTree = "<group>"; };
 		181004E8315D2D4418DF39FA /* LaterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterView.swift; sourceTree = "<group>"; };
 		2211C8EB8EA84281FBA1731C /* BatchOrganizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchOrganizer.swift; sourceTree = "<group>"; };
 		24518AD289BABFA8653B0354 /* WatchHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchHomeView.swift; sourceTree = "<group>"; };
-		256E29E8A87EAF12F4DDB417 /* VoxelMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMapView.swift; sourceTree = "<group>"; };
 		27DB19713A04A72949D1DFB0 /* Goldfish.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goldfish.swift; sourceTree = "<group>"; };
 		286EBC60507FAC61B3630550 /* ItemProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemProcessor.swift; sourceTree = "<group>"; };
 		2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaWatchApp.swift; sourceTree = "<group>"; };
@@ -232,7 +232,7 @@
 			children = (
 				17591DD356B0BA0D9D74CB8C /* MapControls.swift */,
 				8585F743E204047C76DBE51E /* MapScreen.swift */,
-				256E29E8A87EAF12F4DDB417 /* VoxelMapView.swift */,
+				16F1EE4ABE20F8451B764C5E /* PondMapView.swift */,
 			);
 			path = Map;
 			sourceTree = "<group>";
@@ -560,6 +560,7 @@
 				64C31976D6F31CFBF060F198 /* PCCBackend.swift in Sources */,
 				62B434EEEF29E51A0AB35226 /* PersonalPCA.swift in Sources */,
 				6DEFA19C7E21006155CD1294 /* PoleNamer.swift in Sources */,
+				3183F1FA06FD004C58919E61 /* PondMapView.swift in Sources */,
 				3A8484FCFCBEC5286838E59A /* ReturnService.swift in Sources */,
 				5C636CDA23437FCE1BBFF54A /* SampleData.swift in Sources */,
 				BE6C8844E36F7D7D5B50603E /* SettingsStore.swift in Sources */,
@@ -569,7 +570,6 @@
 				5760CEE6FC6DE6068CE25F69 /* TimeText.swift in Sources */,
 				8E77F76BE74460405F1E0B83 /* Timeout.swift in Sources */,
 				B4AD5E87525C82D924061225 /* Typography.swift in Sources */,
-				720AC5F394A3789462BDF84D /* VoxelMapView.swift in Sources */,
 				DC6CA1F59264CA386B07B0B1 /* VoxelMesh.swift in Sources */,
 				3EAD8937BDE1A956B515B81B /* WantMustPad.swift in Sources */,
 				CD868A77319FD55143725238 /* WatchBridge.swift in Sources */,

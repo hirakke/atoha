@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// 気になることの 3D マップ画面。
+/// 地図：気になることを、上から見た池に泳がせる。
 struct MapScreen: View {
     @Query private var items: [Item]
     @Query(sort: \Axis.order) private var axes: [Axis]
@@ -47,45 +47,40 @@ struct MapScreen: View {
                     .padding(.top, 12)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else {
-                VoxelMapView(items: concerns, axes: axes, selectedID: selectedID, mode: mode) { item in
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        selectedID = item?.id
-                    }
-                }
-                .ignoresSafeArea()
-
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: 10) {
+                    HStack(alignment: .top, spacing: 10) {
                         axesButton
-                        SquareMark(.outline(), size: 10)
-                        Text("\(concerns.count)")
+                        Text("\(concerns.count)匹")
                             .atype(.label)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(alignment: .topTrailing) {
+                            .padding(.top, 10)
+                        Spacer()
                         VStack(alignment: .trailing, spacing: 8) {
                             CubeSegmented(options: MapPeriod.allCases, label: { $0.label },
                                           selection: Binding(get: { period }, set: { periodRaw = $0.rawValue }))
                             CubeSegmented(options: MapMode.allCases, label: { $0.label },
                                           selection: Binding(get: { mode }, set: { modeRaw = $0.rawValue }))
                         }
-                        .padding(.trailing, 16)
-                        .padding(.top, 6)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
 
-                    Spacer()
-
+                    // 上から見た池。縦横で軸2本、3本目は深さ
+                    PondMapView(items: concerns, axes: axes, selectedID: selectedID, mode: mode) { item in
+                        selectedID = item?.id
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+                }
+                .overlay(alignment: .bottom) {
                     if let item = selected {
-                        MapSelectionCard(item: item)
+                        MapSelectionCard(item: item, place: PondMapView.whereText(item, axes: axes))
                             .padding(.horizontal, 16)
                             .padding(.bottom, 16)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                             .id(item.id)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
         .sheet(isPresented: $showAxes) { AxesView() }
@@ -94,6 +89,8 @@ struct MapScreen: View {
 
 private struct MapSelectionCard: View {
     let item: Item
+    /// どのあたりを泳いでいるか
+    var place: String?
 
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -109,6 +106,7 @@ private struct MapSelectionCard: View {
                     .atype(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
+                if let place { Text(place).atype(.label) }
                 HStack(spacing: 10) {
                     if let theme = item.theme, !theme.isEmpty {
                         Text(theme).atype(.label)
