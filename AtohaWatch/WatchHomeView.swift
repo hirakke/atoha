@@ -1,13 +1,10 @@
 import SwiftUI
 
-private func hhmm(_ date: Date) -> String {
-    date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
-}
-
 struct WatchHomeView: View {
     @EnvironmentObject private var store: WatchStore
     @State private var text = ""
-    @State private var timing: ReturnTiming = .tonight
+    /// 時間は決めない（iPhone の「あとで」から選んで今に入れる）
+    private let timing: ReturnTiming = .atBreak
     @State private var confirmed: ReturnTiming?
 
     var body: some View {
@@ -26,11 +23,6 @@ struct WatchHomeView: View {
             VStack(spacing: 8) {
                 DotMatrixText("\(store.count)", dotSize: 6, spacing: 2,
                               color: store.count > 0 ? Theme.accent : Theme.quiet)
-                if let next = store.nextReturn, next > .now {
-                    DotMatrixText(hhmm(next), dotSize: 2.5, spacing: 1, color: Theme.quiet)
-                } else {
-                    DotMatrixText("--:--", dotSize: 2.5, spacing: 1, color: Theme.faint)
-                }
 
                 // タップすると、すぐにシステムの入力（音声・手書き）が開く。
                 TextField("あとでに回す", text: $text, prompt: Text("あとでに回す").foregroundStyle(Theme.paper))
@@ -43,39 +35,15 @@ struct WatchHomeView: View {
                     .onSubmit(submit)
                     .padding(.top, 4)
 
-                HStack(spacing: 4) {
-                    ForEach(ReturnTiming.allCases) { option in
-                        timingChip(option)
-                    }
-                }
             }
             .padding(.horizontal, 4)
         }
     }
 
-    private func timingChip(_ option: ReturnTiming) -> some View {
-        let selected = option == timing
-        return Button { timing = option } label: {
-            Text(option.label())
-                .font(Theme.mono(11))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: 28)
-                .foregroundStyle(selected ? Theme.paper : Theme.ink)
-                .background(selected ? Theme.ink : .clear, in: .rect(cornerRadius: 6))
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Theme.faint, lineWidth: selected ? 0 : 1))
-        }
-        .buttonStyle(.plain)
-    }
-
     private func confirmation(for timing: ReturnTiming) -> some View {
         VStack(spacing: 8) {
-            if let date = timing.returnDate() {
-                DotMatrixText(hhmm(date), dotSize: 5, spacing: 1.5, color: Theme.accent)
-            } else {
-                DotMatrixText("--:--", dotSize: 5, spacing: 1.5, color: Theme.quiet)
-                Text(timing.label()).font(Theme.mono(12)).foregroundStyle(Theme.quiet)
-            }
+            Rectangle().fill(Theme.accent).frame(width: 18, height: 18)
+            Text("あとでに入れました").font(Theme.mono(12)).foregroundStyle(Theme.ink)
         }
     }
 

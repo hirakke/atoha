@@ -10,11 +10,6 @@ struct HomeView: View {
 
     private var capacity: Int { [3, 5, 7].contains(capacitySetting) ? capacitySetting : 3 }
     private var returned: [Item] { items.filter { $0.state == .returned } }
-    /// 戻ってきたもの（おすすめ順）。今に入れるかは本人が選ぶ
-    private var suggested: [Item] {
-        let now = Date.now
-        return items.filter { $0.isReady(now: now) }.sorted { $0.priority(now: now) > $1.priority(now: now) }
-    }
 
     var body: some View {
         NavigationStack {
@@ -27,18 +22,14 @@ struct HomeView: View {
                             // 何もないときに、次に何をすればいいかだけを見せる
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("今やることはありません").atype(.body)
-                                Text("気になることは「あとでに回す」へ。決めた時間になったら、「あとで」から選んで今に入れます。")
+                                Text("気になることは「あとでに回す」へ。「あとで」から選んで、今に入れます。")
                                     .atype(.small, color: Theme.quiet)
                             }
                             .onPaper()
                         } else {
                             ReturnedList(items: returned)
                         }
-                        if !suggested.isEmpty {
-                            // おすすめ自体は「あとで」に出す。ここでは知らせるだけ
-                            Text("時間になったものが \(suggested.count) 件あります（「あとで」）")
-                                .atype(.label)
-                        }
+
                     }
                     .padding(24)
                 }
@@ -218,7 +209,6 @@ private struct ReturnedRow: View {
     @Environment(\.modelContext) private var context
     let item: Item
     @State private var open = false
-    @State private var choosing = false
     @State private var confirmed: ReturnTiming?
 
     private var mustful: Bool { item.effectiveMust >= 0.5 }
@@ -235,14 +225,7 @@ private struct ReturnedRow: View {
     }
 
     private func confirmation(for timing: ReturnTiming) -> some View {
-        VStack(spacing: 8) {
-            if let date = timing.returnDate() {
-                DotMatrixText(date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()), size: .medium)
-            } else {
-                DotMatrixText("--:--", size: .medium, color: Theme.quiet)
-            }
-            Text(timing.returnMessage()).atype(.small, color: Theme.quiet)
-        }
+        Text("あとでに入れました").atype(.small, color: Theme.quiet)
         .frame(maxWidth: .infinity, minHeight: 56)
         .transition(.opacity)
     }
@@ -286,24 +269,11 @@ private struct ReturnedRow: View {
                 HStack(spacing: 8) {
                     action("やる") { FocusSession.shared.start(item) }
                     if mustful { action("できた") { resolve(.done) } }
-                    action("あとでに回す") { withAnimation(.easeOut(duration: 0.15)) { choosing.toggle() } }
+                    action("あとでに回す") { postpone(.atBreak) }
                     action("やめる", emphasized: item.isBothLow) { resolve(.released) }
                 }
                 .padding(.leading, 34)
                 .transition(.opacity)
-                if choosing {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("いつ思い出す？").atype(.label)
-                        HStack(spacing: 8) {
-                            ForEach(ReturnTiming.allCases) { timing in
-                                Button(timing.label()) { postpone(timing) }
-                                    .buttonStyle(.cube(timing == SettingsStore.defaultTiming ? .primary : .secondary, size: .small))
-                            }
-                        }
-                    }
-                    .padding(.leading, 34)
-                    .transition(.opacity)
-                }
             }
         }
     }
@@ -321,7 +291,7 @@ private struct ReturnedRow: View {
             .buttonStyle(.cube(emphasized ? .primary : .secondary))
     }
 
-    /// もう一度あとに回す。返す時刻を少し見せてから、預かり中へ戻す。
+    /// もう一度あとに回す。一言見せてから「あとで」へ移す（時間は決めない）。
     private func postpone(_ timing: ReturnTiming) {
         guard confirmed == nil else { return }
         withAnimation(.easeOut(duration: 0.15)) { confirmed = timing }

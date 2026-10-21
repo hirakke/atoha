@@ -33,15 +33,6 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 32) {
                     topBar
                     section("色") { PalettePicker() }
-                    section("お知らせの時間") {
-                        row("今夜") { hourMenu($tonightHour) }
-                        row("明日の朝") { hourMenu($morningHour) }
-                        row("最初の選択") {
-                            CubeSegmented(options: ReturnTiming.allCases.map(\.rawValue),
-                                          label: { ReturnTiming(rawValue: $0)?.label ?? $0 },
-                                          selection: $defaultTimingRaw)
-                        }
-                    }
                     section("今") {
                         row("上限") {
                             CubeSegmented(options: [3, 5, 7], label: { String($0) }, selection: $nowCapacity)
@@ -54,7 +45,6 @@ struct SettingsView: View {
                         }
                     }
                     section("通知") {
-                        row("時間になったとき") { Mark(isOn: $notifyReturn) }
                         row("集中の時間") { Mark(isOn: $notifyFocusEnd) }
                     }
                     section("AI") {

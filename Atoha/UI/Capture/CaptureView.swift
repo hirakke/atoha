@@ -1,14 +1,16 @@
 import SwiftUI
 import SwiftData
 
-/// 書き出し画面。入力欄だけを出し、入れたら返す時刻を見せて自動で閉じる。
+/// 書き出し画面。入力欄だけを出し、入れたら「あとで」に置いて自動で閉じる。
+/// いつ思い出すかの時間設定は、わかりやすさのため一旦なくしている（ReturnTiming は残してある）。
 struct CaptureView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Query(sort: \Axis.order) private var axes: [Axis]
 
     @State private var text = ""
-    @State private var timing: ReturnTiming = FocusSession.shared.isActive ? .atBreak : SettingsStore.defaultTiming
+    /// 時間は決めない。「あとで」から自分で選んで今に入れる
+    private let timing: ReturnTiming = .atBreak
     // 任意：預けるときに付けてもよい。付けなければ nil のまま
     @State private var want: Double?
     @State private var must: Double?
@@ -54,10 +56,6 @@ struct CaptureView: View {
 
             Rectangle().fill(Theme.faint).frame(height: 1)
 
-            SectionLabel("いつ思い出す？", ruled: false)
-            CubeSegmented(options: ReturnTiming.allCases, label: { $0.label() },
-                          detail: { $0.detail() },
-                          selection: $timing, fill: true)
             Text("やりたい・やらなきゃ（つけなくてもいい）").atype(.label).padding(.top, 12)
             WantMustPicker(want: $want, must: $must, side: 150,
                            onTouch: { FocusingTextField.current?.commitMarkedText() })
@@ -68,12 +66,9 @@ struct CaptureView: View {
 
     private func confirmation(for timing: ReturnTiming) -> some View {
         VStack(spacing: 16) {
-            if let date = timing.returnDate() {
-                DotMatrixText(date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()), size: .large)
-            } else {
-                DotMatrixText("--:--", size: .large, color: Theme.quiet)
-            }
-            Text(timing.returnMessage()).atype(.small, color: Theme.quiet)
+            SquareMark(.accent(), size: 28)
+            Text("あとでに入れました").atype(.title)
+            Text("「あとで」から選んで、今に入れられます").atype(.small, color: Theme.quiet)
         }
     }
 
