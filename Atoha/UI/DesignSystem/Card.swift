@@ -59,3 +59,21 @@ struct Card<Content: View>: View {
         }
     }
 }
+
+/// 方眼の上で文字を読みやすくするための紙の面。方眼は余白にだけ見せる。
+struct PaperSheet: ViewModifier {
+    var padding: CGFloat = 16
+
+    func body(content: Content) -> some View {
+        content
+            .padding(padding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.paper)
+            .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5))
+    }
+}
+
+extension View {
+    /// 紙の面に載せる（リストや設定のまとまり）
+    func onPaper(padding: CGFloat = 16) -> some View { modifier(PaperSheet(padding: padding)) }
+}

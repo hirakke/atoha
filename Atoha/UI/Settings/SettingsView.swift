@@ -123,6 +123,7 @@ struct SettingsView: View {
             SectionLabel(title)
             content()
         }
+        .onPaper(padding: 14)
     }
 
     private func row<Trailing: View>(_ title: String, @ViewBuilder _ trailing: () -> Trailing) -> some View {

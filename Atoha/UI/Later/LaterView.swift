@@ -62,6 +62,7 @@ struct LaterView: View {
                         if waiting.isEmpty {
                             Text("「あとでに回す」で入れたものが、今に戻るまでここで待ちます。")
                                 .atype(.small, color: Theme.quiet)
+                                .onPaper()
                         }
                         if !ready.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
@@ -70,6 +71,7 @@ struct LaterView: View {
                                     .atype(.label).padding(.bottom, 6)
                                 ForEach(ready) { LaterRow(item: $0) }
                             }
+                            .onPaper(padding: 14)
                         }
                         ForEach(sections) { section in
                             VStack(alignment: .leading, spacing: 4) {
@@ -80,6 +82,7 @@ struct LaterView: View {
                                 }
                                 ForEach(section.rows.sorted { $0.createdAt < $1.createdAt }) { LaterRow(item: $0) }
                             }
+                            .onPaper(padding: 14)
                         }
                     }
                     .padding(24)

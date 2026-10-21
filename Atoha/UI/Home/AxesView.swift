@@ -76,6 +76,7 @@ struct AxesView: View {
                 }
             }
         }
+        .onPaper(padding: 14)
     }
 
     private var candidatesSection: some View {
@@ -108,6 +109,7 @@ struct AxesView: View {
             SectionLabel("1週間")
             WeekDotStrip(days: WeekDotStrip.lastSevenDays(from: items))
         }
+        .onPaper(padding: 14)
     }
 
     private func suggest() async {

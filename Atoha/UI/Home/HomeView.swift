@@ -25,6 +25,7 @@ struct HomeView: View {
                                 Text("気になったら「あとでに回す」。決めた時刻に、ここへ戻ってきます。")
                                     .atype(.small, color: Theme.quiet)
                             }
+                            .onPaper()
                         } else {
                             ReturnedList(items: returned)
                         }
@@ -140,6 +141,7 @@ struct ReturnedList: View {
                     SectionLabel(title).padding(.bottom, 6)
                     ForEach(rows) { ReturnedRow(item: $0) }
                 }
+                .onPaper(padding: 14)
             }
         }
     }
