@@ -14,6 +14,10 @@ struct Palette: Identifiable, Equatable {
     let dark: Tone
 
     static let all: [Palette] = [
+        // 金魚すくい：生成りの紙、墨、朱の金魚
+        Palette(id: "kingyo", name: "金魚",
+                light: Tone(paper: 0xF6F0E4, ink: 0x2A211C, grid: 0xEDE4D3, line: 0xD8CDB8, sub: 0x6E5F55, accent: 0xC93B22, onAccent: 0xFFFFFF),
+                dark: Tone(paper: 0x1B1714, ink: 0xF2EADB, grid: 0x27211C, line: 0x3E342C, sub: 0xB3A596, accent: 0xE5553A, onAccent: 0x1B1714)),
         Palette(id: "blue", name: "青",
                 light: Tone(paper: 0xFFFFFF, ink: 0x121A2E, grid: 0xE9EEF8, line: 0xC9D3E6, sub: 0x4A5878, accent: 0x2F5BEA, onAccent: 0xFFFFFF),
                 dark: Tone(paper: 0x121A2E, ink: 0xE8ECF6, grid: 0x1B2540, line: 0x2C3A60, sub: 0xA3B1D4, accent: 0x7EA0FF, onAccent: 0x0A1022)),
@@ -58,7 +62,7 @@ final class ThemeStore {
     }
 
     private init() {
-        palette = Palette.find(UserDefaults.standard.string(forKey: Self.key) ?? "blue")
+        palette = Palette.find(UserDefaults.standard.string(forKey: Self.key) ?? "kingyo")
     }
 }
 
@@ -84,6 +88,15 @@ enum Theme {
     static var paperUIColor: UIColor { palette.color(\.paper) }
     static var inkUIColor: UIColor { palette.color(\.ink) }
     static var accentUIColor: UIColor { palette.color(\.accent) }
+
+    /// 水（水槽・池）。色の組によらず同じ水色
+    static let waterUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x1F3B42) : UIColor(hex: 0xD6ECF0) }
+    static var water: Color { Color(waterUIColor) }
+    /// 水面の波紋
+    static let rippleUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x3D6670) : UIColor(hex: 0xFFFFFF) }
+    /// 金魚の色違い（橙）
+    static let orangeUIColor = UIColor(hex: 0xE88A3C)
+    static var orange: Color { Color(orangeUIColor) }
 
     /// 色の組が変わったかを見分けるための印（3D の画面で塗り直すため）
     static var paletteID: String { palette.id }

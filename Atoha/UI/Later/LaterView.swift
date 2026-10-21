@@ -23,7 +23,7 @@ struct LaterView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 32) {
                         header
-                        TankView(cubes: waiting.map { TankCube(id: $0.id, accent: $0.isRated && $0.effectiveWant >= 0.5) })
+                        TankView(cubes: waiting.map { TankCube(id: $0.id, tint: GoldfishTint.of(want: $0.effectiveWant, must: $0.effectiveMust)) })
                         if waiting.isEmpty {
                             Text("「あとでに回す」で入れたものが、ここに並びます。")
                                 .atype(.small, color: Theme.quiet)
@@ -31,7 +31,7 @@ struct LaterView: View {
                         } else {
                             VStack(alignment: .leading, spacing: 4) {
                                 SectionLabel("おすすめ順")
-                                Text(room > 0 ? "今に入れられるのはあと\(room)件" : "今がいっぱいです。今のものが終わると入れられます")
+                                Text(room > 0 ? "今に入れられるのはあと\(room)匹" : "今がいっぱいです。今のものが終わると入れられます")
                                     .atype(.label).padding(.bottom, 6)
                                 ForEach(Array(ordered.enumerated()), id: \.element.id) { index, item in
                                     SuggestionRow(item: item, top: index == 0, room: room)
@@ -54,8 +54,16 @@ struct LaterView: View {
     private var header: some View {
         HStack(spacing: 10) {
             Text("あとで").atype(.display)
-            Text("\(waiting.count)").atype(.label)
+            Text("\(waiting.count)匹").atype(.label)
             Spacer()
+            // すくった金魚が入る先（今のお椀）
+            HStack(spacing: 4) {
+                ForEach(0..<SettingsStore.nowCapacity, id: \.self) { index in
+                    BowlIcon(filled: index < SettingsStore.nowCapacity - room, width: 22)
+                }
+            }
+            .accessibilityElement()
+            .accessibilityLabel("今 \(SettingsStore.nowCapacity - room) / \(SettingsStore.nowCapacity)")
         }
     }
 }
@@ -67,6 +75,7 @@ private struct SuggestionRow: View {
     /// いちばんのおすすめ
     let top: Bool
     let room: Int
+    @State private var busy = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -83,12 +92,40 @@ private struct SuggestionRow: View {
                 if top { Text("おすすめ").atype(.label, color: Theme.accent) }
             }
             Spacer(minLength: 8)
-            Button("今に入れる") {
-                withAnimation { _ = ReturnService.accept(item, in: context) }
-            }
-            .buttonStyle(.cube(top ? .accent : .secondary))
-            .disabled(room == 0)
+            // いっぱいでも押せる。押すとポイが破れて、入らないことが伝わる
+            Button("今に入れる") { scoop() }
+                .buttonStyle(.cube(room == 0 ? .flat : (top ? .accent : .secondary)))
+                .opacity(room == 0 ? 0.55 : 1)
+                .accessibilityHint(room == 0 ? "今がいっぱいです" : "")
         }
         .padding(.vertical, 4)
+    }
+
+    /// 水槽でポイを動かしてから、今に入れる。いっぱいならポイが破れて終わる。
+    private func scoop() {
+        guard !busy else { return }
+        busy = true
+        if room > 0 {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            TankScene.current?.scoop(item.id, success: true)
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(550))
+                UIImpactFeedbackGenerator(style: .soft).impactOccurred()  // お椀に「ぽちゃ」
+                try? await Task.sleep(for: .milliseconds(350))
+                withAnimation { _ = ReturnService.accept(item, in: context) }
+                busy = false
+            }
+        } else {
+            TankScene.current?.scoop(item.id, success: false)
+            Task { @MainActor in
+                let haptic = UIImpactFeedbackGenerator(style: .rigid)
+                try? await Task.sleep(for: .milliseconds(400))
+                haptic.impactOccurred()
+                try? await Task.sleep(for: .milliseconds(120))
+                haptic.impactOccurred()
+                try? await Task.sleep(for: .milliseconds(400))
+                busy = false
+            }
+        }
     }
 }

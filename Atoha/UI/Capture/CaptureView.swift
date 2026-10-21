@@ -66,8 +66,8 @@ struct CaptureView: View {
 
     private func confirmation(for timing: ReturnTiming) -> some View {
         VStack(spacing: 16) {
-            SquareMark(.accent(), size: 28)
-            Text("あとでに入れました").atype(.title)
+            GoldfishMark(color: Theme.accent, width: 54)
+            Text("水槽に放しました").atype(.title)
             Text("「あとで」から選んで、今に入れられます").atype(.small, color: Theme.quiet)
         }
     }

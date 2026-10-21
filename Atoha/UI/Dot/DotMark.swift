@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// 種類を表す小さな正方形。用事＝塗り、気になること・未分類＝枠。
-/// 画面は平面なので正方形で描く（立方体は 3D の地図と水槽だけ）。
+/// ひとつひとつを表す小さなドットの金魚。
+/// やりたい寄り＝朱、やらなきゃ寄り＝墨（出目金）、どちらでもない＝橙、未評価＝輪郭だけ。
 struct DotMark: View {
     let kind: ItemKind
     var highlighted: Bool = false
@@ -35,7 +35,18 @@ struct DotMark: View {
     }
 
     var body: some View {
-        SquareMark(style, size: size)
+        // size は以前の正方形の一辺。金魚は横長なので、横幅を少し広げて同じくらいの重さに見せる
+        let width = size * 1.8
+        switch style {
+        case let .outline(alpha, _):
+            GoldfishMark(color: Theme.ink.opacity(alpha), outlined: true, width: width)
+        case let .ink(alpha):
+            GoldfishMark(color: Theme.ink.opacity(alpha), width: width)
+        case let .accent(alpha):
+            GoldfishMark(color: Theme.accent.opacity(alpha), width: width)
+        case let .layered(ink, accent):
+            GoldfishMark(color: accent >= 0.5 ? Theme.accent : (ink >= 0.5 ? Theme.ink : Theme.orange), width: width)
+        }
     }
 }
 

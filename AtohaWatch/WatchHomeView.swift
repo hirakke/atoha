@@ -43,7 +43,7 @@ struct WatchHomeView: View {
     private func confirmation(for timing: ReturnTiming) -> some View {
         VStack(spacing: 8) {
             Rectangle().fill(Theme.accent).frame(width: 18, height: 18)
-            Text("あとでに入れました").font(Theme.mono(12)).foregroundStyle(Theme.ink)
+            Text("水槽に放しました").font(Theme.mono(12)).foregroundStyle(Theme.ink)
         }
     }
 

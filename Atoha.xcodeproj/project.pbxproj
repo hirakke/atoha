@@ -55,6 +55,7 @@
 		CD868A77319FD55143725238 /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E214C4E3460EB09912F5C797 /* WatchBridge.swift */; };
 		D596C40BA158D9325BCE1ED1 /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C4ECA3ED776A8A4E48CFA /* FocusSession.swift */; };
 		DC6CA1F59264CA386B07B0B1 /* VoxelMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */; };
+		DD90ECBA7D5F27CB231DD597 /* Goldfish.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DB19713A04A72949D1DFB0 /* Goldfish.swift */; };
 		E18D05FADACA63DD64294B4A /* WeekDotStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F9824392F24E5AE16FE53B /* WeekDotStrip.swift */; };
 		E7D0B975281C9385E1D7D185 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2CB09E0B8B11B34B3AEE8 /* Card.swift */; };
 		EB9D97B664048B3D6442112F /* WatchTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62302046C5823B19F386EA37 /* WatchTheme.swift */; };
@@ -122,6 +123,7 @@
 		2211C8EB8EA84281FBA1731C /* BatchOrganizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchOrganizer.swift; sourceTree = "<group>"; };
 		24518AD289BABFA8653B0354 /* WatchHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchHomeView.swift; sourceTree = "<group>"; };
 		256E29E8A87EAF12F4DDB417 /* VoxelMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMapView.swift; sourceTree = "<group>"; };
+		27DB19713A04A72949D1DFB0 /* Goldfish.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goldfish.swift; sourceTree = "<group>"; };
 		286EBC60507FAC61B3630550 /* ItemProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemProcessor.swift; sourceTree = "<group>"; };
 		2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaWatchApp.swift; sourceTree = "<group>"; };
 		3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMesh.swift; sourceTree = "<group>"; };
@@ -241,6 +243,7 @@
 				EC1E727B68692D76D889DB85 /* DotDecor.swift */,
 				57AE9E94447E9C440FCB6F7D /* DotMark.swift */,
 				DB16D29D20304F9C0305F0CF /* DotMatrixText.swift */,
+				27DB19713A04A72949D1DFB0 /* Goldfish.swift */,
 				B0F9824392F24E5AE16FE53B /* WeekDotStrip.swift */,
 			);
 			path = Dot;
@@ -545,6 +548,7 @@
 				0A44B4364053782CC8DF0A30 /* EmbeddingService.swift in Sources */,
 				D596C40BA158D9325BCE1ED1 /* FocusSession.swift in Sources */,
 				7FE01B10BCE98F73C6B8B948 /* FocusView.swift in Sources */,
+				DD90ECBA7D5F27CB231DD597 /* Goldfish.swift in Sources */,
 				FF7F58C3FF6FC91714D9592B /* HomeView.swift in Sources */,
 				17854B50F24197314EEB9B39 /* Item.swift in Sources */,
 				4AC7E26FFA30A580AE381C19 /* ItemPriority.swift in Sources */,

@@ -52,12 +52,10 @@ struct HomeView: View {
     private var header: some View {
         HStack {
             Text("atoha").atype(.display)
-            HStack(spacing: 3) {
+            // 今の上限はお椀の数。入っているお椀には金魚が1匹
+            HStack(spacing: 4) {
                 ForEach(0..<capacity, id: \.self) { index in
-                    Rectangle()
-                        .fill(index < returned.count ? Theme.accent : Theme.paper)
-                        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5))
-                        .frame(width: 10, height: 10)
+                    BowlIcon(filled: index < returned.count, width: 24)
                 }
             }
             .padding(.leading, 8)
@@ -225,7 +223,7 @@ private struct ReturnedRow: View {
     }
 
     private func confirmation(for timing: ReturnTiming) -> some View {
-        Text("あとでに入れました").atype(.small, color: Theme.quiet)
+        Text("水槽に放しました").atype(.small, color: Theme.quiet)
         .frame(maxWidth: .infinity, minHeight: 56)
         .transition(.opacity)
     }
