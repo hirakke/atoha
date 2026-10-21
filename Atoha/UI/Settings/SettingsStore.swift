@@ -20,6 +20,13 @@ enum SettingsStore {
         return [3, 5, 7].contains(n) ? n : 3
     }
 
+    /// あとで（水槽）に入れておける数の上限（10/20/30）。初期は20。たまりすぎないように
+    static var laterCapacity: Int {
+        guard defaults.object(forKey: SettingsKey.laterCapacityKey) != nil else { return 20 }
+        let n = defaults.integer(forKey: SettingsKey.laterCapacityKey)
+        return [10, 20, 30].contains(n) ? n : 20
+    }
+
     static var notifyReturn: Bool { bool(SettingsKey.notifyReturnKey) }
     static var notifyFocusEnd: Bool { bool(SettingsKey.notifyFocusEndKey) }
 

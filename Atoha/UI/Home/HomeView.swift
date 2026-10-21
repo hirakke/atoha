@@ -208,6 +208,8 @@ private struct ReturnedRow: View {
     let item: Item
     @State private var open = false
     @State private var confirmed: ReturnTiming?
+    /// あとでがいっぱいで回せなかったときの一言
+    @State private var fullNotice = false
 
     private var mustful: Bool { item.effectiveMust >= 0.5 }
 
@@ -217,6 +219,12 @@ private struct ReturnedRow: View {
                 confirmation(for: confirmed)
             } else {
                 rowBody
+            }
+            if fullNotice {
+                Text("水槽がいっぱいです（\(SettingsStore.laterCapacity)匹）。「あとで」で減らすと回せます")
+                    .atype(.label, color: Theme.accent)
+                    .padding(.leading, 34)
+                    .transition(.opacity)
             }
         }
         .padding(.vertical, 4)
@@ -292,6 +300,16 @@ private struct ReturnedRow: View {
     /// もう一度あとに回す。一言見せてから「あとで」へ移す（時間は決めない）。
     private func postpone(_ timing: ReturnTiming) {
         guard confirmed == nil else { return }
+        // あとでにも上限がある。いっぱいなら回さずに知らせる
+        guard ReturnService.laterRoom(in: context) > 0 else {
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            withAnimation(.easeOut(duration: 0.15)) { fullNotice = true }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2.5))
+                withAnimation { fullNotice = false }
+            }
+            return
+        }
         withAnimation(.easeOut(duration: 0.15)) { confirmed = timing }
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(900))

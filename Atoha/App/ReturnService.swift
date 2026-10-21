@@ -35,6 +35,17 @@ enum ReturnService {
         max(0, SettingsStore.nowCapacity - nowCount(in: context))
     }
 
+    /// あとで（水槽）に入っている数。
+    static func laterCount(in context: ModelContext) -> Int {
+        let waitingRaw = ItemState.waiting.rawValue
+        return (try? context.fetchCount(FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == waitingRaw }))) ?? 0
+    }
+
+    /// あとでにあと何匹入れられるか。
+    static func laterRoom(in context: ModelContext) -> Int {
+        max(0, SettingsStore.laterCapacity - laterCount(in: context))
+    }
+
     /// 本人が選んで、今に入れる。上限なら入れずに false。
     @discardableResult
     static func accept(_ item: Item, in context: ModelContext) -> Bool {

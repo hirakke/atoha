@@ -15,6 +15,8 @@ struct CaptureView: View {
     @State private var want: Double?
     @State private var must: Double?
     @State private var confirmed: ReturnTiming?
+    /// 水槽（あとで）がいっぱいで、回せない
+    @State private var full = false
 
     var body: some View {
         ZStack {
@@ -28,6 +30,7 @@ struct CaptureView: View {
                 editor
             }
         }
+        .onAppear { full = ReturnService.laterRoom(in: context) == 0 }
     }
 
     private var editor: some View {
@@ -42,6 +45,15 @@ struct CaptureView: View {
                 .accessibilityLabel("閉じる")
             }
 
+            if full {
+                // 上限まで入っているときは回せない。減らし方だけを伝える
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("水槽がいっぱいです（\(SettingsStore.laterCapacity)匹）").atype(.title)
+                    Text("「あとで」で今に入れるか、やめるものを選ぶと、また回せます。")
+                        .atype(.small, color: Theme.quiet)
+                }
+                .onPaper()
+            } else {
             HStack(spacing: 12) {
                 CaptureField(text: $text, onSubmit: submit)
                     .frame(maxWidth: .infinity, minHeight: 36, maxHeight: 36)
@@ -53,12 +65,15 @@ struct CaptureView: View {
                     .transition(.opacity)
                 }
             }
+            }
 
             Rectangle().fill(Theme.faint).frame(height: 1)
 
-            Text("やりたい・やらなきゃ（つけなくてもいい）").atype(.label).padding(.top, 12)
-            WantMustPicker(want: $want, must: $must, side: 150,
-                           onTouch: { FocusingTextField.current?.commitMarkedText() })
+            if !full {
+                Text("やりたい・やらなきゃ（つけなくてもいい）").atype(.label).padding(.top, 12)
+                WantMustPicker(want: $want, must: $must, side: 150,
+                               onTouch: { FocusingTextField.current?.commitMarkedText() })
+            }
             Spacer()
         }
         .padding(24)
@@ -74,7 +89,7 @@ struct CaptureView: View {
 
     private func submit() {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, confirmed == nil else { return }
+        guard !trimmed.isEmpty, confirmed == nil, !full else { return }
 
         let item = Item(text: trimmed, timing: timing)
         item.want = want

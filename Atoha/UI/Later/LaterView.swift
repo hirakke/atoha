@@ -54,7 +54,7 @@ struct LaterView: View {
     private var header: some View {
         HStack(spacing: 10) {
             Text("あとで").atype(.display)
-            Text("\(waiting.count)匹").atype(.label)
+            Text("\(waiting.count)/\(SettingsStore.laterCapacity)匹").atype(.label)
             Spacer()
             // すくった金魚が入る先（今のお椀）
             HStack(spacing: 4) {
@@ -89,7 +89,15 @@ private struct SuggestionRow: View {
             .padding(6)
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.text).atype(.body)
-                if top { Text("おすすめ").atype(.label, color: Theme.accent) }
+                HStack(spacing: 12) {
+                    if top { Text("おすすめ").atype(.label, color: Theme.accent) }
+                    // 水槽から出す（金魚を逃がす）。あとでの上限があるので、減らす手段として置く
+                    Button { release() } label: {
+                        Text("やめる").atype(.label).underline()
+                    }
+                    .buttonStyle(.plain)
+                    .frame(minHeight: 28)
+                }
             }
             Spacer(minLength: 8)
             // いっぱいでも押せる。押すとポイが破れて、入らないことが伝わる
@@ -99,6 +107,17 @@ private struct SuggestionRow: View {
                 .accessibilityHint(room == 0 ? "今がいっぱいです" : "")
         }
         .padding(.vertical, 4)
+    }
+
+    /// あとでから外す（やめる）。金魚は水槽の上へ泳いで消える
+    private func release() {
+        guard !busy else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        withAnimation {
+            item.state = .released
+            item.resolvedAt = .now
+            ReturnService.sync(in: context)
+        }
     }
 
     /// 水槽でポイを動かしてから、今に入れる。いっぱいならポイが破れて終わる。

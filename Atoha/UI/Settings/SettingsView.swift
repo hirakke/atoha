@@ -13,6 +13,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.defaultTimingKey) private var defaultTimingRaw = ReturnTiming.tonight.rawValue
     @AppStorage(SettingsKey.focusDefaultMinutesKey) private var focusMinutes = 0
     @AppStorage(SettingsKey.nowCapacityKey) private var nowCapacity = 3
+    @AppStorage(SettingsKey.laterCapacityKey) private var laterCapacity = 20
     @AppStorage(SettingsKey.notifyReturnKey) private var notifyReturn = true
     @AppStorage(SettingsKey.notifyFocusEndKey) private var notifyFocusEnd = true
 
@@ -36,6 +37,11 @@ struct SettingsView: View {
                     section("今") {
                         row("上限") {
                             CubeSegmented(options: [3, 5, 7], label: { String($0) }, selection: $nowCapacity)
+                        }
+                    }
+                    section("あとで") {
+                        row("上限") {
+                            CubeSegmented(options: [10, 20, 30], label: { "\($0)匹" }, selection: $laterCapacity)
                         }
                     }
                     section("集中") {

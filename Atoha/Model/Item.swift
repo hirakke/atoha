@@ -26,6 +26,7 @@ enum SettingsKey {
     static let notifyReturnKey = "settings.notifyReturn"
     static let notifyFocusEndKey = "settings.notifyFocusEnd"
     static let nowCapacityKey = "settings.nowCapacity"
+    static let laterCapacityKey = "settings.laterCapacity"
 
     static func hour(_ key: String, default value: Int) -> Int {
         let d = UserDefaults.standard
