@@ -44,6 +44,10 @@ final class TankScene {
         var vel: SIMD3<Float> = .zero
         var angles: SIMD3<Float>
         var phase: SIMD3<Float>
+        /// 水の中で落ち着く高さ（水槽の高さに対する割合、-1...1）
+        var rest: Float
+        /// ゆっくり回り続ける速さ（ラジアン／秒）
+        var spin: SIMD3<Float>
         var accent: Bool
         /// nil: 水の中。値あり: 抜けていく途中の経過秒。
         var leaving: Float?
@@ -152,6 +156,8 @@ final class TankScene {
                 cubesNode.addChild(node)
                 bodies[cube.id] = Body(node: node, pos: start, angles: angles,
                                        phase: SIMD3(Float.random(in: 0...6.28), Float.random(in: 0...6.28), Float.random(in: 0...6.28)),
+                                       rest: Float.random(in: -0.6...0.6),
+                                       spin: SIMD3(Float.random(in: -0.3...0.3), Float.random(in: -0.3...0.3), Float.random(in: -0.2...0.2)),
                                        accent: cube.accent, leaving: nil)
             }
         }
@@ -203,7 +209,9 @@ final class TankScene {
         gravity += (target - gravity) * min(1, dt * 4)
 
         let h = Self.half - SIMD3(repeating: Self.radius)
-        let damping = expf(-1.6 * dt)
+        let damping = expf(-0.9 * dt)
+        // 傾けたぶんだけ（真下からのずれ）横へ押す。真下向きの重さは浮力で打ち消す
+        let tilt = SIMD3<Float>(gravity.x, gravity.y + 1, gravity.z) * 0.45
         let ids = Array(bodies.keys)
 
         for id in ids {
@@ -225,11 +233,12 @@ final class TankScene {
                 }
                 continue
             }
-            // 弱い重力 + ゆるいゆらぎ
-            var acc = gravity * 0.35
-            acc.x += sinf(time * 0.5 + b.phase.x) * 0.12
-            acc.y += sinf(time * 0.43 + b.phase.y) * 0.12
-            acc.z += sinf(time * 0.37 + b.phase.z) * 0.08
+            // 水に浮いている：それぞれの高さへゆるく戻り、遅く大きく、不揃いに漂う
+            var acc = tilt
+            if b.pos.y <= h.y { acc.y += (b.rest * h.y - b.pos.y) * 0.8 }
+            acc.x += sinf(time * 0.23 + b.phase.x) * 0.22 + sinf(time * 0.61 + b.phase.y) * 0.08
+            acc.y += sinf(time * 0.31 + b.phase.y) * 0.16 + sinf(time * 0.83 + b.phase.z) * 0.06
+            acc.z += sinf(time * 0.19 + b.phase.z) * 0.12
             b.vel += acc * dt
             b.vel *= damping
             b.pos += b.vel * dt
@@ -251,8 +260,9 @@ final class TankScene {
                 c.pos += n * push
                 let rel = simd_dot(c.vel - a.vel, n)
                 if rel < 0 {
-                    a.vel += n * rel * 0.5 * 1.4
-                    c.vel -= n * rel * 0.5 * 1.4
+                    // 水の中なので、ぶつかってもやわらかく離れる
+                    a.vel += n * rel * 0.5 * 1.1
+                    c.vel -= n * rel * 0.5 * 1.1
                 }
                 bodies[live[i]] = a
                 bodies[live[j]] = c
@@ -266,15 +276,15 @@ final class TankScene {
                 if axis == 1 && b.pos.y > h.y { continue }
                 if b.pos[axis] < -h[axis] {
                     b.pos[axis] = -h[axis]
-                    if b.vel[axis] < 0 { b.vel[axis] *= -0.35 }
+                    if b.vel[axis] < 0 { b.vel[axis] *= -0.2 }
                 } else if b.pos[axis] > h[axis] {
                     b.pos[axis] = h[axis]
-                    if b.vel[axis] > 0 { b.vel[axis] *= -0.35 }
+                    if b.vel[axis] > 0 { b.vel[axis] *= -0.2 }
                 }
             }
-            if b.pos.y > h.y { b.vel.y -= 1.2 * dt } // 上から入ってくる
+            if b.pos.y > h.y { b.vel.y -= 0.9 * dt } // 上から入ってきて、水面でふわっと沈む
             b.node.position = b.pos
-            b.angles += SIMD3(b.vel.y, b.vel.x, b.vel.z) * dt * 1.5
+            b.angles += (b.spin + SIMD3(b.vel.y, b.vel.x, b.vel.z) * 0.8) * dt
             b.node.orientation = Self.rotation(b.angles)
             bodies[id] = b
         }
