@@ -6,9 +6,9 @@ struct HomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Item.createdAt, order: .reverse) private var items: [Item]
     @State private var showSettings = false
-    @AppStorage(SettingsKey.nowCapacityKey) private var capacitySetting = 5
+    @AppStorage(SettingsKey.nowCapacityKey) private var capacitySetting = 3
 
-    private var capacity: Int { [3, 5, 7].contains(capacitySetting) ? capacitySetting : 5 }
+    private var capacity: Int { [3, 5, 7].contains(capacitySetting) ? capacitySetting : 3 }
     private var returned: [Item] { items.filter { $0.state == .returned } }
 
     var body: some View {

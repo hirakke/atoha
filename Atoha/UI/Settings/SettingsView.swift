@@ -12,7 +12,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.morningHourKey) private var morningHour = 8
     @AppStorage(SettingsKey.defaultTimingKey) private var defaultTimingRaw = ReturnTiming.tonight.rawValue
     @AppStorage(SettingsKey.focusDefaultMinutesKey) private var focusMinutes = 0
-    @AppStorage(SettingsKey.nowCapacityKey) private var nowCapacity = 5
+    @AppStorage(SettingsKey.nowCapacityKey) private var nowCapacity = 3
     @AppStorage(SettingsKey.notifyReturnKey) private var notifyReturn = true
     @AppStorage(SettingsKey.notifyFocusEndKey) private var notifyFocusEnd = true
 

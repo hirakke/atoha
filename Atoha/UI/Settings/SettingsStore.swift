@@ -13,11 +13,11 @@ enum SettingsStore {
         return m > 0 ? m : nil
     }
 
-    /// 今に置ける数の上限（3/5/7）。
+    /// 今に置ける数の上限（3/5/7）。初期は3（作業記憶の研究で3〜5、個人のカンバンの慣習で3）。
     static var nowCapacity: Int {
-        guard defaults.object(forKey: SettingsKey.nowCapacityKey) != nil else { return 5 }
+        guard defaults.object(forKey: SettingsKey.nowCapacityKey) != nil else { return 3 }
         let n = defaults.integer(forKey: SettingsKey.nowCapacityKey)
-        return [3, 5, 7].contains(n) ? n : 5
+        return [3, 5, 7].contains(n) ? n : 3
     }
 
     static var notifyReturn: Bool { bool(SettingsKey.notifyReturnKey) }
