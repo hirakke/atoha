@@ -250,14 +250,8 @@ private struct ReturnedRow: View {
     private var rowBody: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
-                if mustful {
-                    // 小さなアイコンなので立方体ボタンにはせず、位置を他の行とそろえる
-                    Button { resolve(.done) } label: { mark.padding(6).contentShape(Rectangle()) }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("できた")
-                } else {
-                    mark.padding(6)
-                }
+                // 印は見せるだけ。触れても消えないよう、「できた」は開いたときのボタンだけにする
+                mark.padding(6)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.text).atype(.body)
                     if let theme = item.theme {
