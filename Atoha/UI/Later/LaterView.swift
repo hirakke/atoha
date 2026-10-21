@@ -71,7 +71,9 @@ struct LaterView: View {
                                 SectionLabel("戻ってきた")
                                 Text(room > 0 ? "おすすめ順。今に入れるものを選ぶ（あと\(room)件）" : "おすすめ順。今がいっぱいなので、今のものが片付いたら入れられます")
                                     .atype(.label).padding(.bottom, 6)
-                                ForEach(ready) { LaterRow(item: $0, room: room) }
+                                ForEach(Array(ready.enumerated()), id: \.element.id) { index, item in
+                                    SuggestionRow(item: item, top: index == 0, room: room)
+                                }
                             }
                             .onPaper(padding: 14)
                         }
@@ -185,5 +187,38 @@ private struct LaterRow: View {
             if let new = item.returnAt { NotificationScheduler.reschedule(for: new, in: context) }
             LiveActivityService.sync(in: context)
         }
+    }
+}
+
+/// 戻ってきたものの行。おすすめ順に並び、今に入れるかは本人が選ぶ。
+private struct SuggestionRow: View {
+    @Environment(\.modelContext) private var context
+    let item: Item
+    /// いちばんのおすすめ
+    let top: Bool
+    let room: Int
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Group {
+                if item.isRated {
+                    DotMark(kind: item.kind, want: item.effectiveWant, must: item.effectiveMust, size: 10)
+                } else {
+                    DotMark(kind: .concern, size: 10)
+                }
+            }
+            .padding(6)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.text).atype(.body)
+                if top { Text("おすすめ").atype(.label, color: Theme.accent) }
+            }
+            Spacer(minLength: 8)
+            Button("今に入れる") {
+                withAnimation { _ = ReturnService.accept(item, in: context) }
+            }
+            .buttonStyle(.cube(top ? .accent : .secondary))
+            .disabled(room == 0)
+        }
+        .padding(.vertical, 4)
     }
 }

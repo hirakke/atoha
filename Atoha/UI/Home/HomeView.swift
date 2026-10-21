@@ -24,22 +24,20 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 32) {
                         header
                         if returned.isEmpty {
-                            if suggested.isEmpty {
-                                // 何もないときに、次に何をすればいいかだけを見せる
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text("今やることはありません").atype(.body)
-                                    Text("気になったら「あとでに回す」。決めた時刻に戻ってきたら、ここで選んで今に入れます。")
-                                        .atype(.small, color: Theme.quiet)
-                                }
-                                .onPaper()
-                            } else {
-                                SuggestionList(items: suggested, room: capacity - returned.count)
+                            // 何もないときに、次に何をすればいいかだけを見せる
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("今やることはありません").atype(.body)
+                                Text("気になったら「あとでに回す」。戻ってきたものは「あとで」で選んで今に入れます。")
+                                    .atype(.small, color: Theme.quiet)
                             }
+                            .onPaper()
                         } else {
                             ReturnedList(items: returned)
-                            if !suggested.isEmpty {
-                                SuggestionList(items: suggested, room: max(0, capacity - returned.count))
-                            }
+                        }
+                        if !suggested.isEmpty {
+                            // おすすめ自体は「あとで」に出す。ここでは知らせるだけ
+                            Text("戻ってきたものが \(suggested.count) 件あります。「あとで」で選べます")
+                                .atype(.label)
                         }
                     }
                     .padding(24)
@@ -363,61 +361,5 @@ private struct DeadlineLabel: View {
              : Calendar.current.isDateInTomorrow(date) ? "明日"
              : date.formatted(.dateTime.month(.twoDigits).day(.twoDigits)))
             .atype(.label)
-    }
-}
-
-/// 戻ってきたもの。おすすめ順に並べ、今に入れるかは本人が選ぶ。
-private struct SuggestionList: View {
-    let items: [Item]
-    /// 今にあと何件入れられるか
-    let room: Int
-    private let shown = 3
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            SectionLabel("戻ってきた")
-            Text(room > 0 ? "おすすめ順。今に入れるものを選ぶ（あと\(room)件）" : "今がいっぱい。今のものが片付いたら入れられます")
-                .atype(.label)
-                .padding(.bottom, 6)
-            ForEach(Array(items.prefix(shown).enumerated()), id: \.element.id) { index, item in
-                SuggestionRow(item: item, top: index == 0, room: room)
-            }
-            if items.count > shown {
-                Text("ほか \(items.count - shown) 件は「あとで」に").atype(.label).padding(.top, 4)
-            }
-        }
-        .onPaper(padding: 14)
-    }
-}
-
-private struct SuggestionRow: View {
-    @Environment(\.modelContext) private var context
-    let item: Item
-    /// いちばんのおすすめ
-    let top: Bool
-    let room: Int
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Group {
-                if item.isRated {
-                    DotMark(kind: item.kind, want: item.effectiveWant, must: item.effectiveMust, size: 10)
-                } else {
-                    DotMark(kind: .concern, size: 10)
-                }
-            }
-            .padding(6)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.text).atype(.body)
-                if top { Text("おすすめ").atype(.label, color: Theme.accent) }
-            }
-            Spacer(minLength: 8)
-            Button("今に入れる") {
-                withAnimation { _ = ReturnService.accept(item, in: context) }
-            }
-            .buttonStyle(.cube(top ? .accent : .secondary))
-            .disabled(room == 0)
-        }
-        .padding(.vertical, 4)
     }
 }
