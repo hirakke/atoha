@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// 今の画面。預かり中の数と、返ってきたものだけを出す。
+/// 今の画面。お椀（今の上限）と、今にあるもの（すくった金魚）だけを出す。
 struct HomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Item.createdAt, order: .reverse) private var items: [Item]
@@ -16,32 +16,34 @@ struct HomeView: View {
             ZStack {
                 PaperBackground()
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 32) {
-                        header
+                    VStack(alignment: .leading, spacing: 22) {
+                        HangingSign(title: "atoha")
+                            .overlay(alignment: .topTrailing) { settingsButton.padding(.top, 8) }
+                        BowlPlate(filled: returned.count, capacity: capacity)
                         if returned.isEmpty {
                             // 何もないときに、次に何をすればいいかだけを見せる
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("今やることはありません").atype(.body)
-                                Text("気になることは「あとでに回す」へ。「あとで」から選んで、今に入れます。")
+                                Text("お椀はからっぽです").atype(.body)
+                                Text("気になることは「あとでに回す」で水槽へ。「あとで」から選んで、すくいます。")
                                     .atype(.small, color: Theme.quiet)
                             }
                             .onPaper()
                         } else {
                             ReturnedList(items: returned)
                         }
-
                     }
-                    .padding(24)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 4)
+                    .padding(.bottom, 24)
                 }
                 // ボタンの分だけスクロールの下端を空ける（最後の行がボタンに隠れないように）
-                .safeAreaInset(edge: .bottom) { captureButton }
-                // タブバーの下の白いぼかしを消して、方眼を最後まで見せる
+                .safeAreaInset(edge: .bottom) { CaptureButton() }
                 .scrollEdgeEffectHidden(true, for: .bottom)
             }
-            .paperStatusBar()
+            .awning()
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showSettings) { SettingsView() }
-            // 返ってきたものがあるときに、まとめ処理（PCC が使えれば PCC）
+            // 今にあるものがあるときに、まとめ処理（PCC が使えれば PCC）
             .task(id: returned.count) {
                 guard !returned.isEmpty else { return }
                 await BatchOrganizer.organizeIfNeeded(in: context)
@@ -49,32 +51,19 @@ struct HomeView: View {
         }
     }
 
-    private var header: some View {
-        HStack {
-            Text("atoha").atype(.display)
-            // 今の上限はお椀の数。入っているお椀には金魚が1匹
-            HStack(spacing: 4) {
-                ForEach(0..<capacity, id: \.self) { index in
-                    BowlIcon(filled: index < returned.count, width: 24)
-                }
-            }
-            .padding(.leading, 8)
-            .accessibilityHidden(true)
-            Text("\(returned.count)/\(capacity)").atype(.label)
-                .accessibilityLabel("今 \(returned.count) / \(capacity)")
-            Spacer()
-            Button { showSettings = true } label: {
-                Image(systemName: "gearshape")
-            }
-            .buttonStyle(.cube(.quiet))
-            .accessibilityLabel("設定")
+    private var settingsButton: some View {
+        Button { showSettings = true } label: {
+            Image(systemName: "gearshape").font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.ink)
+                .frame(width: 44, height: 44)
+                .background(Circle().fill(Theme.surface))
+                .overlay(Circle().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("設定")
     }
-
-    private var captureButton: some View { CaptureButton() }
 }
 
-/// 下に置く「あとで」ボタン（書き出し画面を開く）。
+/// 下に置く「あとでに回す」ボタン（書き出し画面を開く）。
 struct CaptureButton: View {
     @Environment(AppRouter.self) private var router
 
@@ -85,63 +74,33 @@ struct CaptureButton: View {
             Label("あとでに回す", systemImage: "plus").labelStyle(.titleAndIcon)
         }
         .buttonStyle(.cube(.primary, size: .large, fill: true))
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        // ボタンの下からタブバーの下まで方眼で埋める（スクロールした中身が透けないように）
+        // ボタンの下からタブバーの下まで紙の色で埋める（スクロールした中身が透けないように）
         .background(PaperBackground(fullScreen: false).ignoresSafeArea(edges: .bottom))
     }
 }
 
-extension View {
-    /// スクロールした中身がステータスバーの文字と重ならないよう、上端を紙の色で覆う
-    func paperStatusBar() -> some View {
-        overlay(alignment: .top) {
-            GeometryReader { proxy in
-                PaperBackground(fullScreen: false)
-                    .frame(height: proxy.safeAreaInsets.top)
-                    .offset(y: -proxy.safeAreaInsets.top)
-            }
-            .allowsHitTesting(false)
-        }
-    }
-}
-
-/// 返ってきたもの。先頭に「次」、やりたい・やらなきゃの2つの値で4つに分けて並べる。
+/// 今にあるもの。先頭に「次」、その下にすべてを1つの箱で。
+/// やりたい・やらなきゃは見出しで分けず、金魚の描き分けで見せる。
 struct ReturnedList: View {
     let items: [Item]
 
-    private static let threshold = 0.5
-
-    /// 「次」に出す候補（優先順位の高い順、最大5つ）
-    private var candidates: [Item] {
-        Array(items.sorted { $0.priority() > $1.priority() }.prefix(5))
-    }
-
-    private func group(_ title: String, want: Bool, must: Bool) -> (String, [Item]) {
-        let rows = items
-            .filter { ($0.effectiveWant >= Self.threshold) == want && ($0.effectiveMust >= Self.threshold) == must }
-            .sorted { $0.priority() > $1.priority() }
-        return (title, rows)
-    }
-
-    private var sections: [(String, [Item])] {
-        [group("やりたい・やらなきゃ", want: true, must: true),
-         group("やらなきゃ", want: false, must: true),
-         group("やりたい", want: true, must: false),
-         group("そのほか", want: false, must: false)]
-            .filter { !$0.1.isEmpty }
-    }
+    /// 優先順位の高い順
+    private var ordered: [Item] { items.sorted { $0.priority() > $1.priority() } }
+    /// 「次」に出す候補（最大5つ）
+    private var candidates: [Item] { Array(ordered.prefix(5)) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
-            if !candidates.isEmpty { NextCard(items: candidates) }
-            ForEach(sections, id: \.0) { title, rows in
-                VStack(alignment: .leading, spacing: 4) {
-                    SectionLabel(title).padding(.bottom, 6)
-                    ForEach(rows) { ReturnedRow(item: $0) }
+        VStack(alignment: .leading, spacing: 26) {
+            if !candidates.isEmpty { NextCard(items: candidates).padding(.top, 10) }
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(ordered.enumerated()), id: \.element.id) { index, item in
+                    if index > 0 { Rectangle().fill(Theme.faint).frame(height: 2) }
+                    ReturnedRow(item: item)
                 }
-                .onPaper(padding: 14)
             }
+            .onPaper(padding: 14)
         }
     }
 }
@@ -152,29 +111,33 @@ private struct NextCard: View {
     @State private var page = 0
 
     var body: some View {
-        Card(padding: 16, style: .accent) {
-            VStack(alignment: .leading, spacing: 10) {
-                SectionLabel("次", ruled: false)
-                TabView(selection: $page) {
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        NextPage(item: item).tag(index)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 64)
-                if items.count > 1 {
-                    HStack(spacing: 6) {
-                        ForEach(items.indices, id: \.self) { index in
-                            Rectangle()
-                                .fill(Theme.onAccent.opacity(index == page ? 1 : 0.3))
-                                .frame(width: 5, height: 5)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 10) {
+            TabView(selection: $page) {
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    NextPage(item: item).tag(index)
                 }
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(minHeight: 96)
+            if items.count > 1 {
+                HStack(spacing: 6) {
+                    ForEach(items.indices, id: \.self) { index in
+                        Capsule()
+                            .fill(index == page ? Theme.accent : Theme.faint)
+                            .frame(width: index == page ? 18 : 6, height: 6)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityHidden(true)
+            }
         }
+        .padding(.top, 18)
+        .padding([.horizontal, .bottom], 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.ink).offset(x: Theme.shadow + 1, y: Theme.shadow + 1))
+        .sticker("次")
         .onChange(of: items.map(\.id)) { _, ids in
             if page >= ids.count { page = max(0, ids.count - 1) }
         }
@@ -185,19 +148,16 @@ private struct NextPage: View {
     let item: Item
 
     var body: some View {
-        // 左に中身（文字と、その下に時間・期限）、右に「やる」。余白を作らない
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(item.text).atype(.title).lineLimit(2)
-                HStack(spacing: 10) {
-                    TimeText(seconds: item.focusSeconds)
-                    if let deadline = item.deadline { DeadlineLabel(date: deadline) }
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            Text(item.text).atype(.title).lineLimit(3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack {
+                if let deadline = item.deadline { DeadlineLabel(date: deadline) }
+                Spacer(minLength: 0)
+                Button("やる") { FocusSession.shared.start(item) }
+                    .buttonStyle(.cube(.accent))
+                    .environment(\.atypeInk, nil)
             }
-            Spacer(minLength: 0)
-            Button("やる") { FocusSession.shared.start(item) }
-                .buttonStyle(.cube(.secondary))
-                .environment(\.atypeInk, nil)
         }
         .padding(.horizontal, 2)
     }
@@ -211,8 +171,6 @@ private struct ReturnedRow: View {
     /// あとでがいっぱいで回せなかったときの一言
     @State private var fullNotice = false
 
-    private var mustful: Bool { item.effectiveMust >= 0.5 }
-
     var body: some View {
         Group {
             if let confirmed {
@@ -222,8 +180,7 @@ private struct ReturnedRow: View {
             }
             if fullNotice {
                 Text("水槽がいっぱいです（\(SettingsStore.laterCapacity)匹）。「あとで」で減らすと回せます")
-                    .atype(.label, color: Theme.accent)
-                    .padding(.leading, 34)
+                    .atype(.small, color: Theme.accent)
                     .transition(.opacity)
             }
         }
@@ -237,48 +194,30 @@ private struct ReturnedRow: View {
     }
 
     private var rowBody: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
                 // 印は見せるだけ。触れても消えないよう、「できた」は開いたときのボタンだけにする
-                mark.padding(6)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.text).atype(.body)
-                    if let theme = item.theme {
-                        Text(theme)
-                            .atype(.label, color: item.isCloseToAxis ? Theme.accent : Theme.quiet)
-                    }
-                }
-                Spacer(minLength: 0)
-                // 右側は幅を決めた列にして、時間・期限・未評価の印を行をまたいで縦にそろえる
-                TimeText(seconds: item.focusSeconds)
-                    .frame(width: 60, alignment: .trailing)
-                Group {
-                    if let deadline = item.deadline { DeadlineLabel(date: deadline) } else { Color.clear }
-                }
-                .frame(width: 40, height: 12, alignment: .trailing)
-                Group {
-                    if !item.isRated {
-                        SquareMark(.outline(alpha: 0.6, dashed: true), size: 10)
-                            .accessibilityElement()
-                            .accessibilityLabel("未評価")
-                    } else { Color.clear }
-                }
-                .frame(width: 12, height: 12)
+                mark
+                Text(item.text).atype(.body)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if item.isBothLow { ReleaseHint() }
+                if let deadline = item.deadline { DeadlineLabel(date: deadline) }
             }
+            .frame(minHeight: 52)
             .contentShape(Rectangle())
             .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { open.toggle() } }
+            .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
+            .accessibilityHint(open ? "閉じる" : "やりたい・やらなきゃと、やることを出す")
 
             if open {
                 WantMustPad(item: item)
-                    .padding(.leading, 34)
-                HStack(spacing: 8) {
-                    action("やる") { FocusSession.shared.start(item) }
-                    if mustful { action("できた") { resolve(.done) } }
-                    action("あとでに回す") { postpone(.atBreak) }
-                    action("やめる", emphasized: item.isBothLow) { resolve(.released) }
+                FlowRow {
+                    action("やる", .accent) { FocusSession.shared.start(item) }
+                    action("できた", .primary) { ReturnService.takeHome(item, in: context) }
+                    action("あとでに回す", .secondary) { postpone(.atBreak) }
+                    action("やめる", item.isBothLow ? .primary : .secondary) { resolve(.released) }
                 }
-                .padding(.leading, 34)
                 .transition(.opacity)
             }
         }
@@ -286,15 +225,15 @@ private struct ReturnedRow: View {
 
     @ViewBuilder private var mark: some View {
         if item.isRated {
-            DotMark(kind: item.kind, want: item.effectiveWant, must: item.effectiveMust, size: 10)
+            DotMark(kind: item.kind, want: item.effectiveWant, must: item.effectiveMust, size: 14)
         } else {
-            DotMark(kind: .concern, highlighted: item.isCloseToAxis, size: 10)
+            DotMark(kind: .concern, highlighted: item.isCloseToAxis, size: 14)
         }
     }
 
-    private func action(_ title: String, emphasized: Bool = false, perform: @escaping () -> Void) -> some View {
+    private func action(_ title: String, _ variant: CubeVariant, perform: @escaping () -> Void) -> some View {
         Button(title, action: perform)
-            .buttonStyle(.cube(emphasized ? .primary : .secondary))
+            .buttonStyle(.cube(variant))
     }
 
     /// もう一度あとに回す。一言見せてから「あとで」へ移す（時間は決めない）。
@@ -333,7 +272,36 @@ private struct ReturnedRow: View {
     }
 }
 
-private struct DeadlineLabel: View {
+/// 横に並べ、入りきらなければ折り返す（文字が大きいときもボタンが切れないように）。
+struct FlowRow: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, line: CGFloat = 0, maxX: CGFloat = 0
+        for s in subviews {
+            let size = s.sizeThatFits(.unspecified)
+            if x > 0 && x + size.width > width { x = 0; y += line + spacing; line = 0 }
+            x += size.width + spacing
+            maxX = max(maxX, x - spacing)
+            line = max(line, size.height)
+        }
+        return CGSize(width: min(maxX, width), height: y + line)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, line: CGFloat = 0
+        for s in subviews {
+            let size = s.sizeThatFits(.unspecified)
+            if x > bounds.minX && x + size.width > bounds.maxX { x = bounds.minX; y += line + spacing; line = 0 }
+            s.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            line = max(line, size.height)
+        }
+    }
+}
+
+struct DeadlineLabel: View {
     let date: Date
 
     var body: some View {

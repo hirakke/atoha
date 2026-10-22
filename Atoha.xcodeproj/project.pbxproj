@@ -31,6 +31,7 @@
 		62B434EEEF29E51A0AB35226 /* PersonalPCA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95486C4029E2E89937DD0766 /* PersonalPCA.swift */; };
 		63CB5519D571E6F3488C840A /* CubeSegmented.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86A2642AB303F8D121106F1 /* CubeSegmented.swift */; };
 		64C31976D6F31CFBF060F198 /* PCCBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687554505A248D07248E1AEB /* PCCBackend.swift */; };
+		6664DE771FD4ABF7776101A0 /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD68120CB19E067390C9B4 /* CollectionView.swift */; };
 		68F8EE5E520F9311872756E1 /* AtohaActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */; };
 		6A2A8C48A00D37AEFDE3CE4F /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581466A17A22E30ABA54CFBC /* CaptureView.swift */; };
 		6DEFA19C7E21006155CD1294 /* PoleNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C98EC7405C37474D45B2595 /* PoleNamer.swift */; };
@@ -41,6 +42,7 @@
 		8E77F76BE74460405F1E0B83 /* Timeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F26D2CA6100F4A76569E6C /* Timeout.swift */; };
 		952F76FDD7E038239C3BFB6B /* CubeGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFC0A92AC358599C8238C7B /* CubeGlyph.swift */; };
 		98CD02B80DA23FDB36BD9A92 /* CaptureControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E737233AF4867CD2E78DA54C /* CaptureControl.swift */; };
+		9905EECF413A4358B1DC184D /* Ennichi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DA61D9647989201AF36CA5 /* Ennichi.swift */; };
 		9E75F6AD5DD94094905F63E8 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0960E4F93277688BDCE5DF3 /* Item.swift */; };
 		A1AF3FCEC2EDB9C500BD456C /* AtohaWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 886DCDAC93079CDE90D741FF /* AtohaWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AB0A3766F21270B4DB2AE433 /* AtohaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */; };
@@ -53,6 +55,7 @@
 		C91D2861252D7087F38D7AEA /* CaptureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */; };
 		CB62C65EFAABEED95E02953F /* AtohaAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67D5E35926E9D2CC2A601D8 /* AtohaAI.swift */; };
 		CD868A77319FD55143725238 /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E214C4E3460EB09912F5C797 /* WatchBridge.swift */; };
+		D55CD57C355E3D0F7FFCE29E /* StoryBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51AD5090A11780BE3D7B2453 /* StoryBookView.swift */; };
 		D596C40BA158D9325BCE1ED1 /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95C4ECA3ED776A8A4E48CFA /* FocusSession.swift */; };
 		DC6CA1F59264CA386B07B0B1 /* VoxelMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */; };
 		DD90ECBA7D5F27CB231DD597 /* Goldfish.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DB19713A04A72949D1DFB0 /* Goldfish.swift */; };
@@ -127,8 +130,10 @@
 		286EBC60507FAC61B3630550 /* ItemProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemProcessor.swift; sourceTree = "<group>"; };
 		2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaWatchApp.swift; sourceTree = "<group>"; };
 		3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMesh.swift; sourceTree = "<group>"; };
+		42DD68120CB19E067390C9B4 /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		4C1256465E6A6CBB65F08211 /* AxisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxisEngine.swift; sourceTree = "<group>"; };
 		50F1ABB1D49FA8DC3AB45936 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		51AD5090A11780BE3D7B2453 /* StoryBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryBookView.swift; sourceTree = "<group>"; };
 		57AE9E94447E9C440FCB6F7D /* DotMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotMark.swift; sourceTree = "<group>"; };
 		581466A17A22E30ABA54CFBC /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
 		6131D4A4CC335928C1DE5F0B /* TimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeText.swift; sourceTree = "<group>"; };
@@ -147,6 +152,7 @@
 		929C4CB011EF655A285056A7 /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
 		92E2CB09E0B8B11B34B3AEE8 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		95486C4029E2E89937DD0766 /* PersonalPCA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalPCA.swift; sourceTree = "<group>"; };
+		99DA61D9647989201AF36CA5 /* Ennichi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ennichi.swift; sourceTree = "<group>"; };
 		9C98EC7405C37474D45B2595 /* PoleNamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoleNamer.swift; sourceTree = "<group>"; };
 		9CC0A859F1C1C9E07F200D90 /* Atoha.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atoha.entitlements; sourceTree = "<group>"; };
 		9D60D6CF8EE34F8BC06CB711 /* ChatGPTAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTAuth.swift; sourceTree = "<group>"; };
@@ -185,12 +191,14 @@
 			children = (
 				D5004564EF3F9999682A50EC /* Theme.swift */,
 				8C3E4BE5090237C0E840B62D /* Capture */,
+				B19D7920511B87C0C8B20FC7 /* Collection */,
 				7D11626E501E526C1D777403 /* DesignSystem */,
 				4B9601ACBAA82FB82B91F424 /* Dot */,
 				57072E548CFBA7C83C4E9BC5 /* Focus */,
 				62120B7EA1AC08E8028583AB /* Home */,
 				BF267BA20210BE92C58FD245 /* Later */,
 				3AC6EFF3F09A53D0A1965477 /* Map */,
+				70702B975E2B6F0ECFCB4C10 /* Onboarding */,
 				6DA642AAD56CF17D0B48640F /* Settings */,
 				56A0959DBC7749D1645E1315 /* Voxel */,
 			);
@@ -326,6 +334,14 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		70702B975E2B6F0ECFCB4C10 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				51AD5090A11780BE3D7B2453 /* StoryBookView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		7D11626E501E526C1D777403 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -333,6 +349,7 @@
 				D6670AC23B3B764E5B741C55 /* CubeButton.swift */,
 				8FFC0A92AC358599C8238C7B /* CubeGlyph.swift */,
 				B86A2642AB303F8D121106F1 /* CubeSegmented.swift */,
+				99DA61D9647989201AF36CA5 /* Ennichi.swift */,
 				6131D4A4CC335928C1DE5F0B /* TimeText.swift */,
 				FDEEE60C4C5DEE69E941BE15 /* Typography.swift */,
 			);
@@ -354,6 +371,14 @@
 				CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */,
 			);
 			path = Intents;
+			sourceTree = "<group>";
+		};
+		B19D7920511B87C0C8B20FC7 /* Collection */ = {
+			isa = PBXGroup;
+			children = (
+				42DD68120CB19E067390C9B4 /* CollectionView.swift */,
+			);
+			path = Collection;
 			sourceTree = "<group>";
 		};
 		BEEABFA1B1E7FF5EE32DE786 /* Atoha */ = {
@@ -539,6 +564,7 @@
 				E7D0B975281C9385E1D7D185 /* Card.swift in Sources */,
 				0A8A9BBEC4C5A59BE69AF1C2 /* ChatGPTAuth.swift in Sources */,
 				0B4B4660FDA7F6717A9062F8 /* ChatGPTBackend.swift in Sources */,
+				6664DE771FD4ABF7776101A0 /* CollectionView.swift in Sources */,
 				53909A665A0D71F18D27653E /* CubeButton.swift in Sources */,
 				952F76FDD7E038239C3BFB6B /* CubeGlyph.swift in Sources */,
 				63CB5519D571E6F3488C840A /* CubeSegmented.swift in Sources */,
@@ -546,6 +572,7 @@
 				EDED4B8BE6A146A2945608B0 /* DotMark.swift in Sources */,
 				84A689AACF34789E2FA564E7 /* DotMatrixText.swift in Sources */,
 				0A44B4364053782CC8DF0A30 /* EmbeddingService.swift in Sources */,
+				9905EECF413A4358B1DC184D /* Ennichi.swift in Sources */,
 				D596C40BA158D9325BCE1ED1 /* FocusSession.swift in Sources */,
 				7FE01B10BCE98F73C6B8B948 /* FocusView.swift in Sources */,
 				DD90ECBA7D5F27CB231DD597 /* Goldfish.swift in Sources */,
@@ -565,6 +592,7 @@
 				5C636CDA23437FCE1BBFF54A /* SampleData.swift in Sources */,
 				BE6C8844E36F7D7D5B50603E /* SettingsStore.swift in Sources */,
 				507EFAB99413CC498F5E79B2 /* SettingsView.swift in Sources */,
+				D55CD57C355E3D0F7FFCE29E /* StoryBookView.swift in Sources */,
 				40A80193E4C063B4538B6C59 /* TankView.swift in Sources */,
 				2E549F6A448D597CC1562980 /* Theme.swift in Sources */,
 				5760CEE6FC6DE6068CE25F69 /* TimeText.swift in Sources */,

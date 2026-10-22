@@ -114,6 +114,8 @@ final class Item {
     var must: Double?
     /// 集中した時間の合計（秒）。
     var focusSeconds: Double = 0
+    /// あとでから今へすくった日時。
+    var scoopedAt: Date?
 
     init(text: String, timing: ReturnTiming, now: Date = .now) {
         self.id = UUID()

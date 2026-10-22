@@ -113,11 +113,11 @@ struct FocusView: View {
 
     private func conclude(done: Bool) {
         if done, let item {
-            item.state = .done
-            item.resolvedAt = .now
+            // できたものは袋に入れて持ち帰る（金魚鉢へ）
+            ReturnService.takeHome(item, in: context)
+        } else {
+            ReturnService.sync(in: context)
         }
-        try? context.save()
-        ReturnService.sync(in: context)
         session.clear()
     }
 

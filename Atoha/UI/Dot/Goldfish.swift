@@ -137,18 +137,53 @@ struct GoldfishMark: View {
 struct BowlIcon: View {
     var filled: Bool
     var width: CGFloat = 24
+    /// 藍の札の上に置く（白い線、入っていれば紅い水）
+    var onDark = false
 
     var body: some View {
+        let line = onDark ? Color.white : Theme.ink
         ZStack(alignment: .top) {
             BowlShape()
-                .fill(Theme.paper)
-                .overlay(BowlShape().stroke(Theme.ink, lineWidth: 1.5))
-            if filled {
+                .fill(onDark ? (filled ? Theme.accent : Color.clear) : Theme.surface)
+                .overlay(BowlShape().stroke(line, lineWidth: onDark ? 2.5 : 1.5))
+            if filled && !onDark {
                 GoldfishMark(color: Theme.accent, width: width * 0.42)
                     .padding(.top, width * 0.2)
             }
         }
         .frame(width: width, height: width * 0.62)
+        .accessibilityHidden(true)
+    }
+}
+
+/// 持ち帰りの袋。結び目のあるビニール袋に水と金魚。
+struct BagIcon: View {
+    var tint: GoldfishTint = .red
+    var width: CGFloat = 28
+
+    private static let outline: [(x: Int, y: Int, w: Int, h: Int)] = [
+        (5, 0, 1, 1), (8, 0, 1, 1), (6, 1, 2, 2), (5, 3, 1, 1), (8, 3, 1, 1), (4, 4, 1, 1), (9, 4, 1, 1),
+        (3, 5, 1, 1), (10, 5, 1, 1), (2, 6, 1, 9), (11, 6, 1, 9), (3, 15, 1, 1), (10, 15, 1, 1), (4, 16, 6, 1),
+    ]
+
+    var body: some View {
+        let ink = Theme.ink
+        ZStack(alignment: .topLeading) {
+            Canvas { context, size in
+                let cell = size.width / 14
+                var water = Path(CGRect(x: 3 * cell, y: 8 * cell, width: 8 * cell, height: 7 * cell))
+                water.addRect(CGRect(x: 4 * cell, y: 15 * cell, width: 6 * cell, height: cell))
+                context.fill(water, with: .color(ink.opacity(0.14)))
+                var p = Path()
+                for r in Self.outline {
+                    p.addRect(CGRect(x: CGFloat(r.x) * cell, y: CGFloat(r.y) * cell, width: CGFloat(r.w) * cell, height: CGFloat(r.h) * cell))
+                }
+                context.fill(p, with: .color(ink))
+            }
+            GoldfishMark(tint: tint, width: width * 0.52)
+                .offset(x: width * 0.24, y: width * 0.68)
+        }
+        .frame(width: width, height: width * 17 / 14)
         .accessibilityHidden(true)
     }
 }

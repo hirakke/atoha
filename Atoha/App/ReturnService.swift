@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 import UserNotifications
 import ActivityKit
+import UIKit
 
 /// あとでに回したものが戻ってくる。
 /// 戻ってきたもの（戻る時が来たもの）は「今」へ自動では入れず、おすすめとして見せる。今に入れるかは本人が決める。
@@ -52,10 +53,21 @@ enum ReturnService {
         guard item.state == .waiting, room(in: context) > 0 else { return false }
         let old = item.returnAt
         item.state = .returned
+        item.scoopedAt = .now
         try? context.save()
         if let old { NotificationScheduler.reschedule(for: old, in: context) }
         sync(in: context)
         return true
+    }
+
+    /// できたものを持ち帰る（金魚鉢へ）。お椀が1つ空き、「持ち帰りました」を出す。
+    @MainActor
+    static func takeHome(_ item: Item, in context: ModelContext) {
+        item.state = .done
+        item.resolvedAt = .now
+        sync(in: context)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        AppRouter.shared.takenHomeID = item.id
     }
 
     /// 保存して、ライブアクティビティを今の状態に合わせる。今へは何も動かさない。

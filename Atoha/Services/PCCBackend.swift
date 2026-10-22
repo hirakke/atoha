@@ -86,16 +86,21 @@ enum CloudAI {
 struct PCCBackend: LanguageBackend {
     private static let model = PrivateCloudComputeLanguageModel()
 
+    /// PCC の entitlement を付けたビルドだけ使う（Info.plist の AtohaPCCEnabled）。
+    /// 付けていないビルドでモデルに触れると、iOS 27 では起動中に止まってしまう。
+    static var entitled: Bool { Bundle.main.object(forInfoDictionaryKey: "AtohaPCCEnabled") as? Bool == true }
+
     static var status: CloudStatus {
-        guard case .available = model.availability else { return .unavailable }
+        guard entitled, case .available = model.availability else { return .unavailable }
         if model.quotaUsage.isLimitReached { return .reached }
         if case .belowLimit(let info) = model.quotaUsage.status, info.isApproachingLimit { return .approaching }
         return .ready
     }
 
-    static var limitIncreaseAvailable: Bool { model.quotaUsage.limitIncreaseSuggestion != nil }
+    static var limitIncreaseAvailable: Bool { entitled && model.quotaUsage.limitIncreaseSuggestion != nil }
 
     static func showLimitOptions() {
+        guard entitled else { return }
         model.quotaUsage.limitIncreaseSuggestion?.show()
     }
 

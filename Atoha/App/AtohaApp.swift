@@ -10,7 +10,7 @@ struct AtohaApp: App {
         WindowGroup {
             RootView()
                 .environment(router)
-                .tint(Theme.ink)
+                .tint(Theme.accent)
         }
         .modelContainer(container)
     }
@@ -56,6 +56,10 @@ enum AtohaStore {
 final class AppRouter {
     static let shared = AppRouter()
     var showCapture = false
+    /// いま持ち帰ったもの（「持ち帰りました」の知らせを出す）
+    var takenHomeID: UUID?
+    /// 金魚鉢を開く（地図から）
+    var showCollection = false
 }
 
 struct RootView: View {
@@ -65,6 +69,7 @@ struct RootView: View {
     @State private var focus = FocusSession.shared
 
     @State private var tab = (DebugLaunch.tab == "axes" ? "map" : DebugLaunch.tab) ?? "now"
+    @AppStorage("onboarded") private var onboarded = false
 
     var body: some View {
         @Bindable var router = router
@@ -72,6 +77,26 @@ struct RootView: View {
             Tab("今", systemImage: "fish.fill", value: "now") { HomeView() }
             Tab("あとで", systemImage: "water.waves", value: "later") { LaterView() }
             Tab("地図", systemImage: "map", value: "map") { MapScreen() }
+        }
+        .overlay(alignment: .bottom) {
+            if let id = router.takenHomeID {
+                TakeHomeToast {
+                    router.takenHomeID = nil
+                    tab = "map"
+                    router.showCollection = true
+                }
+                .id(id)
+                .padding(.bottom, 96)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .task(id: id) {
+                    try? await Task.sleep(for: .seconds(4))
+                    if router.takenHomeID == id { withAnimation { router.takenHomeID = nil } }
+                }
+            }
+        }
+        .animation(.spring(duration: 0.4), value: router.takenHomeID)
+        .fullScreenCover(isPresented: Binding(get: { !onboarded && !DebugLaunch.skipOnboarding }, set: { if !$0 { onboarded = true } })) {
+            StoryBookView { onboarded = true }
         }
         // 夜の色の組は、明るい設定でも暗い画面として扱う（ステータスバーの文字色など）
         .preferredColorScheme(ThemeStore.shared.palette.alwaysDark ? .dark : nil)
@@ -110,6 +135,15 @@ enum DebugLaunch {
 
     /// `-atohaTab axes` は地図タブを開いて軸のシートを出す。
     static var showAxesSheet: Bool { tab == "axes" }
+
+    /// 初回の絵本を出さない（`-atohaNoStory`）。画面の確認用
+    static var skipOnboarding: Bool {
+        #if DEBUG
+        return args.contains("-atohaNoStory")
+        #else
+        return false
+        #endif
+    }
 
     static var skipNotifications: Bool {
         #if DEBUG

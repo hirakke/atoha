@@ -1,14 +1,18 @@
 import SwiftUI
 import SwiftData
 
-/// 地図：気になることを、上から見た池に泳がせる。
+/// 地図：気になることを池に泳がせる。2本の軸をはっきり見せ、横から見ると3本目（深さ）が見える。
+/// 持ち帰った金魚は白抜きで重ねられ、金魚鉢から一覧・カレンダーでも見られる。
 struct MapScreen: View {
+    @Environment(AppRouter.self) private var router
     @Query private var items: [Item]
     @Query(sort: \Axis.order) private var axes: [Axis]
     @State private var selectedID: UUID?
     @State private var showAxes = DebugLaunch.showAxesSheet
     @AppStorage("mapPeriod") private var periodRaw: String = MapPeriod.month.rawValue
     @AppStorage("mapMode") private var modeRaw: String = ""
+    @AppStorage("mapSide") private var side = false
+    @AppStorage("mapShowTakenHome") private var showTakenHome = false
 
     private var period: MapPeriod { MapPeriod(rawValue: periodRaw) ?? .month }
     private var mode: MapMode {
@@ -16,107 +20,211 @@ struct MapScreen: View {
         return axes.isEmpty ? .graph : .axis
     }
 
-    private var allConcerns: [Item] {
-        items.filter(\.showsOnMap)
+    private var cutoff: Date {
+        guard let days = period.days else { return .distantPast }
+        return Calendar.current.date(byAdding: .day, value: -Int(days), to: Calendar.current.startOfDay(for: Date())) ?? .distantPast
     }
 
-    private var concerns: [Item] {
-        guard let days = period.days else { return allConcerns }
-        let cutoff = Calendar.current.date(byAdding: .day, value: -Int(days), to: Calendar.current.startOfDay(for: Date())) ?? .distantPast
-        return allConcerns.filter { $0.createdAt >= cutoff }
+    private var allConcerns: [Item] { items.filter(\.showsOnMap) }
+    private var concerns: [Item] { allConcerns.filter { $0.createdAt >= cutoff } }
+    /// 持ち帰った金魚（期間内に持ち帰ったもの）
+    private var takenHome: [Item] {
+        items.filter { $0.state == .done && ($0.resolvedAt ?? $0.createdAt) >= cutoff }
+    }
+    private var takenHomeThisMonth: Int {
+        let start = Calendar.current.dateInterval(of: .month, for: .now)?.start ?? .distantPast
+        return items.filter { $0.state == .done && ($0.resolvedAt ?? .distantPast) >= start }.count
     }
 
     private var selected: Item? {
         guard let selectedID else { return nil }
-        return concerns.first { $0.id == selectedID }
-    }
-
-    private var axesButton: some View {
-        Button("軸") { showAxes = true }
-            .buttonStyle(.cube(.secondary))
+        return (concerns + takenHome).first { $0.id == selectedID }
     }
 
     var body: some View {
-        ZStack {
-            PaperBackground()
-
-            if allConcerns.isEmpty {
-                SquareMark(.ink(0.15), size: 10)
-                axesButton
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            } else {
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(alignment: .top, spacing: 10) {
-                        axesButton
-                        Text("\(concerns.count)匹")
-                            .atype(.label)
-                            .padding(.top, 10)
-                        Spacer()
-                        VStack(alignment: .trailing, spacing: 8) {
-                            CubeSegmented(options: MapPeriod.allCases, label: { $0.label },
-                                          selection: Binding(get: { period }, set: { periodRaw = $0.rawValue }))
-                            CubeSegmented(options: MapMode.allCases, label: { $0.label },
-                                          selection: Binding(get: { mode }, set: { modeRaw = $0.rawValue }))
+        @Bindable var router = router
+        NavigationStack {
+            ZStack {
+                PaperBackground()
+                VStack(alignment: .leading, spacing: 12) {
+                    header
+                    axisCard
+                    if allConcerns.isEmpty && takenHome.isEmpty {
+                        Text("気になることが増えると、ここに金魚が泳ぎます。")
+                            .atype(.small, color: Theme.quiet)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if side && axes.count >= 3 {
+                        PondSideView(items: concerns, axes: axes)
+                    } else {
+                        PondMapView(items: concerns, takenHome: showTakenHome ? takenHome : [], axes: axes,
+                                    selectedID: selectedID, mode: side ? .axis : mode) { item in
+                            selectedID = item?.id
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-
-                    // 上から見た池。縦横で軸2本、3本目は深さ
-                    PondMapView(items: concerns, axes: axes, selectedID: selectedID, mode: mode) { item in
-                        selectedID = item?.id
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
-                }
-                .overlay(alignment: .bottom) {
                     if let item = selected {
-                        MapSelectionCard(item: item, place: PondMapView.whereText(item, axes: axes))
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
+                        MapSelectionCard(item: item, leanings: PondMapView.leanings(item, axes: axes))
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                             .id(item.id)
+                    } else {
+                        legend
+                        collectionEntry
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                .padding(.bottom, 12)
+            }
+            .awning()
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(isPresented: $router.showCollection) { CollectionView() }
+            .sheet(isPresented: $showAxes) { AxesView() }
+        }
+    }
+
+    private var header: some View {
+        HStack(spacing: 8) {
+            Text("地図").font(Theme.display(.title)).foregroundStyle(Theme.ink)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+            CubeSegmented(options: [false, true], label: { $0 ? "横から" : "上から" },
+                          selection: Binding(get: { side }, set: { side = $0; selectedID = nil }))
+            Menu {
+                Picker("期間", selection: Binding(get: { period }, set: { periodRaw = $0.rawValue })) {
+                    ForEach(MapPeriod.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+                Picker("並べ方", selection: Binding(get: { mode }, set: { modeRaw = $0.rawValue })) {
+                    ForEach(MapMode.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+            } label: {
+                Text(period.label).atype(.small).fontWeight(.black)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .padding(.horizontal, 4)
+                    .background(Capsule().fill(Theme.surface))
+                    .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+            }
+            .accessibilityLabel("期間 \(period.label)")
+        }
+    }
+
+    /// どの軸で見ているか。押すと軸の画面へ
+    private var axisCard: some View {
+        Button { showAxes = true } label: {
+            HStack(spacing: 10) {
+                if axes.count >= 2 && !(side && axes.count < 3) {
+                    Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 2) {
+                        GridRow {
+                            Text("横の軸").atype(.small, color: Theme.quiet).fontWeight(.bold)
+                            Text("\(axes[0].negativePole) ↔ \(axes[0].positivePole)").atype(.small).fontWeight(.black)
+                        }
+                        GridRow {
+                            Text(side ? "深さ" : "縦の軸").atype(.small, color: Theme.quiet).fontWeight(.bold)
+                            Text(side ? "\(axes[2].negativePole) ↔ \(axes[2].positivePole)" : "\(axes[1].positivePole) ↔ \(axes[1].negativePole)")
+                                .atype(.small).fontWeight(.black)
+                        }
+                    }
+                } else {
+                    Text(axes.isEmpty ? "軸はまだありません" : "横から見るには、軸が3本いります").atype(.small).fontWeight(.bold)
+                }
+                Spacer(minLength: 0)
+                Text(axes.isEmpty ? "軸をつくる ›" : "軸を変える ›").atype(.small).fontWeight(.black)
+                    .padding(.horizontal, 10).padding(.vertical, 4)
+                    .background(Capsule().fill(Theme.faint.opacity(0.7)))
+            }
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .frame(minHeight: 52)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Theme.surface))
+            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+            .background(RoundedRectangle(cornerRadius: 16).fill(Theme.ink).offset(x: 3, y: 3))
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// 深さ（大きさ）と、持ち帰った金魚を出すかどうか
+    private var legend: some View {
+        HStack(spacing: 8) {
+            if axes.count >= 3 && !side {
+                Text("深さ").atype(.small).fontWeight(.black)
+                GoldfishMark(color: Theme.ink, width: 24)
+                Text(axes[2].negativePole).atype(.small)
+                GoldfishMark(color: Theme.ink, width: 13)
+                Text(axes[2].positivePole).atype(.small)
+            }
+            Spacer(minLength: 0)
+            if !side {
+                Toggle(isOn: $showTakenHome) {
+                    HStack(spacing: 6) {
+                        GoldfishMark(color: Theme.ink, style: .takenHome, width: 20)
+                        Text("持ち帰った").atype(.small).fontWeight(.bold)
+                    }
+                }
+                .toggleStyle(.switch)
+                .tint(Theme.accent)
+                .fixedSize()
             }
         }
-        .sheet(isPresented: $showAxes) { AxesView() }
+    }
+
+    /// 金魚鉢へ
+    private var collectionEntry: some View {
+        Button { router.showCollection = true } label: {
+            HStack(spacing: 12) {
+                FishbowlIcon(count: min(3, takenHomeThisMonth), width: 34)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("金魚鉢　この月 \(takenHomeThisMonth)匹").atype(.body).fontWeight(.black)
+                    Text("持ち帰った金魚を、一覧・カレンダーで").atype(.small, color: Theme.quiet)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.system(size: 15, weight: .black)).foregroundStyle(Theme.quiet)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.surface))
+            .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+            .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.ink).offset(x: Theme.shadow, y: Theme.shadow))
+        }
+        .buttonStyle(.plain)
+        .padding(.trailing, Theme.shadow)
     }
 }
 
 private struct MapSelectionCard: View {
     let item: Item
-    /// どのあたりを泳いでいるか
-    var place: String?
-
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "MM/dd"
-        return f
-    }()
+    let leanings: [String]
 
     var body: some View {
-        Card(opaque: true) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(item.text)
-                    .atype(.body)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                if item.state == .done {
+                    GoldfishMark(color: Theme.ink, style: .takenHome, width: 30)
+                } else if item.isRated {
+                    GoldfishMark(tint: GoldfishTint.of(want: item.effectiveWant, must: item.effectiveMust), width: 30)
+                } else {
+                    GoldfishMark(color: Theme.ink, style: .fry, width: 30)
+                }
+                Text(item.text).atype(.body).fontWeight(.black)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
-                if let place { Text(place).atype(.label) }
-                HStack(spacing: 10) {
-                    if let theme = item.theme, !theme.isEmpty {
-                        Text(theme).atype(.label)
-                    }
-                    Spacer()
-                    TimeText(seconds: item.focusSeconds)
-                    Text(Self.dateFormatter.string(from: item.createdAt))
-                        .atype(.label)
+            }
+            FlowRow(spacing: 6) {
+                ForEach(leanings + [placeLabel], id: \.self) { text in
+                    Text(text).atype(.small).fontWeight(.bold)
+                        .padding(.horizontal, 10).padding(.vertical, 3)
+                        .background(Capsule().fill(Theme.faint.opacity(0.7)))
                 }
             }
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.accent, lineWidth: Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.accent).offset(x: Theme.shadow, y: Theme.shadow))
+        .padding(.trailing, Theme.shadow)
+    }
+
+    private var placeLabel: String {
+        switch item.state {
+        case .returned: "今のお椀"
+        case .waiting: "あとでの水槽"
+        case .done: "持ち帰った"
+        default: "池"
         }
     }
 }
