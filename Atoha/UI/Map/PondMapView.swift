@@ -461,7 +461,8 @@ struct PondTiltView: View, Animatable {
             return Fish(item: item,
                         x: score(item, 0) * (2 * p.w + Theme.stroke) * 0.31,
                         y: score(item, 1) * (p.h - 26) * 0.86,
-                        z: p.depth * CGFloat(Double(step) + 0.2 + 0.6 * frac) / 3,
+                        // いちばん深い層は、底の軸と重ならないよう少し浅めに
+                        z: p.depth * CGFloat(Double(step) + 0.2 + (step == 2 ? 0.45 : 0.6) * frac) / 3,
                         step: step,
                         tint: GoldfishTint.of(want: item.effectiveWant, must: item.effectiveMust),
                         phase: Double(abs(item.id.hashValue % 6283)) / 1000,
@@ -485,11 +486,19 @@ struct PondTiltView: View, Animatable {
     /// 金魚の画面の位置・水面の印の位置・大きさ
     private func projected(_ f: Fish, proj: TiltProjection, time: Double) -> (pos: CGPoint, spot: CGPoint, width: CGFloat, dep: CGFloat, right: Bool) {
         let s = swimming(f, time: time)
+        // 横から近くでは、手前の面（断面）へ寄せる。層の帯と金魚の深さがずれないように
+        let y = s.y + (-proj.h - s.y) * proj.section
         // 上からのときは水面に浮かせ、傾けるにつれて深さへ沈める
-        let fish = proj(s.x, s.y, f.z * proj.sink)
-        let spot = proj(s.x, s.y, 0)
-        let w = PondMapView.baseFishWidth * PondMapView.depthScales[max(0, min(2, f.step))] * fish.k
+        let fish = proj(s.x, y, f.z * proj.sink)
+        let spot = proj(s.x, y, 0)
+        let w = fishWidth(f.step) * fish.k
         return (fish.point, spot.point, w, fish.dep, s.facingRight)
+    }
+
+    /// 金魚の幅（遠近をかける前）。地図の上からより少し大きく。深いほど小さい
+    static let fishScale: CGFloat = 1.35
+    private func fishWidth(_ step: Int) -> CGFloat {
+        PondMapView.baseFishWidth * PondMapView.depthScales[max(0, min(2, step))] * Self.fishScale
     }
 
     // MARK: 描く（池・壁・軸）
@@ -525,15 +534,42 @@ struct PondTiltView: View, Animatable {
             }
             for i in 1...2 {
                 context.stroke(line(outlines[i], close: false), with: .color(ink.opacity(0.55)), lineWidth: 1.5)
-                if deg < 89.5 {
-                    // 層の境の面（池の中の点線）
+                if p.section < 0.99 {
+                    // 層の境の面（池の中の点線）。横から近くでは消していく
                     let plane = p.surfaceOutline(z: thirds[i]).map { p($0.0, $0.1, $0.2).point }
-                    context.stroke(line(plane, close: true), with: .color(Theme.waterDot.opacity(0.45)),
+                    context.stroke(line(plane, close: true), with: .color(Theme.waterDot.opacity(0.45 * (1 - p.section))),
                                    style: StrokeStyle(lineWidth: 1.2, dash: [3, 4]))
                 }
             }
             let wall = line(outlines[0] + outlines[3].reversed(), close: true)
             context.stroke(wall, with: .color(ink), style: StrokeStyle(lineWidth: Theme.stroke, lineJoin: .round))
+
+            // 横から近くでは、手前の面（断面）を上に重ねていく。池のほかの部分はすべてこの面の内側に入るので、
+            // 90° では、3つの層・層の境の点線・波の水面だけのすっきりした断面になる
+            if p.section > 0.01 {
+                var face = context
+                face.opacity = p.section
+                let corners = thirds.map { z in (p(-p.w, -p.h, z).point, p(p.w, -p.h, z).point) }
+                for i in 0..<3 {
+                    let band = line([corners[i].0, corners[i].1, corners[i + 1].1, corners[i + 1].0], close: true)
+                    face.fill(band, with: WaterTile.shading(i, dark: dark))
+                }
+                var seps = Path()
+                for i in 1...2 { seps.move(to: corners[i].0); seps.addLine(to: corners[i].1) }
+                face.stroke(seps, with: .color(ink.opacity(0.4)), style: StrokeStyle(lineWidth: 1.5, dash: [4, 5]))
+                // 水面の、ゆるい波の線
+                let wz = 14 * sc, amp = 3.5 * sc
+                let n = 48
+                var wave = Path()
+                for j in 0...n {
+                    let u = CGFloat(j) / CGFloat(n)
+                    let x = -p.w + 2 * p.w * u
+                    let pt = p(x, -p.h, wz).point
+                    let q = CGPoint(x: pt.x, y: pt.y + amp * sin(u * .pi * 2 * 4.5))
+                    if j == 0 { wave.move(to: q) } else { wave.addLine(to: q) }
+                }
+                face.stroke(wave, with: .color(ink.opacity(0.6)), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+            }
         }
 
         // 水面
@@ -590,7 +626,8 @@ struct PondTiltView: View, Animatable {
         let shown = fish.map { ($0, projected($0, proj: p, time: time)) }
 
         // 水面の印から深さまでの、下げ糸（点線）と波紋。上からのときは金魚と重なるので出さない
-        let sink = p.sink
+        // 横から近くでは消していく（断面の絵には出さない）
+        let sink = p.sink * (1 - p.section)
         if sink > 0.02 {
             var plumbs = Path(), rings = Path(), cores = Path(), flats = Path()
             let r1 = 15 * p.unit, r2 = 7 * p.unit
@@ -660,7 +697,7 @@ struct PondTiltView: View, Animatable {
                 }
             }
             if selected {
-                let k = w / (PondMapView.baseFishWidth * PondMapView.depthScales[max(0, min(2, f.step))])
+                let k = w / fishWidth(f.step)
                 let d = max(w * 1.8, 50 * min(1, k))
                 let ring = Path(ellipseIn: CGRect(x: pos.x - d / 2, y: pos.y - d / 2, width: d, height: d))
                 g.fill(ring, with: .color(surface))
@@ -749,7 +786,7 @@ struct PondTiltView: View, Animatable {
                 let names = PondMapView.depthNames(axes)
                 ForEach(0..<3, id: \.self) { i in
                     let q = p(-p.w + 40 * p.unit, -p.h, p.depth * (CGFloat(i) + 0.5) / 3)
-                    layerLabel(names[i], filled: i == 0).scaleEffect(min(q.k, 1)).position(q.point).opacity(layers)
+                    layerLabel(names[i], filled: i != 1).scaleEffect(min(q.k, 1)).position(q.point).opacity(layers)
                 }
             }
             // 選んだ金魚が、それぞれの軸のどちら寄りか（上からのときだけ）
@@ -790,7 +827,7 @@ struct PondTiltView: View, Animatable {
             .fixedSize()
     }
 
-    /// 層の札。いちばん浅い層（今）だけ紺で塗る
+    /// 層の札。いちばん浅い層（今）といちばん深い層（将来）は紺で塗り、まんなかは白に紺の縁
     private func layerLabel(_ text: String, filled: Bool) -> some View {
         Text(text).font(.system(.footnote, weight: .black)).foregroundStyle(filled ? Color.white : Theme.ink)
             .lineLimit(1)
@@ -835,6 +872,8 @@ struct TiltProjection {
     let degrees: Double
     /// 金魚が深さへ沈む割合（上から 0 → 30° で 1）
     let sink: CGFloat
+    /// 横からの断面へ寄せる割合（67.5° で 0 → 90° で 1）。下げ糸や層の境の面を消し、手前の面だけの絵にする
+    let section: CGFloat
     private let f: CGFloat, d: CGFloat, ox: CGFloat, oy: CGFloat, cosT: CGFloat, sinT: CGFloat
 
     init(size: CGSize, tilt: Double) {
@@ -850,6 +889,8 @@ struct TiltProjection {
         cosT = cos(th); sinT = sin(th)
         let s = max(0, min(1, degrees / 30))
         sink = s * s * (3 - 2 * s)
+        let e = max(0, min(1, (t - 0.75) / 0.25))
+        section = e * e * (3 - 2 * e)
         // 途中は余白をとる（上から・横からはぴったり）
         let m = min(1, sin(2 * th) * 1.6)
         let mx = 22 * unit * m, mt = 34 * unit * m, mb = 22 * unit * m

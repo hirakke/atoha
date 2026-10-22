@@ -173,6 +173,15 @@ enum DebugLaunch {
         return nil
     }
 
+    /// 地図を開いて3秒後に、上から↔横からを切り替える（`-atohaMapToggle`）。動きの確認用
+    static var mapToggle: Bool {
+        #if DEBUG
+        return args.contains("-atohaMapToggle")
+        #else
+        return false
+        #endif
+    }
+
     /// 地図で金魚を1匹選んだ状態で開く（`-atohaMapSelect`）
     static var mapSelect: Bool {
         #if DEBUG

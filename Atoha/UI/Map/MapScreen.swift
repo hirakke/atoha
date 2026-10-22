@@ -16,6 +16,8 @@ struct MapScreen: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// 池の傾きの向き。保存した side は変更がトランザクションに乗らないので、動かす値は別に持つ
     @State private var tiltSide = UserDefaults.standard.bool(forKey: "mapSide")
+    /// 「つながり」の並べ方から横からへ倒すあいだ（と起こすあいだ）、傾ける池のままにしておく
+    @State private var tiltHold = false
     @State private var path: [MapRoute] = []
 
     enum MapRoute: Hashable { case collection }
@@ -105,6 +107,10 @@ struct MapScreen: View {
         .onAppear {
             if let v = DebugLaunch.mapSide { side = v }
             if let t = DebugLaunch.mapTilt { side = t >= 45 }
+            if DebugLaunch.mapToggle {
+                // 開いて少ししたら、上から↔横からを切り替える（動きの確認用）
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) { setSide(!side) }
+            }
             if DebugLaunch.mapSelect, selectedID == nil {
                 selectedID = concerns.first { $0.isRated && GoldfishTint.of(want: $0.effectiveWant, must: $0.effectiveMust) != .faint && $0.axisScores.count >= 2 && abs($0.axisScores[0]) > 0.3 && abs($0.axisScores[1]) > 0.3 }?.id ?? concerns.first?.id
             }
@@ -117,7 +123,7 @@ struct MapScreen: View {
     /// 軸が3本あるときは、上からと横からを1つの池で描き、切り替えると池が手前に倒れる（深さが見える）。
     /// 視差効果を減らす設定のときは、倒さずに入れ替える（ふわっと重ねる）。
     @ViewBuilder private var pond: some View {
-        if axes.count >= 3 && (side || mode == .axis) {
+        if axes.count >= 3 && (side || mode == .axis || tiltHold) {
             let tilt = DebugLaunch.mapTilt.map { $0 / 90 } ?? (tiltSide ? 1 : 0)
             ZStack {
                 if reduceMotion {
@@ -141,19 +147,33 @@ struct MapScreen: View {
         }
     }
 
+    /// 上から↔横からを切り替える。池がゆっくり倒れる（約0.9秒、なめらかに出入り）
+    /// 並べ方が「つながり」のときは、いったん上からの池に入れ替えてから倒し、戻るときは起こし終えてから「つながり」に戻す
+    private func setSide(_ value: Bool) {
+        let animation: Animation = reduceMotion ? .easeInOut(duration: 0.35) : .smooth(duration: 0.9)
+        if value && axes.count >= 3 && mode != .axis && !tiltHold {
+            tiltHold = true
+            tiltSide = false
+            selectedID = nil
+            DispatchQueue.main.async { setSide(true) }
+            return
+        }
+        if !value && mode != .axis { tiltHold = true }
+        withAnimation(animation) {
+            side = value
+            tiltSide = value
+            selectedID = nil
+        } completion: {
+            if !side { tiltHold = false }
+        }
+    }
+
     private var header: some View {
         HStack(spacing: 8) {
             ScreenTitle(title: "地図")
             Spacer(minLength: 0)
             CubeSegmented(options: [false, true], label: { $0 ? "横から" : "上から" },
-                          selection: Binding(get: { side }, set: { value in
-                            // 池がゆっくり倒れる（約0.9秒、ばねで出入りをなめらかに）
-                            withAnimation(reduceMotion ? .easeInOut(duration: 0.35) : .smooth(duration: 0.9)) {
-                                side = value
-                                tiltSide = value
-                                selectedID = nil
-                            }
-                          }))
+                          selection: Binding(get: { side }, set: { setSide($0) }))
                 .fixedSize()
             viewMenu
         }
