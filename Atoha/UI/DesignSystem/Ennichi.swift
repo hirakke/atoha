@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 縁日の飾り：画面の上の紅白の幕、吊った看板、お椀の札。
+/// 縁日の飾り：画面の上の紅白の幕、見出し、お椀の列。
 
 extension Theme {
     /// 時計の帯と幕の上の帯（暗い画面でも藍）
@@ -43,84 +43,71 @@ extension View {
     }
 }
 
-/// 紐で吊った看板。画面の名前を出す。文字が大きいときは紐を外して左寄せの見出しにする。
-struct HangingSign: View {
+/// 画面の見出し。左寄せの Dela Gothic One（吊った看板はやめて、すっきり見せる）。
+struct ScreenTitle: View {
     let title: String
-    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
-        if typeSize.isAccessibilitySize {
-            Text(title).font(Theme.display(.largeTitle)).foregroundStyle(Theme.ink)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityAddTraits(.isHeader)
-        } else {
-            VStack(spacing: 0) {
-                HStack(spacing: 96) {
-                    Rectangle().fill(Theme.ink).frame(width: 3, height: 10)
-                    Rectangle().fill(Theme.ink).frame(width: 3, height: 10)
-                }
-                Text(title)
-                    .font(Theme.display(.title))
-                    .foregroundStyle(Theme.ink)
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Theme.surface))
-                    .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
-                    .background(Capsule().fill(Theme.ink).offset(x: Theme.shadow, y: Theme.shadow))
-            }
-            .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .combine)
+        Text(title)
+            .font(Theme.display(.title))
+            .foregroundStyle(Theme.ink)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
             .accessibilityAddTraits(.isHeader)
-        }
     }
 }
 
-/// お椀の札：今に入っている数を、お椀の絵と数で見せる。
-struct BowlPlate: View {
+/// お椀の列：今に入っている数を、ドットのお椀を並べて見せる（「お椀 ◯◯◯ 2 / 3」）。
+struct BowlLine: View {
     let filled: Int
     let capacity: Int
 
+    /// 数が多いときは、1つずつを小さくして1行に収める
+    private var bowlWidth: CGFloat { capacity <= 3 ? 42 : capacity <= 5 ? 32 : 24 }
+
     var body: some View {
         HStack(spacing: 12) {
-            Text("お椀").atype(.small, color: .white).fontWeight(.bold)
-            HStack(spacing: 6) {
+            Text("お椀").font(.system(.subheadline, weight: .bold)).foregroundStyle(Theme.quiet)
+            HStack(spacing: bowlWidth / 12) {
                 ForEach(0..<capacity, id: \.self) { index in
-                    BowlIcon(filled: index < filled, width: 36, onDark: true)
+                    BowlIcon(filled: index < filled, width: bowlWidth)
                 }
             }
             Spacer(minLength: 0)
-            (Text("\(filled)").font(Theme.dot(.title2))
-             + Text(" / \(capacity)").font(Theme.dot(.footnote)))
-                .foregroundStyle(.white)
+            CountText(count: filled, total: capacity, size: .title2)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.band))
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.accent).offset(x: Theme.shadow, y: Theme.shadow))
         .accessibilityElement()
         .accessibilityLabel("お椀 \(capacity)つのうち \(filled)つ")
     }
 }
 
-/// 数の札（「水槽 18 / 20」など）。
-struct CountPill: View {
-    let label: String
+/// 数（「17 / 20」）。ドットの書体で、分母は小さく控えめに。
+struct CountText: View {
     let count: Int
     let total: Int
+    var size: Font.TextStyle = .title3
     var alert = false
 
+    private var small: Font.TextStyle { size == .title2 ? .subheadline : .footnote }
+
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Text(label).font(.system(.caption, weight: .bold))
-            (Text("\(count)").font(Theme.dot(.title3))
-             + Text(" / \(total)").font(Theme.dot(.caption)))
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 3)
-        .background(Capsule().fill(alert ? Theme.accent : Theme.band))
-        .accessibilityElement()
-        .accessibilityLabel("\(label) \(total)のうち \(count)")
+        (Text("\(count)").font(Theme.dot(size)).foregroundStyle(alert ? Theme.accent : Theme.ink)
+         + Text(" / \(total)").font(Theme.dot(small)).foregroundStyle(Theme.quiet))
+            .lineLimit(1)
+            .fixedSize()
+    }
+}
+
+/// 行の右の小さな矢印（押すと開く）。開いているときは下を向く
+struct RowChevron: View {
+    var open = false
+
+    var body: some View {
+        Image(systemName: "chevron.right")
+            .font(.system(size: 14, weight: .heavy))
+            .foregroundStyle(Theme.quiet.opacity(0.8))
+            .rotationEffect(.degrees(open ? 90 : 0))
+            .accessibilityHidden(true)
     }
 }
 
@@ -129,9 +116,8 @@ struct ReleaseHint: View {
     var body: some View {
         Text("やめる候補")
             .atype(.small, color: Theme.quiet).fontWeight(.bold)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .overlay(Capsule().strokeBorder(Theme.quiet, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2])))
+            .lineLimit(1)
+            .fixedSize()
     }
 }
 

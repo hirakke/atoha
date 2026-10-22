@@ -39,30 +39,30 @@ struct TankView: View {
     }
 }
 
-/// 水槽の水。白い面に藍の網点。底のほうは網点を濃くして深さを見せる。
+/// 水槽の水。ごく薄い水色の面に青の網点。底のほうは網点を大きく濃くして深さを見せる。
 private struct TankWater: View {
     var body: some View {
-        let ink = Theme.ink
+        let dot = Theme.waterDot
         Canvas { context, size in
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Theme.water))
             let step: CGFloat = 7
             var light = Path(), deep = Path()
-            var y: CGFloat = 4
+            var y: CGFloat = 2
             var row = 0
-            while y < size.height {
+            while y < size.height + step {
                 var x: CGFloat = row.isMultiple(of: 2) ? 2 : 2 + step / 2
-                let isDeep = y > size.height * 0.72
-                let r: CGFloat = isDeep ? 1.6 : 1.1
-                while x < size.width {
-                    let dot = Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2))
-                    if isDeep { deep.addPath(dot) } else { light.addPath(dot) }
+                let isDeep = y > size.height * 0.74
+                let r: CGFloat = isDeep ? 2.2 : 1.3
+                while x < size.width + step {
+                    let p = Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2))
+                    if isDeep { deep.addPath(p) } else { light.addPath(p) }
                     x += step
                 }
                 y += step / 2
                 row += 1
             }
-            context.fill(light, with: .color(ink.opacity(0.14)))
-            context.fill(deep, with: .color(ink.opacity(0.28)))
+            context.fill(light, with: .color(dot.opacity(0.3)))
+            context.fill(deep, with: .color(dot.opacity(0.45)))
         }
         .accessibilityHidden(true)
     }

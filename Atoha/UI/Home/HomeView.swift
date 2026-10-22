@@ -16,24 +16,30 @@ struct HomeView: View {
             ZStack {
                 PaperBackground()
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 22) {
-                        HangingSign(title: "atoha")
-                            .overlay(alignment: .topTrailing) { settingsButton.padding(.top, 8) }
-                        BowlPlate(filled: returned.count, capacity: capacity)
-                        if returned.isEmpty {
-                            // 何もないときに、次に何をすればいいかだけを見せる
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("お椀はからっぽです").atype(.body)
-                                Text("気になることは「あとでに回す」で水槽へ。「あとで」から選んで、すくいます。")
-                                    .atype(.small, color: Theme.quiet)
-                            }
-                            .onPaper()
-                        } else {
-                            ReturnedList(items: returned)
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 8) {
+                            ScreenTitle(title: "atoha")
+                            Spacer(minLength: 0)
+                            settingsButton
                         }
+                        .padding(.trailing, -12)
+                        VStack(alignment: .leading, spacing: 28) {
+                            BowlLine(filled: returned.count, capacity: capacity)
+                            if returned.isEmpty {
+                                // 何もないときに、次に何をすればいいかだけを見せる
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("お椀はからっぽです").atype(.body)
+                                    Text("気になることは「あとでに回す」で水槽へ。「あとで」から選んで、すくいます。")
+                                        .atype(.small, color: Theme.quiet)
+                                }
+                            } else {
+                                ReturnedList(items: returned)
+                            }
+                        }
+                        .padding(.top, 24)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 12)
                     .padding(.bottom, 24)
                 }
                 // ボタンの分だけスクロールの下端を空ける（最後の行がボタンに隠れないように）
@@ -53,10 +59,9 @@ struct HomeView: View {
 
     private var settingsButton: some View {
         Button { showSettings = true } label: {
-            Image(systemName: "gearshape").font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.ink)
+            Image(systemName: "gearshape").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.quiet)
                 .frame(width: 44, height: 44)
-                .background(Circle().fill(Theme.surface))
-                .overlay(Circle().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("設定")
@@ -81,7 +86,7 @@ struct CaptureButton: View {
     }
 }
 
-/// 今にあるもの。先頭に「次」、その下にすべてを1つの箱で。
+/// 今にあるもの。先頭に「次」、その下にすべてを罫で区切った行で（箱には入れない）。
 /// やりたい・やらなきゃは見出しで分けず、金魚の描き分けで見せる。
 struct ReturnedList: View {
     let items: [Item]
@@ -92,15 +97,15 @@ struct ReturnedList: View {
     private var candidates: [Item] { Array(ordered.prefix(5)) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 26) {
-            if !candidates.isEmpty { NextCard(items: candidates).padding(.top, 10) }
+        VStack(alignment: .leading, spacing: 28) {
+            if !candidates.isEmpty { NextCard(items: candidates).padding(.top, 6) }
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(ordered.enumerated()), id: \.element.id) { index, item in
-                    if index > 0 { Rectangle().fill(Theme.faint).frame(height: 2) }
+                    if index > 0 { Rectangle().fill(Theme.faint.opacity(0.7)).frame(height: 2) }
                     ReturnedRow(item: item)
                 }
             }
-            .onPaper(padding: 14)
+            .padding(.horizontal, 4)
         }
     }
 }
@@ -184,7 +189,7 @@ private struct ReturnedRow: View {
                     .transition(.opacity)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 
     private func confirmation(for timing: ReturnTiming) -> some View {
@@ -195,7 +200,7 @@ private struct ReturnedRow: View {
 
     private var rowBody: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 // 印は見せるだけ。触れても消えないよう、「できた」は開いたときのボタンだけにする
                 mark
                 Text(item.text).atype(.body)
@@ -203,7 +208,7 @@ private struct ReturnedRow: View {
                 if item.isBothLow { ReleaseHint() }
                 if let deadline = item.deadline { DeadlineLabel(date: deadline) }
             }
-            .frame(minHeight: 52)
+            .frame(minHeight: 54)
             .contentShape(Rectangle())
             .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { open.toggle() } }
             .accessibilityElement(children: .combine)
@@ -225,9 +230,9 @@ private struct ReturnedRow: View {
 
     @ViewBuilder private var mark: some View {
         if item.isRated {
-            DotMark(kind: item.kind, want: item.effectiveWant, must: item.effectiveMust, size: 14)
+            DotMark(kind: item.kind, want: item.effectiveWant, must: item.effectiveMust, size: 15)
         } else {
-            DotMark(kind: .concern, highlighted: item.isCloseToAxis, size: 14)
+            DotMark(kind: .concern, highlighted: item.isCloseToAxis, size: 15)
         }
     }
 

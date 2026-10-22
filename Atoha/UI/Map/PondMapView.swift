@@ -104,10 +104,9 @@ struct PondMapView: View {
 
     // MARK: 描く
 
-    /// 池の四角（極の札のぶん、上下を空ける）。デザインの 100×104 の枠に合わせた割合
+    /// 池の四角。枠いっぱいに描き、極の札は池の中に置く
     private func pondRect(_ size: CGSize) -> CGRect {
-        let pad = min(size.height * 10 / 104, 32)
-        return CGRect(x: size.width * 0.04, y: pad, width: size.width * 0.92, height: size.height - pad * 2)
+        CGRect(origin: .zero, size: size).insetBy(dx: Theme.stroke / 2, dy: Theme.stroke / 2)
     }
 
     /// 池の中の位置 → 画面の点
@@ -133,25 +132,28 @@ struct PondMapView: View {
     /// 軸の端（矢印の先）
     private func axisEnds(_ size: CGSize) -> (left: CGFloat, right: CGFloat, top: CGFloat, bottom: CGFloat) {
         let r = pondRect(size)
-        return (size.width * 0.18, size.width * 0.82, r.minY + 7, r.maxY - 7)
+        let inset = r.width * 0.076
+        return (r.minX + inset, r.maxX - inset, r.minY + 42, r.maxY - 42)
     }
 
     private func drawPond(context: GraphicsContext, size: CGSize) {
         let ink = Theme.ink
         let rect = pondRect(size)
-        let pond = Path(roundedRect: rect, cornerRadius: min(rect.width, rect.height) * 0.15, style: .continuous)
+        let pond = Path(roundedRect: rect, cornerRadius: 22, style: .continuous)
         context.fill(pond, with: .color(Theme.water))
-        // 網点の水（方眼にそろえた点）
+        // 網点の水（7pt ごとに、互い違いの青い点）
         var dots = Path()
-        var y = rect.minY + 3
-        while y < rect.maxY {
-            var x = rect.minX + 3
-            while x < rect.maxX { dots.addRect(CGRect(x: x, y: y, width: 2.4, height: 2.4)); x += 7 }
-            y += 7
+        var y = rect.minY + 2
+        var row = 0
+        while y < rect.maxY + 4 {
+            var x = rect.minX + (row.isMultiple(of: 2) ? 2 : 5.5)
+            while x < rect.maxX + 4 { dots.addEllipse(in: CGRect(x: x - 1.3, y: y - 1.3, width: 2.6, height: 2.6)); x += 7 }
+            y += 3.5
+            row += 1
         }
         var water = context
         water.clip(to: pond)
-        water.fill(dots, with: .color(ink.opacity(0.13)))
+        water.fill(dots, with: .color(Theme.waterDot.opacity(0.3)))
         context.stroke(pond, with: .color(ink), lineWidth: Theme.stroke)
 
         let c = CGPoint(x: rect.midX, y: rect.midY)
@@ -284,29 +286,27 @@ struct PondMapView: View {
             let c = CGPoint(x: rect.midX, y: rect.midY)
             ZStack {
                 if axes.count >= 2 {
-                    // 区画の名前（うすく、区画の真ん中に）
-                    let top = rect.minY + rect.height * 0.14, bottom = rect.maxY - rect.height * 0.08
-                    quadrant("\(axes[0].negativePole)・\(axes[1].positivePole)").position(x: size.width * 0.27, y: top)
-                    quadrant("\(axes[0].positivePole)・\(axes[1].positivePole)").position(x: size.width * 0.73, y: top)
-                    quadrant("\(axes[0].negativePole)・\(axes[1].negativePole)").position(x: size.width * 0.27, y: bottom)
-                    quadrant("\(axes[0].positivePole)・\(axes[1].negativePole)").position(x: size.width * 0.73, y: bottom)
+                    // 区画の名前（ごくうすく）
+                    let top = rect.minY + rect.height * 0.25, bottom = rect.minY + rect.height * 0.78
+                    quadrant("\(axes[0].negativePole)・\(axes[1].positivePole)").position(x: size.width * 0.25, y: top)
+                    quadrant("\(axes[0].positivePole)・\(axes[1].positivePole)").position(x: size.width * 0.75, y: top)
+                    quadrant("\(axes[0].negativePole)・\(axes[1].negativePole)").position(x: size.width * 0.25, y: bottom)
+                    quadrant("\(axes[0].positivePole)・\(axes[1].negativePole)").position(x: size.width * 0.75, y: bottom)
 
-                    // 縦の軸の札：池の縁の外側に、縁に接して
-                    poleLabel(axes[1].positivePole)
-                        .frame(height: rect.minY, alignment: .bottom)
-                        .position(x: c.x, y: rect.minY / 2)
-                    poleLabel(axes[1].negativePole)
-                        .frame(height: size.height - rect.maxY, alignment: .top)
-                        .position(x: c.x, y: (rect.maxY + size.height) / 2)
+                    // 縦の軸の札：池の中の上端と下端に
+                    poleLabel(axes[1].positivePole).position(x: c.x, y: rect.minY + 22)
+                    poleLabel(axes[1].negativePole).position(x: c.x, y: rect.maxY - 22)
                 }
                 if axes.count >= 1 {
+                    // 横の軸の札：軸の線のすぐ下、池の左右の端に
                     HStack {
                         poleLabel(axes[0].negativePole)
                         Spacer()
                         poleLabel(axes[0].positivePole)
                     }
+                    .padding(.horizontal, 8)
                     .frame(width: size.width)
-                    .position(x: size.width / 2, y: c.y)
+                    .position(x: size.width / 2, y: c.y + 26)
                 }
                 // 選んだ金魚が、それぞれの軸のどちら寄りか
                 if axes.count >= 2, let sel = fish.first(where: { $0.item.id == selectedID }) {
@@ -328,17 +328,18 @@ struct PondMapView: View {
     }
 
     private func quadrant(_ text: String) -> some View {
-        Text(text).font(.system(.caption, weight: .bold)).foregroundStyle(Theme.quiet)
+        Text(text).font(.system(.footnote, weight: .bold)).foregroundStyle(Theme.ink.opacity(0.28))
             .opacity(selectedID == nil ? 1 : 0.4)
             .lineLimit(1).minimumScaleFactor(0.7)
             .fixedSize()
     }
 
     private func poleLabel(_ text: String) -> some View {
-        Text(text).font(.system(.subheadline, weight: .black)).foregroundStyle(Color.white)
+        Text(text).font(.system(.footnote, weight: .black)).foregroundStyle(Theme.ink)
             .lineLimit(1)
-            .padding(.horizontal, 11).padding(.vertical, 4)
-            .background(Capsule().fill(Theme.band))
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(Capsule().fill(Theme.surface))
+            .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: 2))
             .fixedSize()
     }
 
@@ -439,7 +440,7 @@ struct PondSideView: View {
         // 3つの層。深いほど網点が大きく濃い
         var layered = context
         layered.clip(to: shape)
-        let dot: [(CGFloat, Double)] = [(2.4, 0.14), (3.2, 0.24), (4, 0.38)]
+        let dot: [(CGFloat, Double)] = [(2.4, 0.3), (3.2, 0.42), (4, 0.58)]
         for i in 0..<3 {
             var dots = Path()
             var y = r.minY - 8 + 2
@@ -450,7 +451,7 @@ struct PondSideView: View {
                 }
                 y += 7
             }
-            layered.fill(dots, with: .color(ink.opacity(dot[i].1)))
+            layered.fill(dots, with: .color(Theme.waterDot.opacity(dot[i].1)))
         }
         var seams = Path()
         for y in edges[1...2] { seams.move(to: CGPoint(x: r.minX, y: y)); seams.addLine(to: CGPoint(x: r.maxX, y: y)) }

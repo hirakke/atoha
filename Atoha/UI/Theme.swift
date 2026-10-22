@@ -94,9 +94,12 @@ enum Theme {
     static var inkUIColor: UIColor { palette.color(\.ink) }
     static var accentUIColor: UIColor { palette.color(\.accent) }
 
-    /// 水（水槽・池）。白い面に藍の網点を打って水に見せる
-    static let waterUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x1C2440) : UIColor(hex: 0xFFFFFF) }
+    /// 水（水槽・池）。ごく薄い水色の面に、青の網点を打って水に見せる
+    static let waterUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x1C2440) : UIColor(hex: 0xEEF4FF) }
     static var water: Color { Color(waterUIColor) }
+    /// 水の網点（青）。浅いところは薄く、深いところは濃く打つ
+    static let waterDotUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x7EA0FF) : UIColor(hex: 0x3F6FD8) }
+    static var waterDot: Color { Color(waterDotUIColor) }
     /// 水面の波紋
     static let rippleUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x3D6670) : UIColor(hex: 0xFFFFFF) }
     /// 金魚の色違い（橙）
@@ -165,29 +168,54 @@ extension UIColor {
     }
 }
 
-/// 方眼の紙。画面の背景に敷く。
-/// 線は画面の座標にそろえて引くので、上端の帯やボタンの下に部分的に敷いても目がずれない。
+/// 紙の背景。ドットの青海波（せいがいは）を、墨のごく薄い色で敷く。
+/// 模様は画面の座標にそろえて描くので、上端の帯やボタンの下に部分的に敷いても目がずれない。
+/// 描くのは大きさや位置が変わったときだけ（毎フレームは描かない）。
 struct PaperBackground: View {
-    var spacing: CGFloat = 16
     /// 安全領域の外まで広げる（画面全体の背景）
     var fullScreen = true
 
     var body: some View {
-        let grid = Theme.grid
-        let s = spacing
+        let ink = Theme.ink
         GeometryReader { proxy in
             let origin = proxy.frame(in: .global).origin
             Canvas { context, size in
-                var path = Path()
-                var x = -origin.x.truncatingRemainder(dividingBy: s)
-                while x <= size.width { path.addRect(CGRect(x: x, y: 0, width: 1, height: size.height)); x += s }
-                var y = -origin.y.truncatingRemainder(dividingBy: s)
-                while y <= size.height { path.addRect(CGRect(x: 0, y: y, width: size.width, height: 1)); y += s }
-                context.fill(path, with: .color(grid))
+                let w = Seigaiha.width, h = Seigaiha.height
+                // 1段ぶん（横に並べた帯）を作り、縦にずらして塗る
+                let x0 = -origin.x.truncatingRemainder(dividingBy: w)
+                var strip = Path()
+                var x = x0 - w
+                while x < size.width {
+                    strip.addPath(Seigaiha.tile, transform: CGAffineTransform(translationX: x, y: 0))
+                    x += w
+                }
+                var all = Path()
+                var y = -origin.y.truncatingRemainder(dividingBy: h) - h
+                while y < size.height {
+                    all.addPath(strip, transform: CGAffineTransform(translationX: 0, y: y))
+                    y += h
+                }
+                context.fill(all, with: .color(ink.opacity(0.07)))
             }
             .background(Theme.paper)
         }
         .ignoresSafeArea(edges: fullScreen ? .all : [])
         .accessibilityHidden(true)
     }
+}
+
+/// ドットの青海波の1枚（横32×縦16pt、2pt のマス）。デザインの模様をそのまま写す
+private enum Seigaiha {
+    static let width: CGFloat = 32
+    static let height: CGFloat = 16
+    static let tile: Path = {
+        let rects: [(CGFloat, CGFloat, CGFloat)] = [  // x, y, 幅（高さはどれも2）
+            (0, 0, 8), (24, 0, 8), (6, 2, 4), (12, 2, 8), (22, 2, 4), (0, 4, 4), (8, 4, 6), (18, 4, 6), (28, 4, 4),
+            (4, 6, 4), (10, 6, 4), (18, 6, 4), (24, 6, 4), (8, 8, 16), (0, 10, 4), (6, 10, 4), (22, 10, 4), (28, 10, 4),
+            (2, 12, 6), (12, 12, 8), (24, 12, 6), (2, 14, 4), (8, 14, 4), (20, 14, 4), (26, 14, 4),
+        ]
+        var p = Path()
+        for r in rects { p.addRect(CGRect(x: r.0, y: r.1, width: r.2, height: 2)) }
+        return p
+    }()
 }
