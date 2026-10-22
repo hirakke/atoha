@@ -140,18 +140,24 @@ struct BowlIcon: View {
     /// 藍の札の上に置く（白い線、入っていれば紅い水）
     var onDark = false
 
+    /// ドットのお椀（横12×縦6マス）。縁と、金魚が入っているときの紅い水
+    private static let rim: [(x: Int, y: Int, w: Int)] = [(0, 0, 12), (0, 1, 1), (11, 1, 1), (1, 2, 1), (10, 2, 1), (1, 3, 1), (10, 3, 1), (2, 4, 1), (9, 4, 1), (3, 5, 6)]
+    private static let water: [(x: Int, y: Int, w: Int)] = [(1, 1, 10), (2, 2, 8), (2, 3, 8), (3, 4, 6)]
+
     var body: some View {
         let line = onDark ? Color.white : Theme.ink
-        ZStack(alignment: .top) {
-            BowlShape()
-                .fill(onDark ? (filled ? Theme.accent : Color.clear) : Theme.surface)
-                .overlay(BowlShape().stroke(line, lineWidth: onDark ? 2.5 : 1.5))
-            if filled && !onDark {
-                GoldfishMark(color: Theme.accent, width: width * 0.42)
-                    .padding(.top, width * 0.2)
+        let fill = filled ? Theme.accent : (onDark ? Color.clear : Theme.surface)
+        Canvas { context, size in
+            let cell = size.width / 12
+            func path(_ runs: [(x: Int, y: Int, w: Int)]) -> Path {
+                var p = Path()
+                for r in runs { p.addRect(CGRect(x: CGFloat(r.x) * cell, y: CGFloat(r.y) * cell, width: CGFloat(r.w) * cell, height: cell)) }
+                return p
             }
+            context.fill(path(Self.water), with: .color(fill))
+            context.fill(path(Self.rim), with: .color(line))
         }
-        .frame(width: width, height: width * 0.62)
+        .frame(width: width, height: width / 2)
         .accessibilityHidden(true)
     }
 }
