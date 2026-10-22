@@ -1,21 +1,21 @@
 import SwiftUI
 
 /// 文字のトークン。画面ごとにサイズを決めず、ここから選ぶ。
-/// 見出しと本文は太めのゴシック、補足（ラベル）は等幅。
+/// どれも iPhone の文字サイズの設定に合わせて大きくなる（Dynamic Type）。
 enum AType {
-    case display // 24 black：画面の名前
+    case display // 28 丸みのある極太：画面の名前（看板）
     case title   // 17 heavy
-    case body    // 15 semibold
+    case body    // 17 semibold
     case small   // 13 medium
     case label   // 11 等幅、控えめ、少し字間を空ける
 
     var font: Font {
         switch self {
-        case .display: Theme.sans(24, weight: .black)
-        case .title: Theme.sans(17, weight: .heavy)
-        case .body: Theme.sans(15, weight: .semibold)
-        case .small: Theme.sans(13, weight: .medium)
-        case .label: Theme.mono(11, weight: .medium)
+        case .display: Theme.display(.title)
+        case .title: .system(.headline, weight: .heavy)
+        case .body: .system(.body, weight: .semibold)
+        case .small: .system(.footnote, weight: .medium)
+        case .label: .system(.caption2, design: .monospaced, weight: .medium)
         }
     }
 
@@ -30,13 +30,14 @@ enum AType {
     var color: Color { self == .label ? Theme.quiet : Theme.ink }
 
     var uiFont: UIFont {
-        switch self {
-        case .display: .systemFont(ofSize: 24, weight: .black)
-        case .title: .systemFont(ofSize: 17, weight: .heavy)
-        case .body: .systemFont(ofSize: 15, weight: .semibold)
-        case .small: .systemFont(ofSize: 13, weight: .medium)
-        case .label: .monospacedSystemFont(ofSize: 11, weight: .medium)
+        let (style, base): (UIFont.TextStyle, UIFont) = switch self {
+        case .display: (.title1, .systemFont(ofSize: 28, weight: .black))
+        case .title: (.headline, .systemFont(ofSize: 17, weight: .heavy))
+        case .body: (.body, .systemFont(ofSize: 17, weight: .semibold))
+        case .small: (.footnote, .systemFont(ofSize: 13, weight: .medium))
+        case .label: (.caption2, .monospacedSystemFont(ofSize: 11, weight: .medium))
         }
+        return UIFontMetrics(forTextStyle: style).scaledFont(for: base)
     }
 }
 

@@ -20,6 +20,12 @@ enum GoldfishShape {
         return out
     }()
 
+    /// 中のマス（両方・持ち帰ったで塗り分ける）
+    static let holeCells: [(x: Int, y: Int)] = [(2, 1), (3, 1), (4, 1), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2), (6, 2), (2, 3), (3, 3), (4, 3)]
+
+    /// 点線の輪郭（稚魚）
+    static let dottedCells: [(x: Int, y: Int)] = [(2, 0), (4, 0), (1, 1), (5, 1), (8, 1), (0, 2), (7, 2), (1, 3), (5, 3), (8, 3), (2, 4), (4, 4)]
+
     /// 輪郭のマス（上下左右のどれかが空いているマス）
     static let edgeCells: [(x: Int, y: Int)] = {
         let filled = Set(cells.map { $0.y * 100 + $0.x })
@@ -29,51 +35,98 @@ enum GoldfishShape {
     }()
 }
 
-/// 金魚の色。やりたい寄りは朱、やらなきゃ寄りは墨（出目金）、どちらでもないものは橙。
+/// 金魚の色。やりたい・やらなきゃの2つの強さから4通りに描き分ける。
+/// やりたい＝紅、やらなきゃ＝藍、両方＝藍の縁で中が紅、どちらでもない＝薄い藍。
 enum GoldfishTint {
-    case red, black, orange, faint
+    case red, black, both, faint
 
     var color: Color {
         switch self {
-        case .red: Theme.accent
+        case .red, .both: Theme.accent
         case .black: Theme.ink
-        case .orange: Theme.orange
-        case .faint: Theme.quiet
+        case .faint: Theme.ink.opacity(0.3)
         }
     }
 
     var uiColor: UIColor {
         switch self {
-        case .red: Theme.accentUIColor
+        case .red, .both: Theme.accentUIColor
         case .black: Theme.inkUIColor
-        case .orange: Theme.orangeUIColor
-        case .faint: Theme.inkUIColor.withAlphaComponent(0.45)
+        case .faint: Theme.inkUIColor.withAlphaComponent(0.3)
         }
     }
 
     /// 本人の評価（未評価なら AI の仮の値）から色を決める。
     static func of(want: Double, must: Double) -> GoldfishTint {
-        if want >= 0.5 { return .red }
-        if must >= 0.5 { return .black }
-        return .orange
+        switch (want >= 0.5, must >= 0.5) {
+        case (true, true): .both
+        case (true, false): .red
+        case (false, true): .black
+        case (false, false): .faint
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .red: "やりたい"
+        case .black: "やらなきゃ"
+        case .both: "両方"
+        case .faint: "どちらでもない"
+        }
     }
 }
 
-/// 画面の印としての金魚。outlined は未評価（輪郭だけ）。
+/// 画面の印としての金魚。
 struct GoldfishMark: View {
+    enum Style {
+        /// 1色で塗る
+        case solid
+        /// 藍の縁で中が紅（やりたい・やらなきゃの両方）
+        case both
+        /// 線の輪郭で中が白（持ち帰った）
+        case takenHome
+        /// 点線の輪郭（稚魚：まだやりたい・やらなきゃを決めていない）
+        case fry
+    }
+
     var color: Color
-    var outlined = false
+    var style: Style = .solid
     /// 横幅（縦は 5/9）
     var width: CGFloat = 18
 
+    init(color: Color, style: Style = .solid, width: CGFloat = 18) {
+        self.color = color
+        self.style = style
+        self.width = width
+    }
+
+    /// 評価の色から描く
+    init(tint: GoldfishTint, width: CGFloat = 18) {
+        self.init(color: tint == .both ? Theme.ink : tint.color, style: tint == .both ? .both : .solid, width: width)
+    }
+
     var body: some View {
+        let style = style, color = color
+        let accent = Theme.accent, surface = Theme.surface
         Canvas { context, size in
             let cell = size.width / CGFloat(GoldfishShape.width)
-            var path = Path()
-            for c in outlined ? GoldfishShape.edgeCells : GoldfishShape.cells {
-                path.addRect(CGRect(x: CGFloat(c.x) * cell, y: CGFloat(c.y) * cell, width: cell, height: cell))
+            func path(_ cells: [(x: Int, y: Int)]) -> Path {
+                var p = Path()
+                for c in cells { p.addRect(CGRect(x: CGFloat(c.x) * cell, y: CGFloat(c.y) * cell, width: cell, height: cell)) }
+                return p
             }
-            context.fill(path, with: .color(color))
+            switch style {
+            case .solid:
+                context.fill(path(GoldfishShape.cells), with: .color(color))
+            case .both:
+                context.fill(path(GoldfishShape.cells), with: .color(color))
+                context.fill(path(GoldfishShape.holeCells), with: .color(accent))
+            case .takenHome:
+                context.fill(path(GoldfishShape.cells), with: .color(color))
+                context.fill(path(GoldfishShape.holeCells), with: .color(surface))
+            case .fry:
+                context.fill(path(GoldfishShape.dottedCells), with: .color(color))
+            }
         }
         .frame(width: width, height: width * CGFloat(GoldfishShape.height) / CGFloat(GoldfishShape.width))
         .accessibilityHidden(true)
@@ -119,8 +172,10 @@ struct BowlShape: Shape {
         HStack(spacing: 12) {
             GoldfishMark(color: Theme.accent)
             GoldfishMark(color: Theme.ink)
-            GoldfishMark(color: Theme.orange)
-            GoldfishMark(color: Theme.ink, outlined: true)
+            GoldfishMark(tint: .both)
+            GoldfishMark(tint: .faint)
+            GoldfishMark(color: Theme.ink, style: .takenHome)
+            GoldfishMark(color: Theme.ink, style: .fry)
             GoldfishMark(color: Theme.accent, width: 48)
         }
         HStack(spacing: 4) {

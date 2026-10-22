@@ -6,6 +6,8 @@ struct Palette: Identifiable, Equatable {
     struct Tone: Equatable {
         var paper: UInt32, ink: UInt32, grid: UInt32, line: UInt32, sub: UInt32
         var accent: UInt32, onAccent: UInt32
+        /// 箱やボタンの面（なければ紙と同じ）
+        var surface: UInt32? = nil
     }
 
     let id: String
@@ -14,10 +16,10 @@ struct Palette: Identifiable, Equatable {
     let dark: Tone
 
     static let all: [Palette] = [
-        // 金魚すくい：生成りの紙、墨、朱の金魚
+        // 金魚すくい：藍と紅の2色刷り。方眼は引かず、白い面を藍の線で囲む
         Palette(id: "kingyo", name: "金魚",
-                light: Tone(paper: 0xF6F0E4, ink: 0x2A211C, grid: 0xEDE4D3, line: 0xD8CDB8, sub: 0x6E5F55, accent: 0xC93B22, onAccent: 0xFFFFFF),
-                dark: Tone(paper: 0x1B1714, ink: 0xF2EADB, grid: 0x27211C, line: 0x3E342C, sub: 0xB3A596, accent: 0xE5553A, onAccent: 0x1B1714)),
+                light: Tone(paper: 0xF3F5FA, ink: 0x1F2A44, grid: 0xF3F5FA, line: 0xD5DAE5, sub: 0x56617A, accent: 0xD7263D, onAccent: 0xFFFFFF, surface: 0xFFFFFF),
+                dark: Tone(paper: 0x121829, ink: 0xEEF1F7, grid: 0x121829, line: 0x2C3756, sub: 0xA9B2C7, accent: 0xF0485B, onAccent: 0xFFFFFF, surface: 0x1C2440)),
         Palette(id: "blue", name: "青",
                 light: Tone(paper: 0xFFFFFF, ink: 0x121A2E, grid: 0xE9EEF8, line: 0xC9D3E6, sub: 0x4A5878, accent: 0x2F5BEA, onAccent: 0xFFFFFF),
                 dark: Tone(paper: 0x121A2E, ink: 0xE8ECF6, grid: 0x1B2540, line: 0x2C3A60, sub: 0xA3B1D4, accent: 0x7EA0FF, onAccent: 0x0A1022)),
@@ -84,13 +86,15 @@ enum Theme {
     static var accent: Color { Color(accentUIColor) }
     /// アクセントの上の文字
     static var onAccent: Color { Color(palette.color(\.onAccent)) }
+    /// 箱やボタンの面
+    static var surface: Color { Color(palette.color { $0.surface ?? $0.paper }) }
 
     static var paperUIColor: UIColor { palette.color(\.paper) }
     static var inkUIColor: UIColor { palette.color(\.ink) }
     static var accentUIColor: UIColor { palette.color(\.accent) }
 
-    /// 水（水槽・池）。色の組によらず同じ水色
-    static let waterUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x1F3B42) : UIColor(hex: 0xD6ECF0) }
+    /// 水（水槽・池）。白い面に藍の網点を打って水に見せる
+    static let waterUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x1C2440) : UIColor(hex: 0xFFFFFF) }
     static var water: Color { Color(waterUIColor) }
     /// 水面の波紋
     static let rippleUIColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(hex: 0x3D6670) : UIColor(hex: 0xFFFFFF) }
@@ -101,10 +105,17 @@ enum Theme {
     /// 色の組が変わったかを見分けるための印（3D の画面で塗り直すため）
     static var paletteID: String { palette.id }
 
-    /// 角。立方体なので直角。
-    static let radius: CGFloat = 0
+    /// 箱の角
+    static let radius: CGFloat = 18
     /// 枠の太さ
-    static let stroke: CGFloat = 2
+    static let stroke: CGFloat = 3
+    /// 押し出し（ずらした影）の量
+    static let shadow: CGFloat = 4
+
+    /// 見出し（看板の文字）。丸みのある極太
+    static func display(_ style: Font.TextStyle = .title) -> Font {
+        .system(style, design: .rounded, weight: .black)
+    }
 
     /// 数字や補足の文字。等幅。
     static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {

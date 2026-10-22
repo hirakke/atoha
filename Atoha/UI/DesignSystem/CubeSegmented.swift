@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 立方体の分節。選ばれた側が墨の立方体として浮く。
+/// 丸い切り替え。選ばれた側が藍の丸になる。
 struct CubeSegmented<T: Hashable>: View {
     let options: [T]
     let label: (T) -> String
@@ -18,21 +18,32 @@ struct CubeSegmented<T: Hashable>: View {
     }
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             ForEach(options, id: \.self) { option in
                 let on = option == selection
-                Button { selection = option } label: {
+                Button {
+                    UISelectionFeedbackGenerator().selectionChanged()
+                    withAnimation(.easeOut(duration: 0.15)) { selection = option }
+                } label: {
                     VStack(spacing: 2) {
                         Text(label(option)).lineLimit(1)
+                            .atype(.small, color: on ? Theme.paper : Theme.ink)
+                            .fontWeight(on ? .black : .bold)
                         if let detail = detail(option) {
                             Text(detail).atype(.label, color: on ? Theme.paper.opacity(0.7) : Theme.quiet)
                         }
                     }
+                    .padding(.horizontal, 14)
+                    .frame(maxWidth: fill ? .infinity : nil, minHeight: 38)
+                    .background(Capsule().fill(on ? Theme.ink : .clear))
+                    .contentShape(Capsule())
                 }
-                .buttonStyle(.cube(on ? .primary : .flat, size: .small, fill: fill))
+                .buttonStyle(.plain)
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
+        .padding(3)
+        .background(Capsule().fill(Theme.faint.opacity(0.7)))
         .fixedSize(horizontal: !fill, vertical: false)
     }
 }

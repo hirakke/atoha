@@ -27,7 +27,9 @@ struct TankView: View {
         }
         .frame(height: 200)
         .background(TankWater())
-        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
+        .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.ink).offset(x: Theme.shadow, y: Theme.shadow))
         .allowsHitTesting(false)
         .onAppear { visible = true; scene.setActive(scenePhase == .active) }
         .onDisappear { visible = false; scene.setActive(false) }
@@ -37,22 +39,30 @@ struct TankView: View {
     }
 }
 
-/// 水槽の水。平らな水色に、水面の帯と白い波紋。
+/// 水槽の水。白い面に藍の網点。底のほうは網点を濃くして深さを見せる。
 private struct TankWater: View {
     var body: some View {
+        let ink = Theme.ink
         Canvas { context, size in
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Theme.water))
-            // 水面の帯（少しだけ濃い）
-            context.fill(Path(CGRect(x: 0, y: 0, width: size.width, height: 10)),
-                         with: .color(Color(Theme.waterUIColor).opacity(0.6).mix(with: Theme.ink, by: 0.08)))
-            var ripples = Path()
-            for (fx, fy, w) in [(0.1, 0.25, 26.0), (0.62, 0.18, 30.0), (0.36, 0.78, 24.0), (0.82, 0.66, 20.0)] {
-                let x = size.width * fx, y = size.height * fy
-                ripples.move(to: CGPoint(x: x, y: y))
-                ripples.addQuadCurve(to: CGPoint(x: x + w, y: y), control: CGPoint(x: x + w / 2, y: y - 6))
+            let step: CGFloat = 7
+            var light = Path(), deep = Path()
+            var y: CGFloat = 4
+            var row = 0
+            while y < size.height {
+                var x: CGFloat = row.isMultiple(of: 2) ? 2 : 2 + step / 2
+                let isDeep = y > size.height * 0.72
+                let r: CGFloat = isDeep ? 1.6 : 1.1
+                while x < size.width {
+                    let dot = Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2))
+                    if isDeep { deep.addPath(dot) } else { light.addPath(dot) }
+                    x += step
+                }
+                y += step / 2
+                row += 1
             }
-            context.stroke(ripples, with: .color(Color(Theme.rippleUIColor).opacity(0.85)),
-                           style: StrokeStyle(lineWidth: 2, lineCap: .round))
+            context.fill(light, with: .color(ink.opacity(0.14)))
+            context.fill(deep, with: .color(ink.opacity(0.28)))
         }
         .accessibilityHidden(true)
     }
@@ -169,7 +179,7 @@ final class TankScene {
 
     private func refreshColors() {
         let traits = UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light)
-        for tint in [GoldfishTint.red, .black, .orange, .faint] {
+        for tint in [GoldfishTint.red, .black, .both, .faint] {
             materials[tint] = VoxelMesh.unlit(tint.uiColor.resolvedColor(with: traits))
         }
         inkMaterial = VoxelMesh.unlit(Theme.inkUIColor.resolvedColor(with: traits))

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// ひとつひとつを表す小さなドットの金魚。
-/// やりたい寄り＝朱、やらなきゃ寄り＝墨（出目金）、どちらでもない＝橙、未評価＝輪郭だけ。
+/// やりたい＝紅、やらなきゃ＝藍、両方＝藍の縁で中が紅、どちらでもない＝薄い藍、まだ決めていない＝稚魚（点線）。
 struct DotMark: View {
     let kind: ItemKind
     var highlighted: Bool = false
@@ -24,28 +24,14 @@ struct DotMark: View {
         self.size = size
     }
 
-    private var style: CubeGlyph.Style {
-        if let rating {
-            if rating.want < 0.25 && rating.must < 0.25 { return .outline(alpha: 0.6) }
-            return .layered(ink: 0.15 + 0.85 * rating.must, accent: rating.want)
-        }
-        if highlighted { return .accent() }
-        if kind == .errand { return .ink() }
-        return .outline(alpha: kind == .unsorted ? 0.45 : 1)
-    }
-
     var body: some View {
         // size は以前の正方形の一辺。金魚は横長なので、横幅を少し広げて同じくらいの重さに見せる
         let width = size * 1.8
-        switch style {
-        case let .outline(alpha, _):
-            GoldfishMark(color: Theme.ink.opacity(alpha), outlined: true, width: width)
-        case let .ink(alpha):
-            GoldfishMark(color: Theme.ink.opacity(alpha), width: width)
-        case let .accent(alpha):
-            GoldfishMark(color: Theme.accent.opacity(alpha), width: width)
-        case let .layered(ink, accent):
-            GoldfishMark(color: accent >= 0.5 ? Theme.accent : (ink >= 0.5 ? Theme.ink : Theme.orange), width: width)
+        if let rating {
+            GoldfishMark(tint: GoldfishTint.of(want: rating.want, must: rating.must), width: width)
+        } else {
+            // まだ決めていないものは稚魚（点線の輪郭）。軸に近いものは紅
+            GoldfishMark(color: highlighted ? Theme.accent : Theme.ink, style: .fry, width: width)
         }
     }
 }
