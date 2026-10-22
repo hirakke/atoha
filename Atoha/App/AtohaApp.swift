@@ -192,6 +192,14 @@ enum DebugLaunch {
         #endif
     }
 
+    /// 書き出し画面を途中の様子で開く（`-atohaCaptureState write|pad|done|full`）。保存はしない、見た目の確認用
+    static var captureState: String? {
+        #if DEBUG
+        if let i = args.firstIndex(of: "-atohaCaptureState"), i + 1 < args.count { return args[i + 1] }
+        #endif
+        return nil
+    }
+
     static var skipNotifications: Bool {
         #if DEBUG
         return args.contains("-atohaNoNotif")
