@@ -51,11 +51,12 @@ struct MapScreen: View {
                 VStack(alignment: .leading, spacing: 12) {
                     header
                     axisCard
+                    if !(allConcerns.isEmpty && takenHome.isEmpty) && !showsSide { controls }
                     if allConcerns.isEmpty && takenHome.isEmpty {
                         Text("気になることが増えると、ここに金魚が泳ぎます。")
                             .atype(.small, color: Theme.quiet)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if side && axes.count >= 3 {
+                    } else if showsSide {
                         PondSideView(items: concerns, axes: axes)
                     } else {
                         PondMapView(items: concerns, takenHome: showTakenHome ? takenHome : [], axes: axes,
@@ -63,13 +64,15 @@ struct MapScreen: View {
                             selectedID = item?.id
                         }
                     }
-                    if let item = selected {
-                        MapSelectionCard(item: item, leanings: PondMapView.leanings(item, axes: axes))
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
-                            .id(item.id)
-                    } else {
-                        legend
-                        collectionEntry
+                    VStack(alignment: .leading, spacing: 12) {
+                        if let item = selected {
+                            MapSelectionCard(item: item, leanings: PondMapView.leanings(item, axes: axes))
+                                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                .id(item.id)
+                        } else {
+                            if showsSide { sideNote } else if axes.count >= 3 { legend }
+                            collectionEntry
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
@@ -87,15 +90,27 @@ struct MapScreen: View {
             router.showCollection = false
             if path.last != .collection { path.append(.collection) }
         }
+        #if DEBUG
+        .onAppear {
+            if let v = DebugLaunch.mapSide { side = v }
+            if DebugLaunch.mapSelect, selectedID == nil {
+                selectedID = concerns.first { $0.isRated && GoldfishTint.of(want: $0.effectiveWant, must: $0.effectiveMust) != .faint && $0.axisScores.count >= 2 && abs($0.axisScores[0]) > 0.3 && abs($0.axisScores[1]) > 0.3 }?.id ?? concerns.first?.id
+            }
+        }
+        #endif
     }
+
+    private var showsSide: Bool { side && axes.count >= 3 }
 
     private var header: some View {
         HStack(spacing: 8) {
             Text("地図").font(Theme.display(.title)).foregroundStyle(Theme.ink)
                 .accessibilityAddTraits(.isHeader)
+                .lineLimit(1)
             Spacer(minLength: 0)
             CubeSegmented(options: [false, true], label: { $0 ? "横から" : "上から" },
                           selection: Binding(get: { side }, set: { side = $0; selectedID = nil }))
+                .fixedSize()
             Menu {
                 Picker("期間", selection: Binding(get: { period }, set: { periodRaw = $0.rawValue })) {
                     ForEach(MapPeriod.allCases, id: \.self) { Text($0.label).tag($0) }
@@ -104,11 +119,13 @@ struct MapScreen: View {
                     ForEach(MapMode.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
             } label: {
-                Text(period.label).atype(.small).fontWeight(.black)
+                Text(period.label).font(.system(.subheadline, weight: .black)).foregroundStyle(Theme.ink)
+                    .lineLimit(1)
+                    .padding(.horizontal, 14)
                     .frame(minWidth: 44, minHeight: 44)
-                    .padding(.horizontal, 4)
                     .background(Capsule().fill(Theme.surface))
                     .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+                    .fixedSize()
             }
             .accessibilityLabel("期間 \(period.label)")
         }
@@ -121,55 +138,134 @@ struct MapScreen: View {
                 if axes.count >= 2 && !(side && axes.count < 3) {
                     Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 2) {
                         GridRow {
-                            Text("横の軸").atype(.small, color: Theme.quiet).fontWeight(.bold)
-                            Text("\(axes[0].negativePole) ↔ \(axes[0].positivePole)").atype(.small).fontWeight(.black)
+                            Text("横の軸").font(.system(.subheadline, weight: .bold)).foregroundStyle(Theme.quiet)
+                            Text("\(axes[0].negativePole) ↔ \(axes[0].positivePole)").font(.system(.subheadline, weight: .black))
                         }
                         GridRow {
-                            Text(side ? "深さ" : "縦の軸").atype(.small, color: Theme.quiet).fontWeight(.bold)
+                            Text(side ? "深さ" : "縦の軸").font(.system(.subheadline, weight: .bold)).foregroundStyle(Theme.quiet)
                             Text(side ? "\(axes[2].negativePole) ↔ \(axes[2].positivePole)" : "\(axes[1].positivePole) ↔ \(axes[1].negativePole)")
-                                .atype(.small).fontWeight(.black)
+                                .font(.system(.subheadline, weight: .black))
                         }
                     }
+                    .foregroundStyle(Theme.ink)
                 } else {
                     Text(axes.isEmpty ? "軸はまだありません" : "横から見るには、軸が3本いります").atype(.small).fontWeight(.bold)
                 }
                 Spacer(minLength: 0)
-                Text(axes.isEmpty ? "軸をつくる ›" : "軸を変える ›").atype(.small).fontWeight(.black)
-                    .padding(.horizontal, 10).padding(.vertical, 4)
+                Text(axes.isEmpty ? "軸をつくる ›" : "軸を変える ›").font(.system(.subheadline, weight: .black)).foregroundStyle(Theme.ink)
+                    .lineLimit(1)
+                    .padding(.horizontal, 12).padding(.vertical, 4)
                     .background(Capsule().fill(Theme.faint.opacity(0.7)))
+                    .fixedSize()
             }
-            .padding(.horizontal, 14).padding(.vertical, 8)
+            .padding(.horizontal, 14).padding(.vertical, 6)
             .frame(minHeight: 52)
             .background(RoundedRectangle(cornerRadius: 16).fill(Theme.surface))
             .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
             .background(RoundedRectangle(cornerRadius: 16).fill(Theme.ink).offset(x: 3, y: 3))
         }
         .buttonStyle(.plain)
+        .padding(.trailing, 3)
     }
 
-    /// 深さ（大きさ）と、持ち帰った金魚を出すかどうか
-    private var legend: some View {
+    /// 池の上の操作：持ち帰った金魚を出すかどうか（スイッチの札）と、泳いでいる数
+    private var controls: some View {
         HStack(spacing: 8) {
-            if axes.count >= 3 && !side {
-                Text("深さ").atype(.small).fontWeight(.black)
-                GoldfishMark(color: Theme.ink, width: 24)
-                Text(axes[2].negativePole).atype(.small)
-                GoldfishMark(color: Theme.ink, width: 13)
-                Text(axes[2].positivePole).atype(.small)
+            if !showsSide {
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) { showTakenHome.toggle() }
+                    if !showTakenHome, let id = selectedID, takenHome.contains(where: { $0.id == id }) { selectedID = nil }
+                } label: {
+                    HStack(spacing: 8) {
+                        TakenHomeGlyph(inverted: showTakenHome, width: 22)
+                        Text("持ち帰った").font(.system(.subheadline, weight: .black)).lineLimit(1)
+                        ChipSwitch(isOn: showTakenHome)
+                    }
+                    .foregroundStyle(showTakenHome ? Color.white : Theme.ink)
+                    .padding(.leading, 12).padding(.trailing, 8)
+                    .frame(minHeight: 44)
+                    .background(Capsule().fill(showTakenHome ? Theme.ink : Theme.surface))
+                    .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+                    .background(Capsule().fill(showTakenHome ? Theme.accent : .clear).offset(x: 3, y: 3))
+                    .fixedSize()
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("持ち帰った金魚を出す")
+                .accessibilityValue(showTakenHome ? "オン" : "オフ")
+                .accessibilityAddTraits(.isToggle)
             }
             Spacer(minLength: 0)
-            if !side {
-                Toggle(isOn: $showTakenHome) {
-                    HStack(spacing: 6) {
-                        GoldfishMark(color: Theme.ink, style: .takenHome, width: 20)
-                        Text("持ち帰った").atype(.small).fontWeight(.bold)
-                    }
-                }
-                .toggleStyle(.switch)
-                .tint(Theme.accent)
-                .fixedSize()
+            Text(countText).font(Theme.dot(.footnote)).foregroundStyle(Theme.quiet)
+                .lineLimit(1).minimumScaleFactor(0.8)
+        }
+        .frame(minHeight: 44)
+    }
+
+    private var countText: String {
+        var s = "泳いでいる \(concerns.count)匹"
+        if showTakenHome && !showsSide { s += "・持ち帰った \(takenHome.count)匹" }
+        return s
+    }
+
+    /// 深さ（大きさ）の見方。浅い＝今ほど大きく、深い＝将来ほど小さい
+    private var legend: some View {
+        let names = PondMapView.depthNames(axes)
+        let widths: [CGFloat] = [30, 22, 15]
+        let row = ForEach(0..<3, id: \.self) { i in
+            HStack(spacing: 6) {
+                GoldfishMark(color: Theme.ink, width: widths[i])
+                Text(names[i]).lineLimit(1)
             }
         }
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                Text("深さ").fontWeight(.black)
+                row
+                Spacer(minLength: 0)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Text("深さ").fontWeight(.black)
+                row
+            }
+        }
+        .font(.system(.footnote, weight: .bold))
+        .foregroundStyle(Theme.ink)
+        .padding(.horizontal, 14).padding(.vertical, 8)
+        .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("深さ。大きい金魚ほど\(names[0])、小さいほど\(names[2])")
+    }
+
+    /// 横から見たときの説明
+    private var sideNote: some View {
+        let near = axes[2].negativePole, far = axes[2].positivePole
+        let text = (near == "今" && far == "将来")
+            ? "浅いところほど今の気持ち、深いところほど将来のこと。"
+            : "浅いところほど\(near)、深いところほど\(far)。"
+        return Text(text)
+            .font(.system(.footnote, weight: .bold))
+            .foregroundStyle(Theme.ink.opacity(0.85))
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Theme.surface))
+            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+    }
+
+    /// この月に持ち帰った金魚が、どのあたりに多いか（「人と・作るが多め」）
+    private var collectionLeaning: String? {
+        guard axes.count >= 2 else { return nil }
+        let start = Calendar.current.dateInterval(of: .month, for: .now)?.start ?? .distantPast
+        let done = items.filter { $0.state == .done && ($0.resolvedAt ?? .distantPast) >= start && $0.axisScores.count >= 2 }
+        guard !done.isEmpty else { return nil }
+        var parts: [String] = []
+        for i in 0..<2 {
+            let mean = done.map { $0.axisScores[i] }.reduce(0, +) / Double(done.count)
+            if abs(mean) >= 0.15 { parts.append(mean < 0 ? axes[i].negativePole : axes[i].positivePole) }
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: "・") + "が多め"
     }
 
     /// 金魚鉢へ
@@ -178,19 +274,63 @@ struct MapScreen: View {
             HStack(spacing: 12) {
                 FishbowlIcon(count: min(3, takenHomeThisMonth), width: 34)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("金魚鉢　この月 \(takenHomeThisMonth)匹").atype(.body).fontWeight(.black)
-                    Text("持ち帰った金魚を、一覧・カレンダーで").atype(.small, color: Theme.quiet)
+                    Text("金魚鉢　この月 \(takenHomeThisMonth)匹").font(.system(.subheadline, weight: .black)).foregroundStyle(Theme.ink)
+                    Text(collectionLeaning ?? "持ち帰った金魚を、一覧・カレンダーで")
+                        .font(.system(.footnote, weight: .bold)).foregroundStyle(Theme.quiet)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.system(size: 15, weight: .black)).foregroundStyle(Theme.quiet)
+                Image(systemName: "chevron.right").font(.system(size: 17, weight: .black)).foregroundStyle(Theme.quiet)
             }
-            .padding(.horizontal, 14).padding(.vertical, 10)
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .frame(minHeight: 60)
             .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.surface))
             .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
             .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.ink).offset(x: Theme.shadow, y: Theme.shadow))
         }
         .buttonStyle(.plain)
         .padding(.trailing, Theme.shadow)
+        .padding(.bottom, Theme.shadow)
+    }
+}
+
+/// 持ち帰った金魚の絵（白抜き）。inverted は藍の札の上（白い金魚に藍の中）
+private struct TakenHomeGlyph: View {
+    var inverted: Bool
+    var width: CGFloat
+
+    var body: some View {
+        let body = inverted ? Color.white : Theme.ink
+        let hole = inverted ? Theme.ink : Color.white
+        Canvas { context, size in
+            let cell = size.width / CGFloat(GoldfishShape.width)
+            func path(_ cells: [(x: Int, y: Int)]) -> Path {
+                var p = Path()
+                for c in cells { p.addRect(CGRect(x: CGFloat(c.x) * cell, y: CGFloat(c.y) * cell, width: cell, height: cell)) }
+                return p
+            }
+            context.fill(path(GoldfishShape.cells), with: .color(body))
+            context.fill(path(GoldfishShape.holeCells), with: .color(hole))
+        }
+        .frame(width: width, height: width * CGFloat(GoldfishShape.height) / CGFloat(GoldfishShape.width))
+        .accessibilityHidden(true)
+    }
+}
+
+/// 札の中の小さなスイッチ（見た目だけ。押すのは札全体）
+private struct ChipSwitch: View {
+    var isOn: Bool
+
+    var body: some View {
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            Capsule().fill(isOn ? Theme.accent : Theme.faint.opacity(0.7))
+            Capsule().strokeBorder(isOn ? Color.white : Theme.ink, lineWidth: 2)
+            Circle().fill(Color.white)
+                .overlay(Circle().strokeBorder(isOn ? Color.clear : Theme.ink, lineWidth: 2))
+                .frame(width: 18, height: 18)
+                .padding(.horizontal, 4)
+        }
+        .frame(width: 44, height: 26)
+        .accessibilityHidden(true)
     }
 }
 

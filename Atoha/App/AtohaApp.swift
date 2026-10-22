@@ -157,6 +157,23 @@ enum DebugLaunch {
         #endif
     }
 
+    /// 地図を横から（`-atohaMapView side`）・上から（`-atohaMapView top`）で開く
+    static var mapSide: Bool? {
+        #if DEBUG
+        if let i = args.firstIndex(of: "-atohaMapView"), i + 1 < args.count { return args[i + 1] == "side" }
+        #endif
+        return nil
+    }
+
+    /// 地図で金魚を1匹選んだ状態で開く（`-atohaMapSelect`）
+    static var mapSelect: Bool {
+        #if DEBUG
+        return args.contains("-atohaMapSelect")
+        #else
+        return false
+        #endif
+    }
+
     static var skipNotifications: Bool {
         #if DEBUG
         return args.contains("-atohaNoNotif")
