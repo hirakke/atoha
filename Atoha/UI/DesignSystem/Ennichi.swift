@@ -10,7 +10,7 @@ extension Theme {
 
 /// 紅白の幕。裾は丸く波打つ。
 struct AwningStrip: View {
-    var height: CGFloat = 26
+    var height: CGFloat = 20
 
     var body: some View {
         let red = Theme.accent, white = Color.white

@@ -60,7 +60,7 @@ struct LaterView: View {
                         .padding(.top, 16)
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 12)
+                    .padding(.top, 2)
                     .padding(.bottom, 24)
                 }
                 .safeAreaInset(edge: .bottom) { CaptureButton() }

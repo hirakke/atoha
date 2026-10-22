@@ -39,7 +39,7 @@ struct HomeView: View {
                         .padding(.top, 24)
                     }
                     .padding(.horizontal, 24)
-                    .padding(.top, 12)
+                    .padding(.top, 2)
                     .padding(.bottom, 24)
                 }
                 // ボタンの分だけスクロールの下端を空ける（最後の行がボタンに隠れないように）

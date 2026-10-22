@@ -88,7 +88,7 @@ struct MapScreen: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 12)
+                .padding(.top, 2)
                 .padding(.bottom, 12)
             }
             .awning()
