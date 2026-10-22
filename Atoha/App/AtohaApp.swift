@@ -60,8 +60,10 @@ final class AppRouter {
     var showCapture = false
     /// いま持ち帰ったもの（「持ち帰りました」の知らせを出す）
     var takenHomeID: UUID?
-    /// 金魚鉢を開く（地図から）
+    /// 金魚鉢を開く（池から）
     var showCollection = false
+    /// いま開いているタブ（今・あとで・池）。からっぽの今から「あとで」へ移るときなどに変える
+    var tab = (DebugLaunch.tab == "axes" ? "map" : DebugLaunch.tab) ?? "now"
 }
 
 struct RootView: View {
@@ -70,12 +72,11 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var focus = FocusSession.shared
 
-    @State private var tab = (DebugLaunch.tab == "axes" ? "map" : DebugLaunch.tab) ?? "now"
     @AppStorage("onboarded") private var onboarded = false
 
     var body: some View {
         @Bindable var router = router
-        TabView(selection: $tab) {
+        TabView(selection: $router.tab) {
             // タブのアイコンもドットの絵
             Tab(value: "now") { HomeView() } label: { Label { Text("今") } icon: { Image(uiImage: PixelIcon.fish) } }
             Tab(value: "later") { LaterView() } label: { Label { Text("あとで") } icon: { Image(uiImage: PixelIcon.waves) } }
@@ -85,7 +86,7 @@ struct RootView: View {
             if let id = router.takenHomeID {
                 TakeHomeToast {
                     router.takenHomeID = nil
-                    tab = "map"
+                    router.tab = "map"
                     router.showCollection = true
                 }
                 .id(id)

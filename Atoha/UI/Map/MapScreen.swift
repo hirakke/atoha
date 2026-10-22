@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// 地図：気になることを池に泳がせる。2本の軸をはっきり見せ、横から見ると3本目（深さ）が見える。
+/// 池：気になることを池に泳がせる。2本の軸をはっきり見せ、横から見ると3本目（深さ）が見える。
 /// 持ち帰った金魚は白抜きで重ねられ、金魚鉢から一覧・カレンダーでも見られる。
 struct MapScreen: View {
     @Environment(AppRouter.self) private var router
@@ -52,9 +52,10 @@ struct MapScreen: View {
     var body: some View {
         NavigationStack(path: $path) {
             ZStack {
-                PaperBackground()
+                PaperBackground(fadeTop: true)
                 VStack(alignment: .leading, spacing: 10) {
                     header
+                        .padding(.horizontal, -20)
                     if allConcerns.isEmpty && takenHome.isEmpty {
                         Text("気になることが増えると、ここに金魚が泳ぎます。")
                             .atype(.small, color: Theme.quiet)
@@ -88,10 +89,8 @@ struct MapScreen: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 2)
                 .padding(.bottom, 12)
             }
-            .awning()
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: MapRoute.self) { _ in CollectionView() }
             .sheet(isPresented: $showAxes) { AxesView() }
@@ -169,13 +168,15 @@ struct MapScreen: View {
     }
 
     private var header: some View {
-        HStack(spacing: 8) {
-            ScreenTitle(title: "池")
-            Spacer(minLength: 0)
-            CubeSegmented(options: [false, true], label: { $0 ? "横から" : "上から" },
-                          selection: Binding(get: { side }, set: { setSide($0) }))
-                .fixedSize()
-            viewMenu
+        ScreenHeader(title: "池") {
+            EmptyView()
+        } trailing: {
+            HStack(spacing: 8) {
+                CubeSegmented(options: [false, true], label: { $0 ? "横から" : "上から" },
+                              selection: Binding(get: { side }, set: { setSide($0) }))
+                    .fixedSize()
+                viewMenu
+            }
         }
     }
 
@@ -206,7 +207,7 @@ struct MapScreen: View {
             }
             .frame(width: 44, height: 44)
             .background(Circle().fill(Theme.surface))
-            .overlay(Circle().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+            .overlay(Circle().strokeBorder(Theme.ink, lineWidth: 2))
             .contentShape(Circle())
         }
         .accessibilityLabel("表示（期間・持ち帰った・軸を変える）")

@@ -174,6 +174,8 @@ extension UIColor {
 struct PaperBackground: View {
     /// 安全領域の外まで広げる（画面全体の背景）
     var fullScreen = true
+    /// 上は紙のまま残し、見出しの下から模様を浮かべる（画面の上16%は無地、34%で濃さがそろう）
+    var fadeTop = false
 
     var body: some View {
         let ink = Theme.ink
@@ -196,6 +198,14 @@ struct PaperBackground: View {
                     y += h
                 }
                 context.fill(all, with: .color(ink.opacity(0.07)))
+            }
+            .mask {
+                if fadeTop {
+                    LinearGradient(stops: [.init(color: .clear, location: 0.16), .init(color: .black, location: 0.34)],
+                                   startPoint: .top, endPoint: .bottom)
+                } else {
+                    Color.black
+                }
             }
             .background(Theme.paper)
         }

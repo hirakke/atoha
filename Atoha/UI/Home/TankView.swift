@@ -25,11 +25,11 @@ struct TankView: View {
             scene.update(cubes: cubes)
             scene.setActive(visible && scenePhase == .active)
         }
-        .frame(height: 200)
+        .frame(height: 160)
         .background(TankWater())
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
-        .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.ink).offset(x: Theme.shadow, y: Theme.shadow))
+        // 水槽の札：角20、藍の枠だけ（影はつけず、下の札より静かに）
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.ink, lineWidth: 2.5))
         .allowsHitTesting(false)
         .onAppear { visible = true; scene.setActive(scenePhase == .active) }
         .onDisappear { visible = false; scene.setActive(false) }

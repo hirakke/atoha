@@ -139,14 +139,16 @@ struct BowlIcon: View {
     var width: CGFloat = 24
     /// 藍の札の上に置く（白い線、入っていれば紅い水）
     var onDark = false
+    /// 空のときに中を塗らない（紙の上に縁だけ）
+    var hollow = false
 
     /// ドットのお椀（横12×縦6マス）。縁と、金魚が入っているときの紅い水
-    private static let rim: [(x: Int, y: Int, w: Int)] = [(0, 0, 12), (0, 1, 1), (11, 1, 1), (1, 2, 1), (10, 2, 1), (1, 3, 1), (10, 3, 1), (2, 4, 1), (9, 4, 1), (3, 5, 6)]
-    private static let water: [(x: Int, y: Int, w: Int)] = [(1, 1, 10), (2, 2, 8), (2, 3, 8), (3, 4, 6)]
+    static let rim: [(x: Int, y: Int, w: Int)] = [(0, 0, 12), (0, 1, 1), (11, 1, 1), (1, 2, 1), (10, 2, 1), (1, 3, 1), (10, 3, 1), (2, 4, 1), (9, 4, 1), (3, 5, 6)]
+    static let water: [(x: Int, y: Int, w: Int)] = [(1, 1, 10), (2, 2, 8), (2, 3, 8), (3, 4, 6)]
 
     var body: some View {
         let line = onDark ? Color.white : Theme.ink
-        let fill = filled ? Theme.accent : (onDark ? Color.clear : Theme.surface)
+        let fill = filled ? Theme.accent : (onDark || hollow ? Color.clear : Theme.surface)
         Canvas { context, size in
             let cell = size.width / 12
             func path(_ runs: [(x: Int, y: Int, w: Int)]) -> Path {
@@ -159,6 +161,48 @@ struct BowlIcon: View {
         }
         .frame(width: width, height: width / 2)
         .accessibilityHidden(true)
+    }
+}
+
+/// 水だけが入った大きなお椀（今がからっぽのとき）。薄い水色に青の網点、上に水面の線。
+struct WaterBowl: View {
+    var width: CGFloat = 168
+
+    var body: some View {
+        let ink = Theme.ink, dot = Theme.waterDot
+        Canvas { context, size in
+            let cell = size.width / 12
+            func path(_ runs: [(x: Int, y: Int, w: Int)]) -> Path {
+                var p = Path()
+                for r in runs { p.addRect(CGRect(x: CGFloat(r.x) * cell, y: CGFloat(r.y) * cell, width: CGFloat(r.w) * cell, height: cell)) }
+                return p
+            }
+            let water = path(BowlIcon.water)
+            context.fill(water, with: .color(Theme.water))
+            // 網点（6pt おきに互い違い）。水の形で切り抜く
+            context.drawLayer { layer in
+                layer.clip(to: water)
+                var dots = Path()
+                let step = size.width / 28
+                var y = step / 4, row = 0
+                while y < size.height {
+                    var x = row.isMultiple(of: 2) ? step / 4 : step * 0.75
+                    while x < size.width {
+                        dots.addEllipse(in: CGRect(x: x - step / 6, y: y - step / 6, width: step / 3, height: step / 3))
+                        x += step
+                    }
+                    y += step / 2
+                    row += 1
+                }
+                layer.fill(dots, with: .color(dot.opacity(0.3)))
+            }
+            // 水面の線
+            context.fill(Path(CGRect(x: 2 * cell, y: cell, width: 8 * cell, height: cell * 0.34)), with: .color(dot.opacity(0.55)))
+            context.fill(path(BowlIcon.rim), with: .color(ink))
+        }
+        .frame(width: width, height: width / 2)
+        .accessibilityElement()
+        .accessibilityLabel("水だけが入ったお椀")
     }
 }
 

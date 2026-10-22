@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// あとで：回したもの（水槽の金魚）。いちばんのおすすめを札にして、残りは罫で区切った行に並べる。今に入れるかは本人が選ぶ。
+/// あとで：回したもの（水槽の金魚）。いちばんのおすすめを札にして、残りは罫で区切った行を白い札にまとめる。今に入れるかは本人が選ぶ。
 /// （いつ思い出すかの時間の区分は、わかりやすさのため一旦なくしている）
 struct LaterView: View {
     @Environment(\.modelContext) private var context
@@ -19,27 +19,23 @@ struct LaterView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                PaperBackground()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            ScreenTitle(title: "あとで")
-                            Spacer(minLength: 0)
-                            CountText(count: waiting.count, total: SettingsStore.laterCapacity,
-                                      alert: waiting.count >= SettingsStore.laterCapacity)
-                                .accessibilityLabel("水槽 \(SettingsStore.laterCapacity)のうち \(waiting.count)")
-                        }
-                        .padding(.horizontal, 4)
-                        VStack(alignment: .leading, spacing: 26) {
+                PaperBackground(fadeTop: true)
+                VStack(spacing: 0) {
+                    ScreenHeader(title: "あとで") {
+                        CountText(count: waiting.count, total: SettingsStore.laterCapacity, size: .body,
+                                  alert: waiting.count >= SettingsStore.laterCapacity)
+                            .accessibilityLabel("水槽 \(SettingsStore.laterCapacity)のうち \(waiting.count)")
+                    }
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
                             TankView(cubes: waiting.map { TankCube(id: $0.id, tint: GoldfishTint.of(want: $0.effectiveWant, must: $0.effectiveMust)) })
-                                .padding(.trailing, Theme.shadow + 1)
                             if waiting.isEmpty {
                                 Text("「あとでに回す」で入れたものが、ここで泳ぎます。")
                                     .atype(.small, color: Theme.quiet)
                                     .padding(.horizontal, 4)
                             } else {
                                 if let top = ordered.first {
-                                    RecommendCard(item: top, room: room).padding(.top, 4)
+                                    RecommendCard(item: top, room: room)
                                 }
                                 if room == 0 {
                                     Text("お椀がいっぱいです。今のものが終わると、すくえます")
@@ -49,30 +45,28 @@ struct LaterView: View {
                                 if ordered.count > 1 {
                                     VStack(alignment: .leading, spacing: 0) {
                                         ForEach(Array(ordered.dropFirst().enumerated()), id: \.element.id) { index, item in
-                                            if index > 0 { Rectangle().fill(Theme.faint.opacity(0.7)).frame(height: 2) }
+                                            if index > 0 { RowDivider() }
                                             SuggestionRow(item: item, room: room)
                                         }
                                     }
-                                    .padding(.horizontal, 4)
+                                    .quietCard()
                                 }
                             }
                         }
-                        .padding(.top, 16)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 18)
+                        .padding(.bottom, 24)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 2)
-                    .padding(.bottom, 24)
                 }
                 .safeAreaInset(edge: .bottom) { CaptureButton() }
                 .scrollEdgeEffectHidden(true, for: .bottom)
             }
-            .awning()
             .toolbar(.hidden, for: .navigationBar)
         }
     }
 }
 
-/// いちばんのおすすめ。紅い枠の札に、1行で「今に入れる」。文字が大きいときはボタンを下に回す。
+/// いちばんのおすすめ。白い札に紅い枠と影、左上に小さく「おすすめ」。1行で「今に入れる」。文字が大きいときはボタンを下に回す。
 private struct RecommendCard: View {
     let item: Item
     let room: Int
@@ -80,32 +74,31 @@ private struct RecommendCard: View {
     @Environment(\.modelContext) private var context
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) {
-                label
-                button
-            }
-            VStack(alignment: .leading, spacing: 12) {
-                label
-                button.frame(maxWidth: .infinity, alignment: .trailing)
+        VStack(alignment: .leading, spacing: 10) {
+            CardLabel(text: "おすすめ")
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    label
+                    button
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    label
+                    button.frame(maxWidth: .infinity, alignment: .trailing)
+                }
             }
         }
-        .padding(.top, 22)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 14)
+        .padding(.top, 14)
+        .padding(.leading, 16)
+        .padding([.trailing, .bottom], 14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.surface))
-        .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.accent, lineWidth: Theme.stroke))
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.accent).offset(x: Theme.shadow + 1, y: Theme.shadow + 1))
-        .sticker("おすすめ")
-        .padding(.trailing, Theme.shadow + 1)
+        .boldCard(Theme.accent)
     }
 
     private var label: some View {
         HStack(spacing: 12) {
             mark(item)
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.text).atype(.body).fontWeight(.bold)
+                Text(item.text).font(.system(.headline, weight: .black)).foregroundStyle(Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 if item.isBothLow { ReleaseHint() }
             }
@@ -115,10 +108,8 @@ private struct RecommendCard: View {
 
     private var button: some View {
         Button("今に入れる") { scooper.scoop(item, room: room, in: context) }
-            .buttonStyle(.cube(room == 0 ? .flat : .accent))
-            .environment(\.atypeInk, nil)
-            .opacity(room == 0 ? 0.55 : 1)
-            .fixedSize()
+            .buttonStyle(.pill(size: .subheadline, horizontal: 16))
+            .opacity(room == 0 ? 0.45 : 1)
             .accessibilityHint(room == 0 ? "今がいっぱいです" : "")
     }
 }
@@ -142,7 +133,7 @@ private struct SuggestionRow: View {
                 if item.isBothLow { ReleaseHint() }
                 RowChevron(open: open)
             }
-            .frame(minHeight: 54)
+            .frame(minHeight: 56)
             .contentShape(Rectangle())
             .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { open.toggle() } }
             .accessibilityElement(children: .combine)

@@ -14,39 +14,28 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                PaperBackground()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack(spacing: 8) {
-                            ScreenTitle(title: "atoha")
-                            Spacer(minLength: 0)
-                            settingsButton
-                        }
-                        .padding(.trailing, -12)
-                        VStack(alignment: .leading, spacing: 28) {
-                            BowlLine(filled: returned.count, capacity: capacity)
-                            if returned.isEmpty {
-                                // 何もないときに、次に何をすればいいかだけを見せる
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text("お椀はからっぽです").atype(.body)
-                                    Text("気になることは「あとでに回す」で水槽へ。「あとで」から選んで、すくいます。")
-                                        .atype(.small, color: Theme.quiet)
-                                }
-                            } else {
-                                ReturnedList(items: returned)
-                            }
-                        }
-                        .padding(.top, 24)
+                PaperBackground(fadeTop: true)
+                VStack(spacing: 0) {
+                    ScreenHeader(title: "今") {
+                        HeaderBowls(filled: returned.count, capacity: capacity)
+                    } trailing: {
+                        CircleIconButton(systemName: "gearshape", label: "設定") { showSettings = true }
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 2)
-                    .padding(.bottom, 24)
+                    if returned.isEmpty {
+                        EmptyBowlView()
+                    } else {
+                        ScrollView {
+                            ReturnedList(items: returned)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 22)
+                                .padding(.bottom, 24)
+                        }
+                    }
                 }
                 // ボタンの分だけスクロールの下端を空ける（最後の行がボタンに隠れないように）
                 .safeAreaInset(edge: .bottom) { CaptureButton() }
                 .scrollEdgeEffectHidden(true, for: .bottom)
             }
-            .awning()
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showSettings) { SettingsView() }
             // 今にあるものがあるときに、まとめ処理（PCC が使えれば PCC）
@@ -56,15 +45,38 @@ struct HomeView: View {
             }
         }
     }
+}
 
-    private var settingsButton: some View {
-        Button { showSettings = true } label: {
-            Image(systemName: "gearshape").font(.system(size: 20, weight: .bold)).foregroundStyle(Theme.quiet)
-                .frame(width: 44, height: 44)
-                .contentShape(Circle())
+/// お椀がからっぽのとき。水だけのお椀と、次に何をすればいいか（あとでから選ぶ）を真ん中に。
+private struct EmptyBowlView: View {
+    @Environment(AppRouter.self) private var router
+
+    var body: some View {
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(spacing: 22) {
+                    WaterBowl(width: 168)
+                    VStack(spacing: 8) {
+                        Text("お椀はからっぽ")
+                            .font(.system(.title2, weight: .black))
+                            .foregroundStyle(Theme.ink)
+                        Text("あとでの水槽から、\nひとつすくってみよう。")
+                            .font(.system(.subheadline, weight: .medium))
+                            .foregroundStyle(Theme.quiet)
+                            .lineSpacing(5)
+                    }
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    Button("あとでを見る") { router.tab = "later" }
+                        .buttonStyle(.pill(filled: false, size: .subheadline))
+                        .accessibilityHint("あとでのタブを開く")
+                }
+                .padding(.horizontal, 32)
+                .padding(.vertical, 24)
+                .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+            }
+            .scrollBounceBehavior(.basedOnSize)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("設定")
     }
 }
 
@@ -86,7 +98,7 @@ struct CaptureButton: View {
     }
 }
 
-/// 今にあるもの。先頭に「次」、その下にすべてを罫で区切った行で（箱には入れない）。
+/// 今にあるもの。先頭に「次」の札、その下にすべてを罫で区切った行で（薄い枠の白い札にまとめる）。
 /// やりたい・やらなきゃは見出しで分けず、金魚の描き分けで見せる。
 struct ReturnedList: View {
     let items: [Item]
@@ -97,33 +109,36 @@ struct ReturnedList: View {
     private var candidates: [Item] { Array(ordered.prefix(5)) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
-            if !candidates.isEmpty { NextCard(items: candidates).padding(.top, 6) }
+        VStack(alignment: .leading, spacing: 18) {
+            if !candidates.isEmpty { NextCard(items: candidates) }
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(ordered.enumerated()), id: \.element.id) { index, item in
-                    if index > 0 { Rectangle().fill(Theme.faint.opacity(0.7)).frame(height: 2) }
+                    if index > 0 { RowDivider() }
                     ReturnedRow(item: item)
                 }
             }
-            .padding(.horizontal, 4)
+            .quietCard()
         }
     }
 }
 
-/// 「次」：優先順位の高い順に、横にめくって選ぶ。
+/// 「次」：優先順位の高い順に、横にめくって選ぶ。白い札に藍の枠と影、左上に小さく「次」。
 private struct NextCard: View {
     let items: [Item]
     @State private var page = 0
+    /// めくる面の高さ（文字サイズの設定に合わせて伸ばす）
+    @ScaledMetric(relativeTo: .title3) private var pageHeight: CGFloat = 60
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
+            CardLabel(text: "次")
             TabView(selection: $page) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     NextPage(item: item).tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(minHeight: 96)
+            .frame(height: pageHeight)
             if items.count > 1 {
                 HStack(spacing: 6) {
                     ForEach(items.indices, id: \.self) { index in
@@ -136,13 +151,11 @@ private struct NextCard: View {
                 .accessibilityHidden(true)
             }
         }
-        .padding(.top, 18)
-        .padding([.horizontal, .bottom], 16)
+        .padding(.top, 16)
+        .padding(.leading, 18)
+        .padding([.trailing, .bottom], 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.surface))
-        .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.ink).offset(x: Theme.shadow + 1, y: Theme.shadow + 1))
-        .sticker("次")
+        .boldCard()
         .onChange(of: items.map(\.id)) { _, ids in
             if page >= ids.count { page = max(0, ids.count - 1) }
         }
@@ -153,18 +166,21 @@ private struct NextPage: View {
     let item: Item
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(item.text).atype(.title).lineLimit(3)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            HStack {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.text)
+                    .font(.system(.title3, weight: .black))
+                    .foregroundStyle(Theme.ink)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
                 if let deadline = item.deadline { DeadlineLabel(date: deadline) }
-                Spacer(minLength: 0)
-                Button("やる") { FocusSession.shared.start(item) }
-                    .buttonStyle(.cube(.accent))
-                    .environment(\.atypeInk, nil)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Button("やる") { FocusSession.shared.start(item) }
+                .buttonStyle(.pill())
+                .accessibilityHint(item.text)
         }
-        .padding(.horizontal, 2)
+        .frame(maxHeight: .infinity)
     }
 }
 
@@ -189,7 +205,6 @@ private struct ReturnedRow: View {
                     .transition(.opacity)
             }
         }
-        .padding(.vertical, 2)
     }
 
     private func confirmation(for timing: ReturnTiming) -> some View {
@@ -203,12 +218,12 @@ private struct ReturnedRow: View {
             HStack(spacing: 14) {
                 // 印は見せるだけ。触れても消えないよう、「できた」は開いたときのボタンだけにする
                 mark
-                Text(item.text).atype(.body)
+                Text(item.text).atype(.body).fontWeight(.bold)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if item.isBothLow { ReleaseHint() }
                 if let deadline = item.deadline { DeadlineLabel(date: deadline) }
             }
-            .frame(minHeight: 54)
+            .frame(minHeight: 56)
             .contentShape(Rectangle())
             .onTapGesture { withAnimation(.easeOut(duration: 0.15)) { open.toggle() } }
             .accessibilityElement(children: .combine)
@@ -223,6 +238,7 @@ private struct ReturnedRow: View {
                     action("あとでに回す", .secondary) { postpone(.atBreak) }
                     action("やめる", item.isBothLow ? .primary : .secondary) { resolve(.released) }
                 }
+                .padding(.bottom, 14)
                 .transition(.opacity)
             }
         }

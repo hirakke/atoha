@@ -85,7 +85,6 @@ struct StoryBookView: View {
             .padding(.bottom, 12)
         }
         .background(Theme.paper.ignoresSafeArea())
-        .awning()
     }
 }
 
