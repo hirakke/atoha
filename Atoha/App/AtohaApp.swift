@@ -76,9 +76,10 @@ struct RootView: View {
     var body: some View {
         @Bindable var router = router
         TabView(selection: $tab) {
-            Tab("今", systemImage: "fish.fill", value: "now") { HomeView() }
-            Tab("あとで", systemImage: "water.waves", value: "later") { LaterView() }
-            Tab("地図", systemImage: "map", value: "map") { MapScreen() }
+            // タブのアイコンもドットの絵
+            Tab(value: "now") { HomeView() } label: { Label { Text("今") } icon: { Image(uiImage: PixelIcon.fish) } }
+            Tab(value: "later") { LaterView() } label: { Label { Text("あとで") } icon: { Image(uiImage: PixelIcon.waves) } }
+            Tab(value: "map") { MapScreen() } label: { Label { Text("地図") } icon: { Image(uiImage: PixelIcon.pond) } }
         }
         .overlay(alignment: .bottom) {
             if let id = router.takenHomeID {
@@ -137,6 +138,15 @@ enum DebugLaunch {
 
     /// `-atohaTab axes` は地図タブを開いて軸のシートを出す。
     static var showAxesSheet: Bool { tab == "axes" }
+
+    /// 設定を開いた状態で起動する（`-atohaSettings`）
+    static var openSettings: Bool {
+        #if DEBUG
+        return args.contains("-atohaSettings")
+        #else
+        return false
+        #endif
+    }
 
     /// 初回の絵本を出さない（`-atohaNoStory`）。画面の確認用
     static var skipOnboarding: Bool {

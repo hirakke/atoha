@@ -134,3 +134,27 @@ struct ReleaseHint: View {
             .overlay(Capsule().strokeBorder(Theme.quiet, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2])))
     }
 }
+
+/// ドットのアイコン（タブなど）。X のマスを塗った型抜きの画像を作る。
+enum PixelIcon {
+    static func image(_ rows: [String], cell: CGFloat = 3) -> UIImage {
+        let w = rows.map(\.count).max() ?? 0, h = rows.count
+        let size = CGSize(width: CGFloat(w) * cell, height: CGFloat(h) * cell)
+        let img = UIGraphicsImageRenderer(size: size).image { ctx in
+            UIColor.black.setFill()
+            for (y, row) in rows.enumerated() {
+                for (x, ch) in row.enumerated() where ch == "X" {
+                    ctx.fill(CGRect(x: CGFloat(x) * cell, y: CGFloat(y) * cell, width: cell, height: cell))
+                }
+            }
+        }
+        return img.withRenderingMode(.alwaysTemplate)
+    }
+
+    /// 今：金魚
+    static let fish = image(["..XXX....", ".XXXXX.XX", "XXXXXXXX.", ".XXXXX.XX", "..XXX...."])
+    /// あとで：水槽の波
+    static let waves = image(["..XX..XX", "XX..XX..", "........", "..XX..XX", "XX..XX.."])
+    /// 地図：上から見た池と軸
+    static let pond = image(["..XXXXX..", ".X..X..X.", "X...X...X", "XXXXXXXXX", "X...X...X", ".X..X..X.", "..XXXXX.."])
+}

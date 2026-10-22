@@ -29,74 +29,88 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        ZStack {
-            PaperBackground()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 32) {
-                    topBar
-                    section("色") { PalettePicker() }
-                    section("今") {
-                        row("上限") {
-                            CubeSegmented(options: [3, 5, 7], label: { String($0) }, selection: $nowCapacity)
-                        }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                header
+                section("色") { PalettePicker().padding(.vertical, 6) }
+                section("今と あとで") {
+                    row("お椀の数") {
+                        CubeSegmented(options: [3, 5, 7], label: { String($0) }, selection: $nowCapacity)
                     }
-                    section("あとで") {
-                        row("上限") {
-                            CubeSegmented(options: [10, 20, 30], label: { "\($0)匹" }, selection: $laterCapacity)
-                        }
+                    divider
+                    row("水槽の数") {
+                        CubeSegmented(options: [10, 20, 30], label: { String($0) }, selection: $laterCapacity)
                     }
-                    section("集中") {
-                        row("初期") {
-                            CubeSegmented(options: [0, 25, 50], label: { $0 == 0 ? "—" : String($0) },
-                                          selection: $focusMinutes)
-                        }
+                }
+                section("集中") {
+                    row("最初の時間") {
+                        CubeSegmented(options: [0, 25, 50], label: { $0 == 0 ? "なし" : "\($0)分" },
+                                      selection: $focusMinutes)
                     }
-                    section("通知") {
-                        row("集中の時間") { Mark(isOn: $notifyFocusEnd) }
+                    divider
+                    row("時間が来たら知らせる") {
+                        Toggle("時間が来たら知らせる", isOn: $notifyFocusEnd)
+                            .labelsHidden()
+                            .toggleStyle(.switch).tint(Theme.accent)
                     }
-                    section("AI") {
-                        CloudStatusRow()
-                        if FeatureFlags.chatGPTEnabled { ChatGPTRow() }
+                }
+                section("整理のしかた") {
+                    CloudStatusRow().frame(minHeight: 56)
+                    if FeatureFlags.chatGPTEnabled {
+                        divider
+                        ChatGPTRow().frame(minHeight: 56)
                     }
-                    section("データ") {
-                        row("書き出し") {
-                            if let exportURL {
-                                ShareLink(item: exportURL) { Text("JSON") }
-                                    .buttonStyle(.cube(.secondary))
-                            } else {
-                                Button("JSON") {}
-                                    .buttonStyle(.cube(.secondary))
-                                    .disabled(true)
-                            }
-                        }
-                        row("すべて削除") {
-                            Button("削除") { confirmDelete = true }
+                }
+                section("データ") {
+                    row("書き出す") {
+                        if let exportURL {
+                            ShareLink(item: exportURL) { Text("JSON") }
                                 .buttonStyle(.cube(.secondary))
+                        } else {
+                            Button("JSON") {}
+                                .buttonStyle(.cube(.secondary))
+                                .disabled(true)
                         }
                     }
+                    divider
+                    Button { confirmDelete = true } label: {
+                        Text("すべて削除").atype(.body, color: Theme.accent)
+                            .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                VStack(spacing: 12) {
                     section("atoha") {
-                        row("版") { Text(version).atype(.small, color: Theme.quiet) }
-                        row("ライセンス") {
-                            Button("書体") { showLicenses = true }.buttonStyle(.cube(.secondary))
-                        }
-                        HStack(spacing: 8) {
-                            ForEach(["iPhone内", "PCC", "ChatGPT（ログイン時）"], id: \.self) { label in
-                                Text(label).atype(.label)
-                                    .padding(.horizontal, 8).padding(.vertical, 4)
-                                    .overlay(RoundedRectangle(cornerRadius: Theme.radius).strokeBorder(Theme.faint, lineWidth: 1))
+                        Button { showLicenses = true } label: {
+                            HStack {
+                                Text("ライセンス").atype(.body)
+                                Spacer(minLength: 12)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(Theme.quiet)
                             }
+                            .frame(minHeight: 56)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
-                    #if DEBUG
-                    section("DEBUG") {
-                        Button("サンプルを入れる") { SampleData.insert(into: context) }
+                    Text("atoha \(version)").atype(.small, color: Theme.quiet)
+                        .frame(maxWidth: .infinity)
+                }
+                #if DEBUG
+                section("DEBUG") {
+                    row("サンプル") {
+                        Button("入れる") { SampleData.insert(into: context) }
                             .buttonStyle(.cube(.secondary))
                     }
-                    #endif
                 }
-                .padding(24)
+                #endif
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
         }
+        .background(Theme.paper.ignoresSafeArea())
         .sheet(isPresented: $showLicenses) { LicensesView() }
         .confirmationDialog("すべて削除", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("削除", role: .destructive) { deleteAll() }
@@ -107,43 +121,50 @@ struct SettingsView: View {
 
     // MARK: Parts
 
-    private var topBar: some View {
+    /// 看板の見出しと、丸い閉じるボタン。
+    private var header: some View {
         HStack {
-            Text("設定").atype(.display)
+            Text("設定").font(Theme.display(.title)).foregroundStyle(Theme.ink)
             Spacer()
             Button { dismiss() } label: {
                 Image(systemName: "xmark")
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundStyle(Theme.ink)
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Theme.surface))
+                    .overlay(Circle().strokeBorder(Theme.ink, lineWidth: Theme.stroke))
+                    .contentShape(Circle())
             }
-            .buttonStyle(.cube(.quiet))
+            .buttonStyle(.plain)
             .accessibilityLabel("閉じる")
         }
     }
 
+    /// 灰色の小見出しと、白いカード1枚。
     private func section<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(title)
-            content()
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(Theme.sans(13, weight: .bold))
+                .foregroundStyle(Theme.quiet)
+                .padding(.leading, 4)
+            VStack(alignment: .leading, spacing: 0) { content() }
+                .onPaper(padding: 14)
         }
-        .onPaper(padding: 14)
     }
 
+    /// 左に名前、右に操作。
     private func row<Trailing: View>(_ title: String, @ViewBuilder _ trailing: () -> Trailing) -> some View {
         HStack {
-            Text(title).atype(.small)
+            Text(title).atype(.body)
             Spacer(minLength: 12)
             trailing()
         }
+        .frame(minHeight: 56)
     }
 
-    private func hourMenu(_ hour: Binding<Int>) -> some View {
-        Menu {
-            Picker("", selection: hour) {
-                ForEach(0..<24, id: \.self) { Text(String(format: "%02d:00", $0)).tag($0) }
-            }
-        } label: {
-            Text(String(format: "%02d:00", hour.wrappedValue))
-                .cubeFace(.secondary)
-        }
+    /// 行と行のあいだの線。
+    private var divider: some View {
+        Rectangle().fill(Theme.faint).frame(height: 2)
     }
 
     // MARK: Data
@@ -194,60 +215,56 @@ private struct ExportItem: Encodable {
     }
 }
 
-/// 入／切の立方体。
-private struct Mark: View {
-    @Binding var isOn: Bool
+/// 小さな状態の札。強調するときは紅。
+private struct StatusPill: View {
+    let text: String
+    var strong = false
 
     var body: some View {
-        Button { isOn.toggle() } label: {
-            SquareMark(isOn ? .accent() : .outline(), size: 16)
-                .padding(6)
-        }
-        .buttonStyle(.cube(.quiet))
-        .accessibilityAddTraits(.isToggle)
-        .accessibilityValue(isOn ? "入" : "切")
+        Text(text)
+            .atype(.label, color: strong ? Theme.accent : Theme.ink)
+            .padding(.horizontal, 10).padding(.vertical, 5)
+            .overlay(Capsule().strokeBorder(strong ? Theme.accent : Theme.ink, lineWidth: 2))
     }
 }
 
-/// PCC の状態。文章は出さず、ラベルと印だけ。上限に近い・達したときは、上限を増やす選択肢へのボタンを出す。
+/// PCC の状態。名前と札だけ。上限に近い・達したときは、上限を増やす選択肢へのボタンを出す。
 struct CloudStatusRow: View {
     @State private var status = CloudAI.status
     @State private var uses = CloudAI.usesToday
 
     var body: some View {
         HStack(spacing: 8) {
-            SectionLabel("PCC", ruled: false)
-            mark
-            if status == .ready || status == .approaching {
-                DotCountRow(count: uses, max: CloudAI.dailyBudget, dotSize: 5)
-            }
-            Spacer()
+            Text("Apple のクラウド").atype(.body)
+            Spacer(minLength: 12)
             if (status == .approaching || status == .reached) && CloudAI.canShowLimitOptions {
-                Button("上限") { CloudAI.showLimitOptions() }
+                Button("増やす") { CloudAI.showLimitOptions() }
                     .buttonStyle(.cube(.secondary))
             }
+            StatusPill(text: pillText, strong: status == .approaching || status == .reached)
         }
         .onAppear { status = CloudAI.status; uses = CloudAI.usesToday }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityText)
     }
 
-    @ViewBuilder private var mark: some View {
+    private var pillText: String {
         switch status {
-        case .ready: DotMark(kind: .errand, size: 7)
-        case .approaching: DotMark(kind: .errand, highlighted: true, size: 7)
-        case .reached: Text("上限").atype(.label, color: Theme.accent)
-        case .unavailable, .unsupported: DotMark(kind: .unsorted, size: 7)
+        case .ready: "使える"
+        case .approaching: "もうすぐ上限"
+        case .reached: "今日はここまで"
+        case .unavailable: "使えない"
+        case .unsupported: "この機種は未対応"
         }
     }
 
     private var accessibilityText: String {
         switch status {
-        case .ready: "PCC 使用可"
-        case .approaching: "PCC 上限に近い"
-        case .reached: "PCC 上限"
-        case .unavailable: "PCC 使用不可"
-        case .unsupported: "PCC 非対応"
+        case .ready: "Apple のクラウド 使える 今日 \(uses)回"
+        case .approaching: "Apple のクラウド もうすぐ上限"
+        case .reached: "Apple のクラウド 今日はここまで"
+        case .unavailable: "Apple のクラウド 使えない"
+        case .unsupported: "Apple のクラウド この機種は未対応"
         }
     }
 }
@@ -257,57 +274,52 @@ struct ChatGPTRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            SectionLabel("ChatGPT", ruled: false)
-            DotMark(kind: auth.isSignedIn ? .errand : .unsorted, size: 7)
-            if auth.isSignedIn && ChatGPTStore.reachedToday {
-                Text("上限").atype(.label, color: Theme.accent)
-            }
-            Spacer()
+            Text("ChatGPT").atype(.body)
+            Spacer(minLength: 12)
             Button(auth.isSignedIn ? "ログアウト" : (auth.busy ? "…" : "ログイン")) {
                 if auth.isSignedIn { auth.signOut() } else { auth.signIn() }
             }
             .buttonStyle(.cube(.secondary))
             .disabled(auth.busy && !auth.isSignedIn)
+            if auth.isSignedIn {
+                let reached = ChatGPTStore.reachedToday
+                StatusPill(text: reached ? "今日はここまで" : "使える", strong: reached)
+            }
         }
         .sheet(isPresented: Binding(get: { auth.safariURL != nil },
                                     set: { if !$0 { auth.cancel() } })) {
             if let url = auth.safariURL { SafariSheet(url: url).ignoresSafeArea() }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(auth.isSignedIn ? "ChatGPT ログイン済み" : "ChatGPT 未ログイン")
+        .accessibilityLabel(auth.isSignedIn ? "ChatGPT ログイン中" : "ChatGPT ログインしていない")
     }
 }
 
-/// 色の組を選ぶ。紙の上にアクセントの立方体を置いた見本を並べる。
+/// 色の組を選ぶ。紙の色の丸に、アクセントの色を重ねた見本を横に並べる。
 private struct PalettePicker: View {
     @Environment(\.colorScheme) private var scheme
     private var store = ThemeStore.shared
 
     var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-            ForEach(Palette.all) { palette in
-                let tone = scheme == .dark || palette.alwaysDark ? palette.dark : palette.light
-                let on = palette.id == store.palette.id
-                Button { store.palette = palette } label: {
-                    HStack(spacing: 8) {
-                        Rectangle()
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Palette.all) { palette in
+                    let tone = scheme == .dark || palette.alwaysDark ? palette.dark : palette.light
+                    let on = palette.id == store.palette.id
+                    Button { store.palette = palette } label: {
+                        Circle()
                             .fill(Color(UIColor(hex: tone.accent)))
-                            .overlay(Rectangle().strokeBorder(Color(UIColor(hex: tone.ink)), lineWidth: 1.5))
-                            .frame(width: 16, height: 16)
-                        Text(palette.name)
-                            .font(Theme.sans(13, weight: .bold))
-                            .foregroundStyle(Color(UIColor(hex: tone.ink)))
-                        Spacer(minLength: 0)
+                            .padding(on ? 6 : 0)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color(UIColor(hex: tone.paper))))
+                            .overlay(Circle().strokeBorder(on ? Theme.ink : Theme.faint, lineWidth: on ? Theme.stroke : 2))
                     }
-                    .padding(.horizontal, 10)
-                    .frame(height: 44)
-                    .background(Color(UIColor(hex: tone.paper)))
-                    .overlay(Rectangle().strokeBorder(on ? Theme.ink : Theme.faint, lineWidth: on ? Theme.stroke : 1))
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(palette.name)
+                    .accessibilityAddTraits(on ? .isSelected : [])
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(palette.name)
-                .accessibilityAddTraits(on ? .isSelected : [])
             }
+            .padding(2)
         }
     }
 }

@@ -5,7 +5,7 @@ import SwiftData
 struct HomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Item.createdAt, order: .reverse) private var items: [Item]
-    @State private var showSettings = false
+    @State private var showSettings = DebugLaunch.openSettings
     @AppStorage(SettingsKey.nowCapacityKey) private var capacitySetting = 3
 
     private var capacity: Int { [3, 5, 7].contains(capacitySetting) ? capacitySetting : 3 }
