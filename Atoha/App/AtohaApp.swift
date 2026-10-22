@@ -79,7 +79,7 @@ struct RootView: View {
             // タブのアイコンもドットの絵
             Tab(value: "now") { HomeView() } label: { Label { Text("今") } icon: { Image(uiImage: PixelIcon.fish) } }
             Tab(value: "later") { LaterView() } label: { Label { Text("あとで") } icon: { Image(uiImage: PixelIcon.waves) } }
-            Tab(value: "map") { MapScreen() } label: { Label { Text("地図") } icon: { Image(uiImage: PixelIcon.pond) } }
+            Tab(value: "map") { MapScreen() } label: { Label { Text("池") } icon: { Image(uiImage: PixelIcon.pond) } }
         }
         .overlay(alignment: .bottom) {
             if let id = router.takenHomeID {

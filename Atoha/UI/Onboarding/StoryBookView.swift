@@ -25,7 +25,7 @@ struct StoryBookView: View {
             Page(title: "できたら、持ち帰る", line: "お椀がひとつ、空きました。",
                  art: AnyView(TakeHomeArt()), caption: "できたら袋に入れて持ち帰る。まだならお椀で待つ"),
             Page(title: "池を見ると、自分が見える", line: "金魚は本当は、ちゃんと覚えています。",
-                 art: AnyView(PondArt()), caption: "地図の池に、持ち帰った金魚が集まる場所が自分の傾向"),
+                 art: AnyView(PondArt()), caption: "池に、持ち帰った金魚が集まる場所が自分の傾向"),
         ]
     }
 
@@ -100,7 +100,7 @@ private struct Arrow: View {
     }
 }
 
-/// 画面の名札（あとで・今・地図）
+/// 画面の名札（あとで・今・池）
 private struct NameTag: View {
     let text: String
     var color: Color = Theme.band
@@ -330,7 +330,7 @@ private struct PondArt: View {
             }
             .frame(width: 240, height: 180)
             .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Theme.ink, lineWidth: 2.5))
-            NameTag(text: "地図")
+            NameTag(text: "池")
         }
     }
 }

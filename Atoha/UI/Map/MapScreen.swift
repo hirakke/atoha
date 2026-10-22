@@ -170,7 +170,7 @@ struct MapScreen: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            ScreenTitle(title: "地図")
+            ScreenTitle(title: "池")
             Spacer(minLength: 0)
             CubeSegmented(options: [false, true], label: { $0 ? "横から" : "上から" },
                           selection: Binding(get: { side }, set: { setSide($0) }))
