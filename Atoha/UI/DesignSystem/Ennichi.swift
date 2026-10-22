@@ -89,8 +89,8 @@ struct BowlPlate: View {
                 }
             }
             Spacer(minLength: 0)
-            (Text("\(filled)").font(.system(.title2, design: .monospaced, weight: .bold))
-             + Text(" / \(capacity)").font(.system(.footnote, design: .monospaced, weight: .bold)))
+            (Text("\(filled)").font(Theme.dot(.title2))
+             + Text(" / \(capacity)").font(Theme.dot(.footnote)))
                 .foregroundStyle(.white)
         }
         .padding(.horizontal, 16)
@@ -112,8 +112,8 @@ struct CountPill: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(label).font(.system(.caption, weight: .bold))
-            (Text("\(count)").font(.system(.title3, design: .monospaced, weight: .bold))
-             + Text(" / \(total)").font(.system(.caption, design: .monospaced, weight: .bold)))
+            (Text("\(count)").font(Theme.dot(.title3))
+             + Text(" / \(total)").font(Theme.dot(.caption)))
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 12)

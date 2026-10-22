@@ -32,7 +32,7 @@ struct StoryBookView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("\(page + 1) / \(pages.count)").font(.system(.body, design: .monospaced, weight: .bold))
+                Text("\(page + 1) / \(pages.count)").font(Theme.dot(.body))
                     .foregroundStyle(Theme.quiet)
                 Spacer()
                 if page < pages.count - 1 {
@@ -158,7 +158,7 @@ private struct ForgetArt: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(Theme.paper))
                 .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.ink, lineWidth: 2))
                 .overlay(alignment: .topTrailing) {
-                    Text("3").font(.system(.title2, design: .monospaced, weight: .black)).foregroundStyle(.white)
+                    Text("3").font(Theme.dot(.title2)).foregroundStyle(.white)
                         .frame(width: 40, height: 40)
                         .background(Circle().fill(Theme.accent))
                         .offset(x: 14, y: -14)

@@ -6,6 +6,8 @@ struct AtohaApp: App {
     @State private var router = AppRouter.shared
     private let container = AtohaStore.makeContainer()
 
+    init() { Theme.registerFonts() }
+
     var body: some Scene {
         WindowGroup {
             RootView()

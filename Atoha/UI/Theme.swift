@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import CoreText
 
 /// 色の組。方眼の紙に、墨と1色のアクセント。設定で選べる。
 struct Palette: Identifiable, Equatable {
@@ -112,14 +113,43 @@ enum Theme {
     /// 押し出し（ずらした影）の量
     static let shadow: CGFloat = 4
 
-    /// 見出し（看板の文字）。丸みのある極太
+    /// 見出し（看板の文字）。Dela Gothic One（OFL）。文字サイズの設定に合わせて大きくなる
     static func display(_ style: Font.TextStyle = .title) -> Font {
-        .system(style, design: .rounded, weight: .black)
+        .custom("DelaGothicOne-Regular", size: baseSize(style), relativeTo: style)
+    }
+
+    /// 数とラベル。ドットの書体 DotGothic16（OFL）
+    static func dot(_ style: Font.TextStyle = .body) -> Font {
+        .custom("DotGothic16-Regular", size: baseSize(style), relativeTo: style)
+    }
+
+    /// 文字の大きさの段階ごとの基準（HIG の標準）
+    static func baseSize(_ style: Font.TextStyle) -> CGFloat {
+        switch style {
+        case .largeTitle: 34
+        case .title: 28
+        case .title2: 22
+        case .title3: 20
+        case .callout: 16
+        case .subheadline: 15
+        case .footnote: 13
+        case .caption: 12
+        case .caption2: 11
+        default: 17
+        }
+    }
+
+    /// 同梱した書体を使えるようにする（起動時に1回）
+    static func registerFonts() {
+        for name in ["DelaGothicOne-Regular", "DotGothic16-Regular"] {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else { continue }
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
     }
 
     /// 数字や補足の文字。等幅。
     static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+        .custom("DotGothic16-Regular", size: size)
     }
 
     /// 本文と見出し。太めのゴシック。

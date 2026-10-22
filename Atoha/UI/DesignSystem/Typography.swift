@@ -15,7 +15,7 @@ enum AType {
         case .title: .system(.headline, weight: .heavy)
         case .body: .system(.body, weight: .semibold)
         case .small: .system(.footnote, weight: .medium)
-        case .label: .system(.caption2, design: .monospaced, weight: .medium)
+        case .label: Theme.dot(.caption2)
         }
     }
 
@@ -31,11 +31,11 @@ enum AType {
 
     var uiFont: UIFont {
         let (style, base): (UIFont.TextStyle, UIFont) = switch self {
-        case .display: (.title1, .systemFont(ofSize: 28, weight: .black))
+        case .display: (.title1, UIFont(name: "DelaGothicOne-Regular", size: 28) ?? .systemFont(ofSize: 28, weight: .black))
         case .title: (.headline, .systemFont(ofSize: 17, weight: .heavy))
         case .body: (.body, .systemFont(ofSize: 17, weight: .semibold))
         case .small: (.footnote, .systemFont(ofSize: 13, weight: .medium))
-        case .label: (.caption2, .monospacedSystemFont(ofSize: 11, weight: .medium))
+        case .label: (.caption2, UIFont(name: "DotGothic16-Regular", size: 11) ?? .monospacedSystemFont(ofSize: 11, weight: .medium))
         }
         return UIFontMetrics(forTextStyle: style).scaledFont(for: base)
     }

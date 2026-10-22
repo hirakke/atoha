@@ -74,7 +74,7 @@ struct CollectionView: View {
         return HStack(spacing: 14) {
             FishbowlIcon(count: min(3, count), width: 64, onDark: true)
             VStack(alignment: .leading, spacing: 4) {
-                (Text("\(count)").font(.system(.largeTitle, design: .monospaced, weight: .bold))
+                (Text("\(count)").font(Theme.dot(.largeTitle))
                  + Text("匹").font(.system(.headline, weight: .bold)))
                 Text(mode == .year ? "\(month.formatted(.dateTime.year().locale(.ja)))に持ち帰った　これまで \(done.count)匹"
                                    : "\(month.formatted(.dateTime.month(.wide).locale(.ja)))に持ち帰った　これまで \(done.count)匹")
@@ -141,7 +141,7 @@ struct CollectionView: View {
                 Spacer()
                 Text(finished(item).formatted(.dateTime.month(.twoDigits).day(.twoDigits).locale(.ja)))
             }
-            .font(.system(.caption, design: .monospaced, weight: .bold))
+            .font(Theme.dot(.caption))
             .foregroundStyle(Theme.quiet)
             fish(item, width: 54)
             Text(item.text).atype(.small).fontWeight(.bold).lineLimit(3)
@@ -219,7 +219,7 @@ struct CollectionView: View {
         } label: {
             VStack(spacing: 3) {
                 Text("\(calendar.component(.day, from: day))")
-                    .font(.system(.caption, design: .monospaced, weight: .bold))
+                    .font(Theme.dot(.caption))
                     .foregroundStyle(picked ? Theme.paper : (future ? Theme.quiet.opacity(0.6) : (sunday || today ? Theme.accent : Theme.ink)))
                 if let first = items.first {
                     fish(first, width: 24, onDark: picked)
@@ -333,7 +333,7 @@ private struct CollectionDetail: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    Text(String(format: "No.%03d", number)).font(.system(.body, design: .monospaced, weight: .bold))
+                    Text(String(format: "No.%03d", number)).font(Theme.dot(.body))
                         .foregroundStyle(Theme.quiet)
                     Spacer()
                     Button { dismiss() } label: {
@@ -401,7 +401,7 @@ private struct CollectionDetail: View {
             icon.frame(width: 30)
             Text(title).atype(.body)
             Spacer()
-            Text(value).font(.system(.body, design: .monospaced, weight: .bold)).foregroundStyle(Theme.ink)
+            Text(value).font(Theme.dot(.body)).foregroundStyle(Theme.ink)
         }
         .frame(minHeight: 52)
         .accessibilityElement(children: .combine)

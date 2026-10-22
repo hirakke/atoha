@@ -19,6 +19,7 @@ struct SettingsView: View {
 
     @State private var exportURL: URL?
     @State private var confirmDelete = false
+    @State private var showLicenses = false
 
     private var version: String {
         let info = Bundle.main.infoDictionary
@@ -75,6 +76,9 @@ struct SettingsView: View {
                     }
                     section("atoha") {
                         row("版") { Text(version).atype(.small, color: Theme.quiet) }
+                        row("ライセンス") {
+                            Button("書体") { showLicenses = true }.buttonStyle(.cube(.secondary))
+                        }
                         HStack(spacing: 8) {
                             ForEach(["iPhone内", "PCC", "ChatGPT（ログイン時）"], id: \.self) { label in
                                 Text(label).atype(.label)
@@ -93,6 +97,7 @@ struct SettingsView: View {
                 .padding(24)
             }
         }
+        .sheet(isPresented: $showLicenses) { LicensesView() }
         .confirmationDialog("すべて削除", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("削除", role: .destructive) { deleteAll() }
             Button("やめる", role: .cancel) {}
@@ -304,5 +309,47 @@ private struct PalettePicker: View {
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
+    }
+}
+
+/// 同梱している書体のライセンス（SIL Open Font License 1.1）。
+private struct LicensesView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let fonts: [(name: String, file: String)] = [
+        ("Dela Gothic One", "OFL-DelaGothicOne"),
+        ("DotGothic16", "OFL-DotGothic16"),
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("atoha は次の書体を使っています。どちらも SIL Open Font License 1.1 で配布されています。")
+                        .atype(.small, color: Theme.quiet)
+                    ForEach(fonts, id: \.file) { font in
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(font.name).atype(.title)
+                            Text(text(font.file)).font(.system(.caption, design: .monospaced)).foregroundStyle(Theme.ink)
+                                .textSelection(.enabled)
+                        }
+                        .onPaper(padding: 14)
+                    }
+                }
+                .padding(20)
+            }
+            .background(Theme.paper)
+            .navigationTitle("ライセンス")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("閉じる") { dismiss() } }
+            }
+        }
+    }
+
+    private func text(_ file: String) -> String {
+        guard let url = Bundle.main.url(forResource: file, withExtension: "txt"),
+              let s = try? String(contentsOf: url, encoding: .utf8) else { return "（ライセンス文が見つかりません）" }
+        return s
     }
 }

@@ -27,8 +27,10 @@
 		507EFAB99413CC498F5E79B2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B173EBFF3191CA404C9A24A8 /* SettingsView.swift */; };
 		53909A665A0D71F18D27653E /* CubeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6670AC23B3B764E5B741C55 /* CubeButton.swift */; };
 		5760CEE6FC6DE6068CE25F69 /* TimeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6131D4A4CC335928C1DE5F0B /* TimeText.swift */; };
+		59FDC94252D497AEFDDCAFA7 /* OFL-DotGothic16.txt in Resources */ = {isa = PBXBuildFile; fileRef = 81FFAF33102FD9B617E9D294 /* OFL-DotGothic16.txt */; };
 		5C636CDA23437FCE1BBFF54A /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F476922DC4619EB51C27AD /* SampleData.swift */; };
 		62B434EEEF29E51A0AB35226 /* PersonalPCA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95486C4029E2E89937DD0766 /* PersonalPCA.swift */; };
+		63894C180E92AF13CFD701B9 /* DotGothic16-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */; };
 		63CB5519D571E6F3488C840A /* CubeSegmented.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86A2642AB303F8D121106F1 /* CubeSegmented.swift */; };
 		64C31976D6F31CFBF060F198 /* PCCBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687554505A248D07248E1AEB /* PCCBackend.swift */; };
 		6664DE771FD4ABF7776101A0 /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD68120CB19E067390C9B4 /* CollectionView.swift */; };
@@ -52,6 +54,7 @@
 		B4AD5E87525C82D924061225 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEEE60C4C5DEE69E941BE15 /* Typography.swift */; };
 		BE6C8844E36F7D7D5B50603E /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF828FEF511423DBAE058CB9 /* SettingsStore.swift */; };
 		C226A2549D62C7046872725B /* AxisEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1256465E6A6CBB65F08211 /* AxisEngine.swift */; };
+		C3290D9300A8B744F3A2DE64 /* DelaGothicOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */; };
 		C91D2861252D7087F38D7AEA /* CaptureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */; };
 		CB62C65EFAABEED95E02953F /* AtohaAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67D5E35926E9D2CC2A601D8 /* AtohaAI.swift */; };
 		CD868A77319FD55143725238 /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E214C4E3460EB09912F5C797 /* WatchBridge.swift */; };
@@ -60,6 +63,7 @@
 		DC6CA1F59264CA386B07B0B1 /* VoxelMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */; };
 		DD90ECBA7D5F27CB231DD597 /* Goldfish.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DB19713A04A72949D1DFB0 /* Goldfish.swift */; };
 		E18D05FADACA63DD64294B4A /* WeekDotStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F9824392F24E5AE16FE53B /* WeekDotStrip.swift */; };
+		E68EB9C5296BB10CC4A8CFA2 /* OFL-DelaGothicOne.txt in Resources */ = {isa = PBXBuildFile; fileRef = 20FA731411DE6058599A5242 /* OFL-DelaGothicOne.txt */; };
 		E7D0B975281C9385E1D7D185 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2CB09E0B8B11B34B3AEE8 /* Card.swift */; };
 		EB9D97B664048B3D6442112F /* WatchTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62302046C5823B19F386EA37 /* WatchTheme.swift */; };
 		ED2E7483553857BF9AE80390 /* WatchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC801DAC4A3EB7D7298B4E4E /* WatchStore.swift */; };
@@ -124,6 +128,7 @@
 		17422227531B7CB838DAF465 /* WantMustPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WantMustPad.swift; sourceTree = "<group>"; };
 		17591DD356B0BA0D9D74CB8C /* MapControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapControls.swift; sourceTree = "<group>"; };
 		181004E8315D2D4418DF39FA /* LaterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterView.swift; sourceTree = "<group>"; };
+		20FA731411DE6058599A5242 /* OFL-DelaGothicOne.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-DelaGothicOne.txt"; sourceTree = "<group>"; };
 		2211C8EB8EA84281FBA1731C /* BatchOrganizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchOrganizer.swift; sourceTree = "<group>"; };
 		24518AD289BABFA8653B0354 /* WatchHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchHomeView.swift; sourceTree = "<group>"; };
 		27DB19713A04A72949D1DFB0 /* Goldfish.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goldfish.swift; sourceTree = "<group>"; };
@@ -132,6 +137,7 @@
 		3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMesh.swift; sourceTree = "<group>"; };
 		42DD68120CB19E067390C9B4 /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		4C1256465E6A6CBB65F08211 /* AxisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxisEngine.swift; sourceTree = "<group>"; };
+		4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DotGothic16-Regular.ttf"; sourceTree = "<group>"; };
 		50F1ABB1D49FA8DC3AB45936 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		51AD5090A11780BE3D7B2453 /* StoryBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryBookView.swift; sourceTree = "<group>"; };
 		57AE9E94447E9C440FCB6F7D /* DotMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotMark.swift; sourceTree = "<group>"; };
@@ -144,6 +150,7 @@
 		79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaActivityAttributes.swift; sourceTree = "<group>"; };
 		7CB665108DFCE97CB721B748 /* AtohaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaApp.swift; sourceTree = "<group>"; };
 		7E85306D88B0F32B49FF4A79 /* ReturnService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReturnService.swift; sourceTree = "<group>"; };
+		81FFAF33102FD9B617E9D294 /* OFL-DotGothic16.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-DotGothic16.txt"; sourceTree = "<group>"; };
 		825721E40F217E5FE8577B8B /* AtohaLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaLiveActivity.swift; sourceTree = "<group>"; };
 		8585F743E204047C76DBE51E /* MapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScreen.swift; sourceTree = "<group>"; };
 		859BF8CC4900FA8E8FE50939 /* AtohaShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaShortcuts.swift; sourceTree = "<group>"; };
@@ -170,6 +177,7 @@
 		BF2CF1D2B0B15CB0888E9F40 /* AtohaWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AtohaWidget.entitlements; sourceTree = "<group>"; };
 		C72563A72BD4D9D3A5EFCF14 /* ChatGPTBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTBackend.swift; sourceTree = "<group>"; };
 		C803C2953D167886C74E3603 /* AxesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxesView.swift; sourceTree = "<group>"; };
+		C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DelaGothicOne-Regular.ttf"; sourceTree = "<group>"; };
 		CB48C9429997C7C0AB2B86FD /* LanguageBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageBackend.swift; sourceTree = "<group>"; };
 		CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureIntent.swift; sourceTree = "<group>"; };
 		D5004564EF3F9999682A50EC /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -213,6 +221,17 @@
 				E2B697D089D57ABC2ABB512A /* AtohaWidget */,
 				6A1E28AB1FF7847D10CD293A /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		2D9106AA39B1779CAF64C994 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */,
+				4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */,
+				20FA731411DE6058599A5242 /* OFL-DelaGothicOne.txt */,
+				81FFAF33102FD9B617E9D294 /* OFL-DotGothic16.txt */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		3735B1405F1930DE2C9BA6B3 /* Model */ = {
@@ -373,6 +392,14 @@
 			path = Intents;
 			sourceTree = "<group>";
 		};
+		AA67D4FCBFCE43D8CA3886F3 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2D9106AA39B1779CAF64C994 /* Fonts */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		B19D7920511B87C0C8B20FC7 /* Collection */ = {
 			isa = PBXGroup;
 			children = (
@@ -388,6 +415,7 @@
 				52DC513D8E855F68C363BA2D /* App */,
 				8F83322C6D951A853318D111 /* Intents */,
 				3735B1405F1930DE2C9BA6B3 /* Model */,
+				AA67D4FCBFCE43D8CA3886F3 /* Resources */,
 				6A33229BD07D1A703C5818C4 /* Services */,
 				04A23E65495F7E7F0F523E22 /* UI */,
 			);
@@ -441,6 +469,7 @@
 			buildConfigurationList = 46085F3F91E3410D8D6E8E99 /* Build configuration list for PBXNativeTarget "Atoha" */;
 			buildPhases = (
 				ED8215638FB7198A906FA308 /* Sources */,
+				FB471EC34CFC73B2F210C3E0 /* Resources */,
 				0A72F1B8B6C3D8903D094430 /* Embed Foundation Extensions */,
 				50DEBC57F79BB73F545AE1E7 /* Embed Watch Content */,
 			);
@@ -517,6 +546,20 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FB471EC34CFC73B2F210C3E0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C3290D9300A8B744F3A2DE64 /* DelaGothicOne-Regular.ttf in Resources */,
+				63894C180E92AF13CFD701B9 /* DotGothic16-Regular.ttf in Resources */,
+				E68EB9C5296BB10CC4A8CFA2 /* OFL-DelaGothicOne.txt in Resources */,
+				59FDC94252D497AEFDDCAFA7 /* OFL-DotGothic16.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		9D001FB320BADC42EC7DAE39 /* Sources */ = {
