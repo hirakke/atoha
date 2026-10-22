@@ -174,6 +174,7 @@ enum DebugLaunch {
             if let item = try? context.fetch(d).first { FocusSession.shared.start(item) }
         }
         if args.contains("-atohaCapture") { router.showCapture = true }
+        if args.contains("-atohaCollection") { router.showCollection = true }
         try? context.save()
         #endif
     }

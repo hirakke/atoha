@@ -18,10 +18,14 @@ struct PondMapView: View {
         GeometryReader { geo in
             let size = geo.size
             let fish = placements()
-            TimelineView(.animation) { timeline in
-                let t = timeline.date.timeIntervalSinceReferenceDate
-                Canvas { context, canvas in
-                    draw(context: context, size: canvas, fish: fish, time: t)
+            ZStack {
+                // 池・網点・軸は動かないので、毎フレームは描かない
+                Canvas { context, canvas in drawPond(context: context, size: canvas) }
+                TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                    let t = timeline.date.timeIntervalSinceReferenceDate
+                    Canvas { context, canvas in
+                        draw(context: context, size: canvas, fish: fish, time: t)
+                    }
                 }
             }
             .contentShape(Rectangle())
@@ -107,8 +111,8 @@ struct PondMapView: View {
     /// 浅い（今）ほど大きく、深い（将来）ほど小さい
     private func fishWidth(_ depth: Double) -> CGFloat { CGFloat(40 - 22 * depth) }
 
-    private func draw(context: GraphicsContext, size: CGSize, fish: [Placement], time: Double) {
-        let ink = Theme.ink, accent = Theme.accent, surface = Theme.surface
+    private func drawPond(context: GraphicsContext, size: CGSize) {
+        let ink = Theme.ink
         let rect = pondRect(size)
         let pond = Path(roundedRect: rect, cornerRadius: 26)
         context.fill(pond, with: .color(Theme.water))
@@ -125,7 +129,6 @@ struct PondMapView: View {
         water.fill(dots, with: .color(ink.opacity(0.12)))
         context.stroke(pond, with: .color(ink), lineWidth: Theme.stroke)
 
-        let now = Dictionary(uniqueKeysWithValues: fish.map { ($0.item.id, swimming($0, size: size, time: time)) })
         let c = CGPoint(x: rect.midX, y: rect.midY)
 
         if mode == .axis {
@@ -158,7 +161,17 @@ struct PondMapView: View {
             }
             context.stroke(lines, with: .color(ink), lineWidth: 2)
             context.fill(heads, with: .color(ink))
-        } else {
+        }
+
+    }
+
+    private func draw(context: GraphicsContext, size: CGSize, fish: [Placement], time: Double) {
+        let ink = Theme.ink, accent = Theme.accent, surface = Theme.surface
+        let rect = pondRect(size)
+        let c = CGPoint(x: rect.midX, y: rect.midY)
+        let now = Dictionary(uniqueKeysWithValues: fish.map { ($0.item.id, swimming($0, size: size, time: time)) })
+
+        if mode == .graph {
             // つながり：近いもの同士の点線。選んだものの線は濃く
             for e in graph.edges {
                 guard let a = now[e.a]?.0, let b = now[e.b]?.0 else { continue }

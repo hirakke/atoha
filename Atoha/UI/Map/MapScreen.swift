@@ -13,6 +13,9 @@ struct MapScreen: View {
     @AppStorage("mapMode") private var modeRaw: String = ""
     @AppStorage("mapSide") private var side = false
     @AppStorage("mapShowTakenHome") private var showTakenHome = false
+    @State private var path: [MapRoute] = []
+
+    enum MapRoute: Hashable { case collection }
 
     private var period: MapPeriod { MapPeriod(rawValue: periodRaw) ?? .month }
     private var mode: MapMode {
@@ -42,8 +45,7 @@ struct MapScreen: View {
     }
 
     var body: some View {
-        @Bindable var router = router
-        NavigationStack {
+        NavigationStack(path: $path) {
             ZStack {
                 PaperBackground()
                 VStack(alignment: .leading, spacing: 12) {
@@ -76,8 +78,14 @@ struct MapScreen: View {
             }
             .awning()
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(isPresented: $router.showCollection) { CollectionView() }
+            .navigationDestination(for: MapRoute.self) { _ in CollectionView() }
             .sheet(isPresented: $showAxes) { AxesView() }
+        }
+        // 「持ち帰りました」の知らせから開く
+        .onChange(of: router.showCollection, initial: true) { _, show in
+            guard show else { return }
+            router.showCollection = false
+            if path.last != .collection { path.append(.collection) }
         }
     }
 
@@ -166,7 +174,7 @@ struct MapScreen: View {
 
     /// 金魚鉢へ
     private var collectionEntry: some View {
-        Button { router.showCollection = true } label: {
+        Button { path.append(.collection) } label: {
             HStack(spacing: 12) {
                 FishbowlIcon(count: min(3, takenHomeThisMonth), width: 34)
                 VStack(alignment: .leading, spacing: 2) {

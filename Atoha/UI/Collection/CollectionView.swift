@@ -1,6 +1,11 @@
 import SwiftUI
 import SwiftData
 
+private extension Locale {
+    /// 端末の言語によらず、日付は日本語で出す
+    static let ja = Locale(identifier: "ja_JP")
+}
+
 /// 金魚鉢：持ち帰った金魚（できたもの）を集めて見る。一覧・カレンダー・1年で切り替える。
 struct CollectionView: View {
     enum Mode: String, CaseIterable { case list, calendar, year
@@ -71,8 +76,8 @@ struct CollectionView: View {
             VStack(alignment: .leading, spacing: 4) {
                 (Text("\(count)").font(.system(.largeTitle, design: .monospaced, weight: .bold))
                  + Text("匹").font(.system(.headline, weight: .bold)))
-                Text(mode == .year ? "\(month.formatted(.dateTime.year()))に持ち帰った　これまで \(done.count)匹"
-                                   : "\(month.formatted(.dateTime.month(.wide)))に持ち帰った　これまで \(done.count)匹")
+                Text(mode == .year ? "\(month.formatted(.dateTime.year().locale(.ja)))に持ち帰った　これまで \(done.count)匹"
+                                   : "\(month.formatted(.dateTime.month(.wide).locale(.ja)))に持ち帰った　これまで \(done.count)匹")
                     .font(.system(.footnote, weight: .bold)).opacity(0.85)
             }
             Spacer(minLength: 0)
@@ -89,7 +94,7 @@ struct CollectionView: View {
         HStack {
             stepButton("chevron.left", "前の月") { shift(-1) }
             Spacer()
-            Text(month.formatted(.dateTime.year().month(.wide))).atype(.title)
+            Text(month.formatted(.dateTime.year().month(.wide).locale(.ja))).atype(.title)
             Spacer()
             stepButton("chevron.right", "次の月") { shift(1) }
                 .disabled(calendar.isDate(month, equalTo: .now, toGranularity: .month))
@@ -134,7 +139,7 @@ struct CollectionView: View {
             HStack {
                 Text(String(format: "No.%03d", numbers[item.id] ?? 0))
                 Spacer()
-                Text(finished(item).formatted(.dateTime.month(.twoDigits).day(.twoDigits)))
+                Text(finished(item).formatted(.dateTime.month(.twoDigits).day(.twoDigits).locale(.ja)))
             }
             .font(.system(.caption, design: .monospaced, weight: .bold))
             .foregroundStyle(Theme.quiet)
@@ -177,7 +182,7 @@ struct CollectionView: View {
         }
         if let selectedDay, let picked = byDay[selectedDay], !picked.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                Text("\(selectedDay.formatted(.dateTime.month().day().weekday(.abbreviated)))に持ち帰った")
+                Text("\(selectedDay.formatted(.dateTime.month().day().weekday(.abbreviated).locale(.ja)))に持ち帰った")
                     .atype(.small, color: Theme.quiet).fontWeight(.bold)
                 ForEach(picked) { item in
                     Button { detail = item } label: {
@@ -239,7 +244,7 @@ struct CollectionView: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(day.formatted(.dateTime.month().day()))、\(items.count)匹")
+        .accessibilityLabel("\(day.formatted(.dateTime.month().day().locale(.ja)))、\(items.count)匹")
     }
 
     // MARK: 1年
@@ -254,7 +259,7 @@ struct CollectionView: View {
             stepButton("chevron.left", "前の年") { shiftYear(-1) }
             Spacer()
             VStack(spacing: 2) {
-                Text(month.formatted(.dateTime.year())).atype(.title)
+                Text(month.formatted(.dateTime.year().locale(.ja))).atype(.title)
                 if let best { Text("いちばん多い \(best)月").atype(.small, color: Theme.quiet) }
             }
             Spacer()
@@ -402,7 +407,7 @@ private struct CollectionDetail: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func date(_ d: Date) -> String { d.formatted(.dateTime.year().month(.twoDigits).day(.twoDigits)) }
+    private func date(_ d: Date) -> String { d.formatted(.dateTime.year().month(.twoDigits).day(.twoDigits).locale(.ja)) }
 
     /// 同じことを、新しい稚魚として水槽に放す
     private func again() {
