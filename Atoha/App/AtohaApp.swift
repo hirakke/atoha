@@ -165,6 +165,14 @@ enum DebugLaunch {
         return nil
     }
 
+    /// 地図の池の傾きを固定する（`-atohaMapTilt 50`、0＝上から〜90＝横から）。動きの途中の確認用
+    static var mapTilt: Double? {
+        #if DEBUG
+        if let i = args.firstIndex(of: "-atohaMapTilt"), i + 1 < args.count { return Double(args[i + 1]) }
+        #endif
+        return nil
+    }
+
     /// 地図で金魚を1匹選んだ状態で開く（`-atohaMapSelect`）
     static var mapSelect: Bool {
         #if DEBUG

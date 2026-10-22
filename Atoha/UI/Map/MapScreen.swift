@@ -13,6 +13,9 @@ struct MapScreen: View {
     @AppStorage("mapMode") private var modeRaw: String = ""
     @AppStorage("mapSide") private var side = false
     @AppStorage("mapShowTakenHome") private var showTakenHome = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 池の傾きの向き。保存した side は変更がトランザクションに乗らないので、動かす値は別に持つ
+    @State private var tiltSide = UserDefaults.standard.bool(forKey: "mapSide")
     @State private var path: [MapRoute] = []
 
     enum MapRoute: Hashable { case collection }
@@ -55,20 +58,14 @@ struct MapScreen: View {
                             .atype(.small, color: Theme.quiet)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .overlay(alignment: .bottomTrailing) { collectionEntry.padding(.bottom, 12) }
-                    } else if showsSide {
-                        PondSideView(items: concerns, axes: axes)
-                            .padding(.top, 8)
                     } else {
-                        PondMapView(items: concerns, takenHome: showTakenHome ? takenHome : [], axes: axes,
-                                    selectedID: selectedID, mode: side ? .axis : mode) { item in
-                            selectedID = item?.id
-                        }
+                        pond
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                         .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Theme.ink)
                             .offset(x: Theme.shadow + 1, y: Theme.shadow + 1))
-                        // 金魚鉢の札は池の右下に。金魚を選んでいるあいだは、金魚を隠さないよう引っ込める
+                        // 金魚鉢の札は池の右下に。金魚を選んでいるあいだは、金魚を隠さないよう引っ込める。横からは下の行に
                         .overlay(alignment: .bottomTrailing) {
-                            if selected == nil { collectionEntry.padding(.trailing, 12).padding(.bottom, 48).transition(.opacity) }
+                            if selected == nil && !showsSide { collectionEntry.padding(.trailing, 12).padding(.bottom, 48).transition(.opacity) }
                         }
                         .padding(.trailing, Theme.shadow + 1)
                         .padding(.bottom, Theme.shadow + 1)
@@ -103,9 +100,11 @@ struct MapScreen: View {
             router.showCollection = false
             if path.last != .collection { path.append(.collection) }
         }
+        .onChange(of: side) { _, value in if tiltSide != value { tiltSide = value } }
         #if DEBUG
         .onAppear {
             if let v = DebugLaunch.mapSide { side = v }
+            if let t = DebugLaunch.mapTilt { side = t >= 45 }
             if DebugLaunch.mapSelect, selectedID == nil {
                 selectedID = concerns.first { $0.isRated && GoldfishTint.of(want: $0.effectiveWant, must: $0.effectiveMust) != .faint && $0.axisScores.count >= 2 && abs($0.axisScores[0]) > 0.3 && abs($0.axisScores[1]) > 0.3 }?.id ?? concerns.first?.id
             }
@@ -115,12 +114,46 @@ struct MapScreen: View {
 
     private var showsSide: Bool { side && axes.count >= 3 }
 
+    /// 軸が3本あるときは、上からと横からを1つの池で描き、切り替えると池が手前に倒れる（深さが見える）。
+    /// 視差効果を減らす設定のときは、倒さずに入れ替える（ふわっと重ねる）。
+    @ViewBuilder private var pond: some View {
+        if axes.count >= 3 && (side || mode == .axis) {
+            let tilt = DebugLaunch.mapTilt.map { $0 / 90 } ?? (tiltSide ? 1 : 0)
+            ZStack {
+                if reduceMotion {
+                    tiltPond(tilt).id(tiltSide).transition(.opacity)
+                } else {
+                    tiltPond(tilt)
+                }
+            }
+        } else {
+            PondMapView(items: concerns, takenHome: showTakenHome ? takenHome : [], axes: axes,
+                        selectedID: selectedID, mode: side ? .axis : mode) { item in
+                selectedID = item?.id
+            }
+        }
+    }
+
+    private func tiltPond(_ tilt: Double) -> some View {
+        PondTiltView(items: concerns, takenHome: showTakenHome ? takenHome : [], axes: axes,
+                     selectedID: selectedID, tilt: tilt) { item in
+            selectedID = item?.id
+        }
+    }
+
     private var header: some View {
         HStack(spacing: 8) {
             ScreenTitle(title: "地図")
             Spacer(minLength: 0)
             CubeSegmented(options: [false, true], label: { $0 ? "横から" : "上から" },
-                          selection: Binding(get: { side }, set: { side = $0; selectedID = nil }))
+                          selection: Binding(get: { side }, set: { value in
+                            // 池がゆっくり倒れる（約0.9秒、ばねで出入りをなめらかに）
+                            withAnimation(reduceMotion ? .easeInOut(duration: 0.35) : .smooth(duration: 0.9)) {
+                                side = value
+                                tiltSide = value
+                                selectedID = nil
+                            }
+                          }))
                 .fixedSize()
             viewMenu
         }

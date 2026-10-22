@@ -380,30 +380,93 @@ struct PondMapView: View {
     }
 }
 
-/// 地図：横から見た池（断面）。3本目の軸＝深さを、水の層で見せる。浅いほど低い側の極、深いほど高い側の極。
-struct PondSideView: View {
+/// 地図：池を傾けて見る。tilt 0＝上から、1＝横から（断面）。そのあいだは池を手前に倒した立体で描く。
+/// 横＝1本目、水面の縦＝2本目、深さ（水面からの下向き）＝3本目。浅い＝低い側の極（今）、深い＝高い側の極（将来）。
+/// tilt は animatableData なので、上から↔横からを切り替えると、毎フレームこの形のまま描き直される。
+struct PondTiltView: View, Animatable {
     let items: [Item]
+    var takenHome: [Item] = []
     let axes: [Axis]
+    let selectedID: UUID?
+    /// 0＝上から、1＝横から
+    var tilt: Double
+    let onSelect: (Item?) -> Void
+
+    @Environment(\.colorScheme) private var scheme
+
+    var animatableData: Double {
+        get { tilt }
+        set { tilt = newValue }
+    }
 
     var body: some View {
         GeometryReader { geo in
             let size = geo.size
-            Canvas { context, canvas in draw(context: context, size: canvas) }
-                .overlay { labels(size: size) }
+            let proj = TiltProjection(size: size, tilt: tilt)
+            let fish = placements(proj)
+            let dark = scheme == .dark
+            ZStack {
+                PaperBackground(fullScreen: false)
+                // 池・壁・軸は傾きが変わったときだけ描く（止まっているあいだは描き直さない）
+                Canvas { context, _ in drawPond(context: context, proj: proj, dark: dark) }
+                TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                    let t = timeline.date.timeIntervalSinceReferenceDate
+                    Canvas { context, _ in drawFish(context: context, proj: proj, fish: fish, time: t) }
+                }
+                // 枠（上からのときは水面の縁と重なる）
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(Theme.ink, lineWidth: Theme.stroke)
+            }
+            .contentShape(Rectangle())
+            .gesture(SpatialTapGesture().onEnded { value in
+                tap(at: value.location, proj: proj, fish: fish)
+            })
+            .overlay { labels(proj: proj, fish: fish) }
         }
         .accessibilityElement()
-        .accessibilityLabel(axes.count >= 3 ? "池を横から見たところ。浅いほど\(axes[2].negativePole)、深いほど\(axes[2].positivePole)。金魚 \(items.count) 匹" : "池を横から見たところ")
+        .accessibilityLabel(accessibilityText)
     }
 
-    /// 水の四角（上は水面）。左は深さの札、下は横の軸のぶん空ける
-    private func waterRect(_ size: CGSize) -> CGRect {
-        let top = max(22, size.height * 0.07)
-        return CGRect(x: size.width * 0.22, y: top, width: size.width * 0.74, height: size.height - 38 - top)
+    private var accessibilityText: String {
+        if tilt >= 0.5 {
+            return "池を横から見たところ。浅いほど\(axes[2].negativePole)、深いほど\(axes[2].positivePole)。金魚 \(items.count) 匹"
+        }
+        var s = "池を上から見たところ。金魚 \(items.count) 匹。横の軸は\(axes[0].negativePole)から\(axes[0].positivePole)、縦の軸は\(axes[1].positivePole)から\(axes[1].negativePole)。大きいほど\(axes[2].negativePole)"
+        if !takenHome.isEmpty { s += "。持ち帰った金魚 \(takenHome.count) 匹" }
+        return s
     }
 
-    /// 3つの層の境（水面、境1、境2、底）
-    private func layerEdges(_ r: CGRect) -> [CGFloat] {
-        [r.minY, r.minY + r.height * 0.325, r.minY + r.height * 0.65, r.maxY]
+    // MARK: 位置
+
+    /// 1匹分の置き場所（池の座標。x＝横、y＝水面の縦（上が +）、z＝水面からの深さ）
+    struct Fish {
+        let item: Item
+        let x: CGFloat
+        let y: CGFloat
+        let z: CGFloat
+        let step: Int
+        let tint: GoldfishTint
+        let phase: Double
+        let done: Bool
+    }
+
+    private func placements(_ p: TiltProjection) -> [Fish] {
+        let doneIDs = Set(takenHome.map(\.id))
+        return (items + takenHome).map { item in
+            let s2 = score(item, 2)
+            let step = PondMapView.depthStep(s2)
+            // 段の層の中に収める（境をまたがない）
+            let lo: Double = [-1, -0.33, 0.33][step], hi: Double = [-0.33, 0.33, 1][step]
+            let frac = max(0, min(1, (s2 - lo) / (hi - lo)))
+            return Fish(item: item,
+                        x: score(item, 0) * (2 * p.w + Theme.stroke) * 0.31,
+                        y: score(item, 1) * (p.h - 26) * 0.86,
+                        z: p.depth * CGFloat(Double(step) + 0.2 + 0.6 * frac) / 3,
+                        step: step,
+                        tint: GoldfishTint.of(want: item.effectiveWant, must: item.effectiveMust),
+                        phase: Double(abs(item.id.hashValue % 6283)) / 1000,
+                        done: doneIDs.contains(item.id))
+        }
     }
 
     private func score(_ item: Item, _ i: Int) -> Double {
@@ -411,138 +474,474 @@ struct PondSideView: View {
         return max(-1, min(1, item.axisScores[i]))
     }
 
-    /// 水の形。上が波打つ水面、下の角は丸い
-    private func waterShape(_ r: CGRect) -> Path {
-        var p = Path()
-        let period = r.width / 7.4, amp: CGFloat = r.height * 0.035
-        p.move(to: CGPoint(x: r.minX, y: r.minY))
-        var x = r.minX, up = true
-        while x + period <= r.maxX + 0.5 {
-            p.addQuadCurve(to: CGPoint(x: x + period, y: r.minY), control: CGPoint(x: x + period / 2, y: r.minY + (up ? -amp : amp)))
-            x += period; up.toggle()
-        }
-        p.addLine(to: CGPoint(x: r.maxX, y: r.minY))
-        let rad: CGFloat = 14
-        p.addLine(to: CGPoint(x: r.maxX, y: r.maxY - rad))
-        p.addQuadCurve(to: CGPoint(x: r.maxX - rad, y: r.maxY), control: CGPoint(x: r.maxX, y: r.maxY))
-        p.addLine(to: CGPoint(x: r.minX + rad, y: r.maxY))
-        p.addQuadCurve(to: CGPoint(x: r.minX, y: r.maxY - rad), control: CGPoint(x: r.minX, y: r.maxY))
-        p.closeSubpath()
-        return p
+    /// 泳いでいる今の位置（水面の上でゆっくり小さく回る）。選んだ金魚は止める
+    private func swimming(_ f: Fish, time: Double) -> (x: CGFloat, y: CGFloat, facingRight: Bool) {
+        if f.item.id == selectedID { return (f.x, f.y, false) }
+        let dx = sin(time * 0.35 + f.phase) * 8
+        let dy = sin(time * 0.27 + f.phase * 1.7) * 4
+        return (f.x + dx, f.y + dy, cos(time * 0.35 + f.phase) > 0)
     }
 
-    private func draw(context: GraphicsContext, size: CGSize) {
-        let ink = Theme.ink, accent = Theme.accent
-        let r = waterRect(size)
-        let shape = waterShape(r)
-        let edges = layerEdges(r)
-        context.fill(shape, with: .color(Theme.water))
-        // 3つの層。深いほど網点が大きく濃い
-        var layered = context
-        layered.clip(to: shape)
-        let dot: [(CGFloat, Double)] = [(2.4, 0.3), (3.2, 0.42), (4, 0.58)]
-        for i in 0..<3 {
-            var dots = Path()
-            var y = r.minY - 8 + 2
-            while y < r.maxY {
-                if y >= edges[i] - (i == 0 ? 10 : 0) && y < edges[i + 1] {
-                    var x = r.minX + 2
-                    while x < r.maxX { dots.addRect(CGRect(x: x, y: y, width: dot[i].0, height: dot[i].0)); x += 7 }
-                }
-                y += 7
-            }
-            layered.fill(dots, with: .color(Theme.waterDot.opacity(dot[i].1)))
+    /// 金魚の画面の位置・水面の印の位置・大きさ
+    private func projected(_ f: Fish, proj: TiltProjection, time: Double) -> (pos: CGPoint, spot: CGPoint, width: CGFloat, dep: CGFloat, right: Bool) {
+        let s = swimming(f, time: time)
+        // 上からのときは水面に浮かせ、傾けるにつれて深さへ沈める
+        let fish = proj(s.x, s.y, f.z * proj.sink)
+        let spot = proj(s.x, s.y, 0)
+        let w = PondMapView.baseFishWidth * PondMapView.depthScales[max(0, min(2, f.step))] * fish.k
+        return (fish.point, spot.point, w, fish.dep, s.facingRight)
+    }
+
+    // MARK: 描く（池・壁・軸）
+
+    private func drawPond(context: GraphicsContext, proj p: TiltProjection, dark: Bool) {
+        let ink = Theme.ink
+        let deg = p.degrees
+        let sc = p.unit
+        let thirds = [0, p.depth / 3, p.depth * 2 / 3, p.depth]
+        func line(_ pts: [CGPoint], close: Bool) -> Path {
+            var path = Path()
+            path.addLines(pts)
+            if close { path.closeSubpath() }
+            return path
         }
-        var seams = Path()
-        for y in edges[1...2] { seams.move(to: CGPoint(x: r.minX, y: y)); seams.addLine(to: CGPoint(x: r.maxX, y: y)) }
-        layered.stroke(seams, with: .color(ink.opacity(0.5)), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
-        context.stroke(shape, with: .color(ink), lineWidth: Theme.stroke)
 
-        // 左の深さの矢印（下向き）
-        let ax = size.width * 0.12
-        var depthLine = Path()
-        depthLine.move(to: CGPoint(x: ax, y: r.minY + 6)); depthLine.addLine(to: CGPoint(x: ax, y: r.maxY - 8))
-        context.stroke(depthLine, with: .color(ink), lineWidth: 2.5)
-        context.fill(arrow(CGPoint(x: ax, y: r.maxY + 2), dx: 0, dy: 1), with: .color(ink))
+        if deg > 0.5 {
+            // 奥の見えない辺（うすい点線）
+            if deg < 89.5 {
+                var hidden = Path()
+                for (a, b) in [((-p.w, p.h, 0), (-p.w, p.h, p.depth)), ((p.w, p.h, 0), (p.w, p.h, p.depth)),
+                               ((-p.w, p.h, p.depth), (p.w, p.h, p.depth)), ((-p.w, -p.h, p.depth), (-p.w, p.h, p.depth)),
+                               ((p.w, -p.h, p.depth), (p.w, p.h, p.depth))] as [((CGFloat, CGFloat, CGFloat), (CGFloat, CGFloat, CGFloat))] {
+                    hidden.move(to: p(a.0, a.1, a.2).point); hidden.addLine(to: p(b.0, b.1, b.2).point)
+                }
+                context.stroke(hidden, with: .color(ink.opacity(0.3)), style: StrokeStyle(lineWidth: 1.5, dash: [4, 5]))
+            }
+            // 手前の壁。3つの層（深いほど網点が濃い）
+            let outlines = thirds.map { z in p.frontOutline(z: z).map { p($0.0, $0.1, $0.2).point } }
+            for i in 0..<3 {
+                let band = line(outlines[i] + outlines[i + 1].reversed(), close: true)
+                context.fill(band, with: WaterTile.shading(i, dark: dark))
+            }
+            for i in 1...2 {
+                context.stroke(line(outlines[i], close: false), with: .color(ink.opacity(0.55)), lineWidth: 1.5)
+                if deg < 89.5 {
+                    // 層の境の面（池の中の点線）
+                    let plane = p.surfaceOutline(z: thirds[i]).map { p($0.0, $0.1, $0.2).point }
+                    context.stroke(line(plane, close: true), with: .color(Theme.waterDot.opacity(0.45)),
+                                   style: StrokeStyle(lineWidth: 1.2, dash: [3, 4]))
+                }
+            }
+            let wall = line(outlines[0] + outlines[3].reversed(), close: true)
+            context.stroke(wall, with: .color(ink), style: StrokeStyle(lineWidth: Theme.stroke, lineJoin: .round))
+        }
 
-        // 下の横の軸（両端に矢印）
-        let y = size.height - 26
-        let x0 = size.width * 0.24, x1 = size.width * 0.94
-        var axis = Path()
-        axis.move(to: CGPoint(x: x0 + 6, y: y)); axis.addLine(to: CGPoint(x: x1 - 6, y: y))
-        context.stroke(axis, with: .color(ink), lineWidth: 2.5)
-        context.fill(arrow(CGPoint(x: x0, y: y), dx: -1, dy: 0), with: .color(ink))
-        context.fill(arrow(CGPoint(x: x1, y: y), dx: 1, dy: 0), with: .color(ink))
+        // 水面
+        if deg < 89.5 {
+            let surface = line(p.surfaceOutline(z: 0).map { p($0.0, $0.1, $0.2).point }, close: true)
+            var water = context
+            water.opacity = deg < 0.5 ? 1 : 0.92
+            water.fill(surface, with: WaterTile.shading(0, dark: dark))
+            if deg > 0.5 {
+                context.stroke(surface, with: .color(ink), style: StrokeStyle(lineWidth: Theme.stroke, lineJoin: .round))
+            }
+        }
 
-        // 金魚。深さの段の層に、段の大きさで
-        let sorted = items.sorted { score($0, 2) > score($1, 2) }
-        for item in sorted {
-            let s2 = score(item, 2)
-            let step = PondMapView.depthStep(s2)
-            let lo: Double = [-1, -0.33, 0.33][step], hi: Double = [-0.33, 0.33, 1][step]
-            let frac = max(0, min(1, (s2 - lo) / (hi - lo)))
-            let x = r.midX + score(item, 0) * (r.width / 2 - 28) * 0.9
-            let py = edges[step] + (edges[step + 1] - edges[step]) * CGFloat(0.3 + 0.4 * frac)
-            let w = PondMapView.baseFishWidth * PondMapView.depthScales[step]
+        // 水面の2本の軸。横から近くでは消し、かわりに底の横の軸を出す
+        var lines = Path(), ticks = Path(), heads = Path()
+        func axis(_ a: CGPoint, _ b: CGPoint) {
+            lines.move(to: a); lines.addLine(to: b)
+            if hypot(b.x - a.x, b.y - a.y) > 30 {
+                heads.addPath(arrowHead(from: b, toward: a))
+                heads.addPath(arrowHead(from: a, toward: b))
+            }
+        }
+        let surfaceAxes = 1 - ramp(deg, 76, 88)
+        if surfaceAxes > 0 {
+            let xEnd = p.w * 0.848, yEnd = p.h - 42
+            axis(p(-xEnd, 0, 0).point, p(xEnd, 0, 0).point)
+            axis(p(0, -yEnd, 0).point, p(0, yEnd, 0).point)
+            for t in [CGFloat(1) / 3, CGFloat(2) / 3] {
+                for x in [-xEnd * t, xEnd * t] { ticks.move(to: p(x, 4, 0).point); ticks.addLine(to: p(x, -4, 0).point) }
+                for y in [-yEnd * t, yEnd * t] { ticks.move(to: p(-4, y, 0).point); ticks.addLine(to: p(4, y, 0).point) }
+            }
+            var g = context
+            g.opacity = surfaceAxes
+            g.stroke(lines, with: .color(ink), lineWidth: 2.5)
+            g.stroke(ticks, with: .color(ink.opacity(0.6)), lineWidth: 1.5)
+            g.fill(heads, with: .color(ink))
+        }
+        let bottomAxis = ramp(deg, 78, 90)
+        if bottomAxis > 0 {
+            lines = Path(); heads = Path()
+            let z = p.depth - 24 * sc
+            axis(p(-p.w * 0.656, -p.h, z).point, p(p.w * 0.656, -p.h, z).point)
+            var g = context
+            g.opacity = bottomAxis
+            g.stroke(lines, with: .color(ink), lineWidth: 2.5)
+            g.fill(heads, with: .color(ink))
+        }
+    }
+
+    // MARK: 描く（金魚）
+
+    private func drawFish(context: GraphicsContext, proj p: TiltProjection, fish: [Fish], time: Double) {
+        let ink = Theme.ink, accent = Theme.accent, surface = Theme.surface
+        let shown = fish.map { ($0, projected($0, proj: p, time: time)) }
+
+        // 水面の印から深さまでの、下げ糸（点線）と波紋。上からのときは金魚と重なるので出さない
+        let sink = p.sink
+        if sink > 0.02 {
+            var plumbs = Path(), rings = Path(), cores = Path(), flats = Path()
+            let r1 = 15 * p.unit, r2 = 7 * p.unit
+            for (f, s) in shown {
+                if hypot(s.pos.x - s.spot.x, s.pos.y - s.spot.y) > 3 { plumbs.move(to: s.spot); plumbs.addLine(to: s.pos) }
+                let sw = swimming(f, time: time)
+                let ring1 = (0..<20).map { i -> CGPoint in
+                    let a = Double(i) / 20 * 2 * .pi
+                    return p(sw.x + r1 * cos(a), sw.y + r1 * sin(a), 0).point
+                }
+                let ys = ring1.map(\.y)
+                if (ys.max()! - ys.min()!) < 1.2 {
+                    // 真横からは、水面の短い線
+                    let xs = ring1.map(\.x)
+                    flats.move(to: CGPoint(x: xs.min()!, y: s.spot.y)); flats.addLine(to: CGPoint(x: xs.max()!, y: s.spot.y))
+                } else {
+                    rings.addLines(ring1); rings.closeSubpath()
+                    let ring2 = (0..<20).map { i -> CGPoint in
+                        let a = Double(i) / 20 * 2 * .pi
+                        return p(sw.x + r2 * cos(a), sw.y + r2 * sin(a), 0).point
+                    }
+                    cores.addLines(ring2); cores.closeSubpath()
+                }
+            }
+            var g = context
+            g.opacity = sink
+            g.stroke(plumbs, with: .color(ink.opacity(0.55)), style: StrokeStyle(lineWidth: 1.3, dash: [3, 3]))
+            g.stroke(rings, with: .color(ink.opacity(0.5)), lineWidth: 1.5)
+            g.fill(cores, with: .color(ink.opacity(0.18)))
+            g.stroke(flats, with: .color(ink.opacity(0.45)), lineWidth: 2.5)
+        }
+
+        // 遠いものから順に描く（手前の金魚が上）。持ち帰った金魚はいちばん下。選んだ金魚は最後
+        let order = shown.sorted {
+            ($0.0.item.id == selectedID ? 0 : 1, $0.0.done ? 1 : 0, $0.1.dep) > ($1.0.item.id == selectedID ? 0 : 1, $1.0.done ? 1 : 0, $1.1.dep)
+        }
+        let flat = max(0, 1 - tilt * 8)  // 上からのときだけの印（選んだ金魚から軸への点線）
+        let center = p(0, 0, 0).point
+        for (f, s) in order {
+            let pos = s.pos, right = s.right, w = s.width
+            let selected = f.item.id == selectedID
+            let dim = selectedID != nil && !selected
             let cell = w / CGFloat(GoldfishShape.width)
-            let origin = CGPoint(x: x - w / 2, y: py - cell * 2.5)
+            let h = cell * CGFloat(GoldfishShape.height)
+            let origin = CGPoint(x: pos.x - w / 2, y: pos.y - h / 2)
             func path(_ cells: [(x: Int, y: Int)]) -> Path {
                 var p = Path()
-                for c in cells { p.addRect(CGRect(x: origin.x + CGFloat(c.x) * cell, y: origin.y + CGFloat(c.y) * cell, width: cell, height: cell)) }
+                for c in cells {
+                    // 絵は左向き。右へ泳ぐときは左右を反転する
+                    let x = right ? CGFloat(GoldfishShape.width - 1 - c.x) : CGFloat(c.x)
+                    p.addRect(CGRect(x: origin.x + x * cell, y: origin.y + CGFloat(c.y) * cell, width: cell, height: cell))
+                }
                 return p
             }
-            let tint = GoldfishTint.of(want: item.effectiveWant, must: item.effectiveMust)
-            if !item.isRated {
-                context.fill(path(GoldfishShape.dottedCells), with: .color(ink))
-            } else if tint == .both {
-                context.fill(path(GoldfishShape.cells), with: .color(ink))
-                context.fill(path(GoldfishShape.holeCells), with: .color(accent))
+            var g = context
+            g.opacity = dim ? 0.3 : 1
+            if selected, flat > 0 {
+                // 選んだ金魚から軸へ、紅い点線
+                var cross = Path()
+                cross.move(to: pos); cross.addLine(to: CGPoint(x: center.x, y: pos.y))
+                cross.move(to: pos); cross.addLine(to: CGPoint(x: pos.x, y: center.y))
+                var c = g
+                c.opacity *= flat
+                c.stroke(cross, with: .color(accent), style: StrokeStyle(lineWidth: 2.5, dash: [5.5, 4]))
+                for q in [CGPoint(x: center.x, y: pos.y), CGPoint(x: pos.x, y: center.y)] {
+                    c.fill(Path(ellipseIn: CGRect(x: q.x - 4.5, y: q.y - 4.5, width: 9, height: 9)), with: .color(accent))
+                }
+            }
+            if selected {
+                let k = w / (PondMapView.baseFishWidth * PondMapView.depthScales[max(0, min(2, f.step))])
+                let d = max(w * 1.8, 50 * min(1, k))
+                let ring = Path(ellipseIn: CGRect(x: pos.x - d / 2, y: pos.y - d / 2, width: d, height: d))
+                g.fill(ring, with: .color(surface))
+                g.stroke(ring, with: .color(accent), lineWidth: 3)
+            }
+            if f.done {
+                g.fill(path(GoldfishShape.cells), with: .color(ink))
+                g.fill(path(GoldfishShape.holeCells), with: .color(surface))
+            } else if !f.item.isRated {
+                g.fill(path(GoldfishShape.dottedCells), with: .color(ink))
+            } else if f.tint == .both {
+                g.fill(path(GoldfishShape.cells), with: .color(ink))
+                g.fill(path(GoldfishShape.holeCells), with: .color(accent))
             } else {
-                context.fill(path(GoldfishShape.cells), with: .color(tint.color))
+                g.fill(path(GoldfishShape.cells), with: .color(f.tint.color))
             }
         }
     }
 
-    /// 矢印の先（p が先端、dx/dy が向き）
-    private func arrow(_ p: CGPoint, dx: CGFloat, dy: CGFloat) -> Path {
+    /// 矢印の先（tip が先端、from の側から向かう）
+    private func arrowHead(from: CGPoint, toward tip: CGPoint) -> Path {
         let l: CGFloat = 13, w: CGFloat = 7.5
-        let back = CGPoint(x: p.x - dx * l, y: p.y - dy * l)
+        let len = max(hypot(tip.x - from.x, tip.y - from.y), 0.001)
+        let ux = (tip.x - from.x) / len, uy = (tip.y - from.y) / len
+        let back = CGPoint(x: tip.x - ux * l, y: tip.y - uy * l)
         var a = Path()
-        a.move(to: p)
-        a.addLine(to: CGPoint(x: back.x - dy * w, y: back.y - dx * w))
-        a.addLine(to: CGPoint(x: back.x + dy * w, y: back.y + dx * w))
+        a.move(to: tip)
+        a.addLine(to: CGPoint(x: back.x - uy * w, y: back.y + ux * w))
+        a.addLine(to: CGPoint(x: back.x + uy * w, y: back.y - ux * w))
         a.closeSubpath()
         return a
     }
 
-    @ViewBuilder private func labels(size: CGSize) -> some View {
-        let r = waterRect(size)
-        let edges = layerEdges(r)
-        let pillWidth = size.width * 0.19
+    /// a 度から b 度のあいだで 0→1
+    private func ramp(_ deg: Double, _ a: Double, _ b: Double) -> Double { max(0, min(1, (deg - a) / (b - a))) }
+
+    // MARK: ラベル
+
+    @ViewBuilder private func labels(proj p: TiltProjection, fish: [Fish]) -> some View {
+        let deg = p.degrees
+        let flat = max(0, 1 - tilt * 5)
+        let size = p.size
+        let c = p(0, 0, 0).point
         ZStack {
-            if axes.count >= 3 {
+            if flat > 0 {
+                // 区画の名前（ごくうすく）。上からのときだけ
+                let top = size.height * 0.25, bottom = size.height * 0.78
+                Group {
+                    quadrant("\(axes[0].negativePole)・\(axes[1].positivePole)").position(x: size.width * 0.25, y: top)
+                    quadrant("\(axes[0].positivePole)・\(axes[1].positivePole)").position(x: size.width * 0.75, y: top)
+                    quadrant("\(axes[0].negativePole)・\(axes[1].negativePole)").position(x: size.width * 0.25, y: bottom)
+                    quadrant("\(axes[0].positivePole)・\(axes[1].negativePole)").position(x: size.width * 0.75, y: bottom)
+                }
+                .opacity(flat)
+            }
+
+            // 縦の軸の札：水面の上端と下端に。傾けると奥へ小さくなり、横から近くで消える
+            let vertical = deg <= 50 ? 1 : deg <= 70 ? 1 - 0.25 * (deg - 50) / 20 : max(0, 0.75 * (1 - (deg - 70) / 15))
+            if vertical > 0 {
+                let t = p(0, p.h - 22, 0), b = p(0, -(p.h - 22), 0)
+                poleLabel(axes[1].positivePole).scaleEffect(min(t.k, 1)).position(t.point).opacity(vertical)
+                poleLabel(axes[1].negativePole).scaleEffect(min(b.k, 1)).position(b.point).opacity(vertical)
+            }
+            // 横の軸の札：水面の左右の端、軸のすぐ下
+            let horizontal = 1 - ramp(deg, 75, 88)
+            if horizontal > 0 {
+                let l = p(-(p.w - 6.5), -26, 0), r = p(p.w - 6.5, -26, 0)
+                poleLabel(axes[0].negativePole).scaleEffect(min(l.k, 1), anchor: .leading)
+                    .frame(width: 200, alignment: .leading).position(x: l.point.x + 100, y: l.point.y)
+                    .opacity(horizontal)
+                poleLabel(axes[0].positivePole).scaleEffect(min(r.k, 1), anchor: .trailing)
+                    .frame(width: 200, alignment: .trailing).position(x: r.point.x - 100, y: r.point.y)
+                    .opacity(horizontal)
+            }
+            // 横からの横の軸の札：底の軸の上に
+            let bottom = ramp(deg, 78, 90)
+            if bottom > 0 {
+                let z = p.depth - 24 * p.unit
+                let l = p(-p.w * 0.81, -p.h, z).point, r = p(p.w * 0.81, -p.h, z).point
+                poleLabel(axes[0].negativePole).position(x: l.x + 6, y: l.y - 22).opacity(bottom)
+                poleLabel(axes[0].positivePole).position(x: r.x - 6, y: r.y - 22).opacity(bottom)
+            }
+            // 深さの3つの層の札：手前の壁の左に
+            let layers = ramp(deg, 35, 50)
+            if layers > 0 {
                 let names = PondMapView.depthNames(axes)
                 ForEach(0..<3, id: \.self) { i in
-                    Text(names[i]).font(.system(.footnote, weight: .black))
-                        .foregroundStyle(i == 1 ? Theme.ink : Color.white)
-                        .lineLimit(1).minimumScaleFactor(0.6)
-                        .padding(.horizontal, 4).padding(.vertical, 4)
-                        .frame(width: pillWidth)
-                        .background(Capsule().fill(i == 1 ? Theme.surface : Theme.band))
-                        .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: i == 1 ? 2 : 0))
-                        .position(x: size.width * 0.10, y: (edges[i] + edges[i + 1]) / 2 - (i == 0 ? 4 : 0))
+                    let q = p(-p.w + 40 * p.unit, -p.h, p.depth * (CGFloat(i) + 0.5) / 3)
+                    layerLabel(names[i], filled: i == 0).scaleEffect(min(q.k, 1)).position(q.point).opacity(layers)
                 }
             }
-            if axes.count >= 1 {
+            // 選んだ金魚が、それぞれの軸のどちら寄りか（上からのときだけ）
+            if flat > 0, let sel = fish.first(where: { $0.item.id == selectedID }) {
+                let q = p(sel.x, sel.y, 0).point
+                let ux = score(sel.item, 0), uy = score(sel.item, 1)
                 Group {
-                    Text(axes[0].negativePole).position(x: size.width * 0.31, y: size.height - 8)
-                    Text(axes[0].positivePole).position(x: size.width * 0.87, y: size.height - 8)
+                    if abs(ux) >= 0.15 {
+                        leanTag(ux < 0 ? axes[0].negativePole : axes[0].positivePole)
+                            .position(x: q.x, y: c.y + (q.y > c.y ? -21 : 21))
+                    }
+                    if abs(uy) >= 0.15 {
+                        let right = q.x > c.x
+                        leanTag(uy > 0 ? axes[1].positivePole : axes[1].negativePole)
+                            .frame(width: 160, alignment: right ? .trailing : .leading)
+                            .position(x: right ? c.x - 7 - 80 : c.x + 7 + 80, y: q.y)
+                    }
                 }
-                .font(.system(.footnote, weight: .black)).foregroundStyle(Theme.ink)
-                .lineLimit(1)
+                .opacity(flat)
             }
         }
         .allowsHitTesting(false)
+    }
+
+    private func quadrant(_ text: String) -> some View {
+        Text(text).font(.system(.footnote, weight: .bold)).foregroundStyle(Theme.ink.opacity(0.28))
+            .opacity(selectedID == nil ? 1 : 0.4)
+            .lineLimit(1).minimumScaleFactor(0.7)
+            .fixedSize()
+    }
+
+    private func poleLabel(_ text: String) -> some View {
+        Text(text).font(.system(.footnote, weight: .black)).foregroundStyle(Theme.ink)
+            .lineLimit(1)
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(Capsule().fill(Theme.surface))
+            .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: 2))
+            .fixedSize()
+    }
+
+    /// 層の札。いちばん浅い層（今）だけ紺で塗る
+    private func layerLabel(_ text: String, filled: Bool) -> some View {
+        Text(text).font(.system(.footnote, weight: .black)).foregroundStyle(filled ? Color.white : Theme.ink)
+            .lineLimit(1)
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(Capsule().fill(filled ? Theme.band : Theme.surface))
+            .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: 2))
+            .fixedSize()
+    }
+
+    private func leanTag(_ pole: String) -> some View {
+        Text("\(pole)寄り").font(.system(.footnote, weight: .black)).foregroundStyle(Color.white)
+            .lineLimit(1)
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(Capsule().fill(Theme.accent))
+            .fixedSize()
+    }
+
+    // MARK: 選ぶ
+
+    private func tap(at point: CGPoint, proj: TiltProjection, fish: [Fish]) {
+        let time = Date.now.timeIntervalSinceReferenceDate
+        var best: (Item, CGFloat)?
+        for f in fish {
+            let s = projected(f, proj: proj, time: time)
+            let d = hypot(s.pos.x - point.x, s.pos.y - point.y)
+            if d <= s.width / 2 + 16, d < (best?.1 ?? .infinity) { best = (f.item, d) }
+        }
+        if best != nil { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
+        withAnimation(.easeOut(duration: 0.2)) { onSelect(best?.0) }
+    }
+}
+
+/// 池を手前に倒して見るための投影。水面の中心を原点に、x＝右、y＝奥（上から見たときの上）、z＝下（深さ）。
+/// x 軸のまわりに θ 回して、カメラから見た高さ up と奥行き dep にし、遠近（k＝f / (d + dep)）をかける。
+/// カメラの距離 d は、池（水面と底の8つの角）がちょうど収まるように θ ごとに決める。
+struct TiltProjection {
+    let size: CGSize
+    /// 水面の半分の幅・高さと、深さ（上から見たとき枠いっぱい）
+    let w: CGFloat, h: CGFloat, depth: CGFloat
+    /// デザイン（高さ470）の 1px にあたる長さ
+    let unit: CGFloat
+    let degrees: Double
+    /// 金魚が深さへ沈む割合（上から 0 → 30° で 1）
+    let sink: CGFloat
+    private let f: CGFloat, d: CGFloat, ox: CGFloat, oy: CGFloat, cosT: CGFloat, sinT: CGFloat
+
+    init(size: CGSize, tilt: Double) {
+        self.size = size
+        let inset = Theme.stroke / 2
+        let vw = max(size.width - 2 * inset, 10), vh = max(size.height - 2 * inset, 10)
+        w = vw / 2; h = vh / 2; depth = vh
+        unit = vh / 470
+        f = 600 * unit
+        let t = max(0, min(1, tilt))
+        degrees = t * 90
+        let th = t * .pi / 2
+        cosT = cos(th); sinT = sin(th)
+        let s = max(0, min(1, degrees / 30))
+        sink = s * s * (3 - 2 * s)
+        // 途中は余白をとる（上から・横からはぴったり）
+        let m = min(1, sin(2 * th) * 1.6)
+        let mx = 22 * unit * m, mt = 34 * unit * m, mb = 22 * unit * m
+        let (w, h, depth, f, c, sn) = (w, h, depth, f, cosT, sinT)
+        func bounds(_ d: CGFloat) -> (CGFloat, CGFloat, CGFloat, CGFloat) {
+            var x0 = CGFloat.infinity, x1 = -CGFloat.infinity, y0 = CGFloat.infinity, y1 = -CGFloat.infinity
+            for x in [-w, w] { for y in [-h, h] { for z in [0, depth] {
+                let k = f / max(d + y * sn + z * c, 1)
+                let sx = x * k, sy = -(y * c - z * sn) * k
+                x0 = min(x0, sx); x1 = max(x1, sx); y0 = min(y0, sy); y1 = max(y1, sy)
+            } } }
+            return (x0, x1, y0, y1)
+        }
+        var lo = f * 0.5, hi = f * 12
+        for _ in 0..<40 {
+            let mid = (lo + hi) / 2
+            let b = bounds(mid)
+            if b.1 - b.0 <= vw - 2 * mx + 0.01 && b.3 - b.2 <= vh - mt - mb + 0.01 { hi = mid } else { lo = mid }
+        }
+        d = hi
+        let b = bounds(hi)
+        ox = inset + mx + (vw - 2 * mx - (b.1 - b.0)) / 2 - b.0
+        oy = inset + mt + (vh - mt - mb - (b.3 - b.2)) / 2 - b.2
+    }
+
+    /// 池の点 → 画面の点と、遠近の倍率 k、奥行き dep
+    func callAsFunction(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> (point: CGPoint, k: CGFloat, dep: CGFloat) {
+        let up = y * cosT - z * sinT
+        let dep = y * sinT + z * cosT
+        let k = f / max(d + dep, 1)
+        return (CGPoint(x: ox + x * k, y: oy - up * k), k, dep)
+    }
+
+    /// 深さ z の角の丸い四角（水面・層の境の面）
+    func surfaceOutline(z: CGFloat, r: CGFloat = 22, n: Int = 6) -> [(CGFloat, CGFloat, CGFloat)] {
+        var pts: [(CGFloat, CGFloat, CGFloat)] = []
+        for (cx, cy, a0) in [(w - r, h - r, 0.0), (-(w - r), h - r, 90.0), (-(w - r), -(h - r), 180.0), (w - r, -(h - r), 270.0)] {
+            for i in 0...n {
+                let a = (a0 + 90 * Double(i) / Double(n)) * .pi / 180
+                pts.append((cx + r * cos(a), cy + r * sin(a), z))
+            }
+        }
+        return pts
+    }
+
+    /// 深さ z の手前半分の縁（右の辺の中ほど → 手前の辺 → 左の辺の中ほど）。手前の壁の上下の線
+    func frontOutline(z: CGFloat, r: CGFloat = 22, n: Int = 6) -> [(CGFloat, CGFloat, CGFloat)] {
+        var pts: [(CGFloat, CGFloat, CGFloat)] = [(w, 0, z)]
+        for i in 0...n {
+            let a = -90 * Double(i) / Double(n) * .pi / 180
+            pts.append((w - r + r * cos(a), -(h - r) + r * sin(a), z))
+        }
+        for i in 0...n {
+            let a = (270 - 90 * Double(i) / Double(n)) * .pi / 180
+            pts.append((-(w - r) + r * cos(a), -(h - r) + r * sin(a), z))
+        }
+        pts.append((-w, 0, z))
+        return pts
+    }
+}
+
+/// 水の網点の1枚（0＝水面・今、1＝近いうち、2＝将来。深いほど点が大きく濃い）。一度だけ作って敷き詰める
+@MainActor
+enum WaterTile {
+    private static var cache: [Int: Image] = [:]
+
+    static func shading(_ level: Int, dark: Bool) -> GraphicsContext.Shading {
+        let key = level * 2 + (dark ? 1 : 0)
+        let image = cache[key] ?? make(level, dark: dark)
+        cache[key] = image
+        // 上から見たときの網点（7pt ごとの互い違い）と目をそろえる
+        return .tiledImage(image, origin: CGPoint(x: Theme.stroke / 2, y: Theme.stroke / 2))
+    }
+
+    private static func make(_ level: Int, dark: Bool) -> Image {
+        let period: [CGFloat] = [7, 6, 5], radius: [CGFloat] = [1.3, 1.6, 1.6], alpha: [CGFloat] = [0.3, 0.42, 0.58]
+        let bg: [UInt32] = dark ? [0x1C2440, 0x222C4E, 0x29355D] : [0xEEF4FF, 0xE3ECFD, 0xD6E2FB]
+        let traits = UITraitCollection(userInterfaceStyle: dark ? .dark : .light)
+        let dot = Theme.waterDotUIColor.resolvedColor(with: traits).withAlphaComponent(alpha[level])
+        let p = period[level], r = radius[level]
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let ui = UIGraphicsImageRenderer(size: CGSize(width: p, height: p), format: format).image { ctx in
+            UIColor(hex: bg[level]).setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: p, height: p))
+            dot.setFill()
+            let a: CGFloat = level == 0 ? 2 / 7 : 0.25, b: CGFloat = level == 0 ? 5.5 / 7 : 0.75
+            for c in [CGPoint(x: p * a, y: p * a), CGPoint(x: p * b, y: p * b)] {
+                ctx.cgContext.fillEllipse(in: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r))
+            }
+        }
+        return Image(uiImage: ui)
     }
 }
 
