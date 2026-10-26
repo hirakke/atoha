@@ -9,11 +9,11 @@ struct CaptureControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: Self.kind) {
             ControlWidgetButton(action: CaptureIntent()) {
-                Label("あとでに回す", systemImage: "plus.square")
+                Label("あとに回す", systemImage: "plus.square")
             }
             .tint(Theme.accent)
         }
-        .displayName("あとでに回す")
-        .description("気になっていることを書いて、あとでに回す")
+        .displayName("あとに回す")
+        .description("気になっていることを書いて、あとに回す")
     }
 }

@@ -30,7 +30,7 @@ struct LaterView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             TankView(cubes: waiting.map { TankCube(id: $0.id, tint: GoldfishTint.of(want: $0.effectiveWant, must: $0.effectiveMust)) })
                             if waiting.isEmpty {
-                                Text("「あとでに回す」で入れたものが、ここで泳ぎます。")
+                                Text("「あとに回す」で入れたものが、ここで泳ぎます。")
                                     .atype(.small, color: Theme.quiet)
                                     .padding(.horizontal, 4)
                             } else {

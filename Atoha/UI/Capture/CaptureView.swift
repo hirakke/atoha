@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// 書き出し画面「あとでに回す」。書く → （気持ちを付ける：つけなくてもいい） → 水槽に放す。
+/// 書き出し画面「あとに回す」。書く → （気持ちを付ける：つけなくてもいい） → 水槽に放す。
 /// 放したあとは、閉じるか続けて回すかを本人が選ぶ。水槽がいっぱいなら、書いたものは残したまま知らせる。
 /// いつ思い出すかの時間設定は、わかりやすさのため一旦なくしている（ReturnTiming は残してある）。
 struct CaptureView: View {
@@ -47,7 +47,7 @@ struct CaptureView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 12) {
-                Text("あとでに回す")
+                Text("あとに回す")
                     .font(.custom("DelaGothicOne-Regular", size: 30, relativeTo: .title))
                     .foregroundStyle(Theme.ink)
                     .lineLimit(1)

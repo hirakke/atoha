@@ -72,7 +72,7 @@ private struct ReturnTime: View {
 private struct CaptureButton: View {
     var body: some View {
         Button(intent: CaptureIntent()) {
-            Text("あとでに回す")
+            Text("あとに回す")
                 .font(Theme.mono(15, weight: .medium))
                 .foregroundStyle(Theme.paper)
                 .padding(.horizontal, 20)

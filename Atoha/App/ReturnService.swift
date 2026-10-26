@@ -4,7 +4,7 @@ import UserNotifications
 import ActivityKit
 import UIKit
 
-/// あとでに回したものが戻ってくる。
+/// あとに回したものが戻ってくる。
 /// 戻ってきたもの（戻る時が来たもの）は「今」へ自動では入れず、おすすめとして見せる。今に入れるかは本人が決める。
 @MainActor
 enum ReturnService {

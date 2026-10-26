@@ -80,7 +80,7 @@ private struct EmptyBowlView: View {
     }
 }
 
-/// 下に置く「あとでに回す」ボタン（書き出し画面を開く）。
+/// 下に置く「あとに回す」ボタン（書き出し画面を開く）。
 struct CaptureButton: View {
     @Environment(AppRouter.self) private var router
 
@@ -88,7 +88,7 @@ struct CaptureButton: View {
         Button {
             router.showCapture = true
         } label: {
-            Label("あとでに回す", systemImage: "plus").labelStyle(.titleAndIcon)
+            Label("あとに回す", systemImage: "plus").labelStyle(.titleAndIcon)
         }
         .buttonStyle(.cube(.primary, size: .large, fill: true))
         .padding(.horizontal, 20)
@@ -235,7 +235,7 @@ private struct ReturnedRow: View {
                 FlowRow {
                     action("やる", .accent) { FocusSession.shared.start(item) }
                     action("できた", .primary) { ReturnService.takeHome(item, in: context) }
-                    action("あとでに回す", .secondary) { postpone(.atBreak) }
+                    action("あとに回す", .secondary) { postpone(.atBreak) }
                     action("やめる", item.isBothLow ? .primary : .secondary) { resolve(.released) }
                 }
                 .padding(.bottom, 14)

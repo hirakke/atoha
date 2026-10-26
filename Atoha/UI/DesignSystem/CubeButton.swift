@@ -113,7 +113,7 @@ extension ButtonStyle where Self == CubeButtonStyle {
 
 #Preview {
     VStack(alignment: .leading, spacing: 16) {
-        Button("あとでに回す") {}.buttonStyle(.cube(.primary, size: .large, fill: true))
+        Button("あとに回す") {}.buttonStyle(.cube(.primary, size: .large, fill: true))
         Button("今に入れる") {}.buttonStyle(.cube(.secondary))
         Button("やる") {}.buttonStyle(.cube(.primary))
         Button("閉じる") {}.buttonStyle(.cube(.quiet))
