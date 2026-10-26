@@ -220,7 +220,10 @@ enum DebugLaunch {
             context.insert(Axis(negativePole: "作る", positivePole: "整える", order: 1))
             context.insert(Axis(negativePole: "今", positivePole: "将来", order: 2))
         }
-        if args.contains("-atohaSeed") { SampleData.insert(into: context) }
+        // 起動のたびに積み重ならないよう、空のときだけ入れる
+        if args.contains("-atohaSeed"), ((try? context.fetchCount(FetchDescriptor<Item>())) ?? 0) == 0 {
+            SampleData.insert(into: context)
+        }
         try? context.save()
         if args.contains("-atohaFocus"), !FocusSession.shared.isActive {
             let returned = ItemState.returned.rawValue
