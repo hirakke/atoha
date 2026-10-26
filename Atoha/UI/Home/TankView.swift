@@ -8,28 +8,67 @@ struct TankCube: Equatable {
     let tint: GoldfishTint
 }
 
+/// 水槽のガラスの見え方。設定で切り替える。
+enum TankGlass: String, CaseIterable {
+    /// 厚い縁、水面のきらめき、底の光の模様を自前で描く
+    case drawn
+    /// システムの Liquid Glass を枠にする
+    case system
+
+    var label: String {
+        switch self {
+        case .drawn: "描いたガラス"
+        case .system: "Liquid Glass"
+        }
+    }
+}
+
 /// あとでを、金魚すくいの水槽で見せる。金魚は傾けると寄る（ジャイロ）。
 struct TankView: View {
     let cubes: [TankCube]
     @State private var visible = false
     @State private var scene = TankScene()
+    @AppStorage(SettingsKey.tankGlassKey) private var glassRaw = TankGlass.drawn.rawValue
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let palette = Theme.paletteID
-        RealityView { content in
-            scene.build(&content)
-        } update: { _ in
-            scene.setScheme(colorScheme, palette: palette)
-            scene.update(cubes: cubes)
-            scene.setActive(visible && scenePhase == .active)
+        let drawn = (TankGlass(rawValue: glassRaw) ?? .drawn) == .drawn
+        // 3D の水は切り替えても作り直さないよう、いつも同じ位置に置く。ガラスは周りに足すだけ
+        let inner = RoundedRectangle(cornerRadius: drawn ? 15 : 18, style: .continuous)
+        VStack(spacing: 0) {
+            if drawn { TankAir() }
+            RealityView { content in
+                scene.build(&content)
+            } update: { _ in
+                scene.setScheme(colorScheme, palette: palette)
+                scene.update(cubes: cubes)
+                scene.setActive(visible && scenePhase == .active)
+            }
+            .frame(height: 160)
+            .background(TankWater(caustics: drawn))
         }
-        .frame(height: 160)
-        .background(TankWater())
-        // 水槽の札：角20、藍の枠だけ（影はつけず、下の札より静かに）
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Theme.ink, lineWidth: 2.5))
+        .overlay {
+            if drawn {
+                GlassFront(tilt: scene.tilt)
+            } else {
+                // Liquid Glass の向こうの水は、少しだけ曇らせる
+                Color.white.opacity(0.12)
+            }
+        }
+        .clipShape(inner)
+        .overlay(inner.strokeBorder(drawn ? Theme.ink.opacity(0.35) : Color.white.opacity(0.9), lineWidth: 1.5))
+        .padding(drawn ? 10 : 14)
+        .background {
+            if drawn {
+                GlassRim(tilt: scene.tilt)
+            } else {
+                Color.clear
+                    .glassEffect(.regular, in: .rect(cornerRadius: 30))
+                    .shadow(color: Theme.ink.opacity(0.12), radius: 9, y: 8)
+            }
+        }
         .allowsHitTesting(false)
         .onAppear { visible = true; scene.setActive(scenePhase == .active) }
         .onDisappear { visible = false; scene.setActive(false) }
@@ -39,10 +78,162 @@ struct TankView: View {
     }
 }
 
+/// 端末の傾き。ガラスのハイライトを少しずらすのに使う（3D の水槽の重力から受け取る）
+@MainActor @Observable
+final class TankTilt {
+    var offset: CGSize = .zero
+}
+
+/// ガラスの色。明るいときは白から淡い青、暗いときは藍の濃淡
+private enum GlassTone {
+    static func rim(_ scheme: ColorScheme) -> [Color] {
+        scheme == .dark
+            ? [Color(UIColor(hex: 0x4A5578)), Color(UIColor(hex: 0x2E3756)), Color(UIColor(hex: 0x1E2540))]
+            : [.white, Color(UIColor(hex: 0xE6EDFA)), Color(UIColor(hex: 0xC7D5EF))]
+    }
+    static func air(_ scheme: ColorScheme) -> [Color] {
+        scheme == .dark
+            ? [Color(UIColor(hex: 0x2A3352)), Color(UIColor(hex: 0x222A47))]
+            : [.white, Color(UIColor(hex: 0xF3F7FF))]
+    }
+    static func light(_ scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color(UIColor(hex: 0xC9D6FF)) : .white
+    }
+}
+
+/// 描いたガラスの厚い縁。白から淡い青のグラデーション、藍の外枠、やわらかい影。上の縁に光の線。
+private struct GlassRim: View {
+    let tilt: TankTilt
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
+        shape
+            .fill(LinearGradient(colors: GlassTone.rim(scheme), startPoint: .topLeading, endPoint: .bottomTrailing))
+            .overlay(shape.strokeBorder(Theme.ink, lineWidth: 2.5))
+            .shadow(color: Theme.ink.opacity(0.16), radius: 9, y: 8)
+            .overlay(alignment: .top) { RimLight(tilt: tilt) }
+    }
+}
+
+/// 上の縁の光の線。傾きで少しだけ横にすべる
+private struct RimLight: View {
+    let tilt: TankTilt
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Capsule()
+            .fill(GlassTone.light(scheme).opacity(scheme == .dark ? 0.5 : 1))
+            .frame(height: 3)
+            .padding(.horizontal, 17)
+            .padding(.top, 4)
+            .offset(x: reduceMotion ? 0 : tilt.offset.width * 0.4)
+    }
+}
+
+/// 水面より上の空気。白い帯に、波打つ水面の線と、水面でまたたくドットの光。
+private struct TankAir: View {
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let line = Theme.waterDot
+        let spark = GlassTone.light(scheme)
+        Canvas { context, size in
+            context.fill(Path(CGRect(origin: .zero, size: size)),
+                         with: .linearGradient(Gradient(colors: GlassTone.air(scheme)),
+                                               startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
+            // 水面の線：40 ごとにゆるく波打つ
+            let y = size.height - 1
+            var wave = Path()
+            wave.move(to: CGPoint(x: 0, y: y))
+            var x: CGFloat = 0
+            var up = true
+            while x < size.width {
+                wave.addQuadCurve(to: CGPoint(x: x + 20, y: y), control: CGPoint(x: x + 10, y: up ? y - 5 : y + 5))
+                x += 20
+                up.toggle()
+            }
+            context.stroke(wave, with: .color(line.opacity(0.7)), lineWidth: 2)
+            // きらめき：3×3 の十字のドット。水面の線の上に重ねる
+            for (fx, s) in [(0.18, 2.0), (0.42, 2.6), (0.7, 2.0), (0.87, 1.6)] as [(CGFloat, CGFloat)] {
+                let ox = (size.width * fx).rounded(), oy = (y - 1.5 * s - 2).rounded()
+                var p = Path()
+                p.addRect(CGRect(x: ox + s, y: oy, width: s, height: s * 3))
+                p.addRect(CGRect(x: ox, y: oy + s, width: s * 3, height: s))
+                context.fill(p, with: .color(spark))
+            }
+        }
+        .frame(height: 20)
+        .accessibilityHidden(true)
+    }
+}
+
+/// ガラスの手前。上から薄れる映り込み（動かない）と、傾きですべるハイライト。
+private struct GlassFront: View {
+    let tilt: TankTilt
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        let light = GlassTone.light(scheme)
+        ZStack {
+            LinearGradient(stops: [.init(color: light.opacity(scheme == .dark ? 0.12 : 0.32), location: 0),
+                                   .init(color: light.opacity(0), location: 0.5)],
+                           startPoint: .top, endPoint: .bottom)
+            GlassHighlights(tilt: tilt)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// 左上の斜めの光の帯と、右の縁の細い光の筋。傾けると少しずれる（視差を減らす設定では止める）
+private struct GlassHighlights: View {
+    let tilt: TankTilt
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let light = GlassTone.light(scheme)
+        let o = reduceMotion ? .zero : tilt.offset
+        ZStack(alignment: .topTrailing) {
+            GlassBand()
+                .fill(light.opacity(scheme == .dark ? 0.14 : 0.45))
+                .offset(x: o.width, y: o.height)
+            GeometryReader { geo in
+                Capsule()
+                    .fill(light.opacity(scheme == .dark ? 0.4 : 0.85))
+                    .frame(width: 4, height: geo.size.height * 0.62)
+                    .position(x: geo.size.width - 12, y: geo.size.height * 0.45)
+                    .offset(x: o.width * 0.3, y: o.height * 0.6)
+            }
+        }
+    }
+}
+
+/// 左上の斜めの光の帯（台形）
+private struct GlassBand: Shape {
+    func path(in rect: CGRect) -> Path {
+        let k = rect.height / 164
+        var p = Path()
+        p.move(to: CGPoint(x: 14, y: 4 * k))
+        p.addLine(to: CGPoint(x: 66, y: 4 * k))
+        p.addLine(to: CGPoint(x: 28, y: 112 * k))
+        p.addLine(to: CGPoint(x: 8, y: 112 * k))
+        p.addLine(to: CGPoint(x: 8, y: 14 * k))
+        p.closeSubpath()
+        return p
+    }
+}
+
 /// 水槽の水。ごく薄い水色の面に青の網点。底のほうは網点を大きく濃くして深さを見せる。
+/// 描いたガラスのときは、底に白い光の模様（コースティクス）をゆらす。
 private struct TankWater: View {
+    var caustics = false
+    @Environment(\.colorScheme) private var scheme
+
     var body: some View {
         let dot = Theme.waterDot
+        let caustic = GlassTone.light(scheme).opacity(scheme == .dark ? 0.35 : 0.75)
         Canvas { context, size in
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Theme.water))
             let step: CGFloat = 7
@@ -63,6 +254,24 @@ private struct TankWater: View {
             }
             context.fill(light, with: .color(dot.opacity(0.3)))
             context.fill(deep, with: .color(dot.opacity(0.45)))
+            if caustics {
+                // 底の光の模様：短い波の線を3本
+                var wave = Path()
+                for (x0, len, dy) in [(0.06, 0.29, 20.0), (0.44, 0.27, 14.0), (0.77, 0.23, 24.0)] as [(CGFloat, CGFloat, CGFloat)] {
+                    let y = size.height - dy
+                    var x = size.width * x0
+                    let end = x + size.width * len
+                    let step = (end - x) / 4
+                    var up = true
+                    wave.move(to: CGPoint(x: x, y: y))
+                    while x < end - 0.5 {
+                        wave.addQuadCurve(to: CGPoint(x: x + step, y: y), control: CGPoint(x: x + step / 2, y: up ? y - 8 : y + 8))
+                        x += step
+                        up.toggle()
+                    }
+                }
+                context.stroke(wave, with: .color(caustic), style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
+            }
         }
         .accessibilityHidden(true)
     }
@@ -73,6 +282,8 @@ private struct TankWater: View {
 final class TankScene {
     /// 画面に出ている水槽（すくう演出を外から呼ぶため）
     static weak var current: TankScene?
+    /// ガラスのハイライトに渡す傾き
+    let tilt = TankTilt()
 
     private struct Body {
         var node: ModelEntity
@@ -391,6 +602,11 @@ final class TankScene {
             target = SIMD3(Float(g.x), Float(g.y), Float(g.z) * 0.5)
         }
         gravity += (target - gravity) * min(1, dt * 4)
+        // ハイライトは傾けた向きと逆へ少しすべる。小さな変化では画面を描き直さない
+        let shift = CGSize(width: CGFloat(-gravity.x * 10), height: CGFloat(max(-1, min(1, gravity.z * 2)) * 6))
+        if abs(shift.width - tilt.offset.width) > 0.3 || abs(shift.height - tilt.offset.height) > 0.3 {
+            tilt.offset = shift
+        }
 
         let h = Self.half - SIMD3(Self.radius, Self.radius * 0.6, 0)
         let damping = expf(-0.9 * dt)

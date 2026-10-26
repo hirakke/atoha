@@ -14,6 +14,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.focusDefaultMinutesKey) private var focusMinutes = 0
     @AppStorage(SettingsKey.nowCapacityKey) private var nowCapacity = 3
     @AppStorage(SettingsKey.laterCapacityKey) private var laterCapacity = 20
+    @AppStorage(SettingsKey.tankGlassKey) private var tankGlassRaw = TankGlass.drawn.rawValue
     @AppStorage(SettingsKey.notifyReturnKey) private var notifyReturn = true
     @AppStorage(SettingsKey.notifyFocusEndKey) private var notifyFocusEnd = true
 
@@ -40,6 +41,11 @@ struct SettingsView: View {
                     divider
                     row("水槽の数") {
                         CubeSegmented(options: [10, 20, 30], label: { String($0) }, selection: $laterCapacity)
+                    }
+                    divider
+                    row("水槽のガラス") {
+                        CubeSegmented(options: TankGlass.allCases.map(\.rawValue),
+                                      label: { TankGlass(rawValue: $0)?.label ?? $0 }, selection: $tankGlassRaw)
                     }
                 }
                 section("集中") {

@@ -27,6 +27,8 @@ enum SettingsKey {
     static let notifyFocusEndKey = "settings.notifyFocusEnd"
     static let nowCapacityKey = "settings.nowCapacity"
     static let laterCapacityKey = "settings.laterCapacity"
+    /// 水槽のガラスの見え方（TankGlass）
+    static let tankGlassKey = "settings.tankGlass"
 
     static func hour(_ key: String, default value: Int) -> Int {
         let d = UserDefaults.standard
