@@ -24,6 +24,15 @@ struct WatchHomeView: View {
                 DotMatrixText("\(store.count)", dotSize: 6, spacing: 2,
                               color: store.count > 0 ? Theme.accent : Theme.quiet)
 
+                if store.isFull {
+                    // 水槽がいっぱいのときは回せない（iPhone で減らすと、また回せる）
+                    VStack(spacing: 4) {
+                        Text("水槽がいっぱい").font(Theme.mono(15, weight: .bold)).foregroundStyle(Theme.accent)
+                        Text("iPhone の「あとで」で減らすと回せます").font(Theme.mono(12)).foregroundStyle(Theme.ink)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, 4)
+                } else {
                 // タップすると、すぐにシステムの入力（音声・手書き）が開く。
                 TextField("あとでに回す", text: $text, prompt: Text("あとでに回す").foregroundStyle(Theme.paper))
                     .textFieldStyle(.plain)
@@ -34,6 +43,7 @@ struct WatchHomeView: View {
                     .background(Theme.ink, in: .rect(cornerRadius: 24))
                     .onSubmit(submit)
                     .padding(.top, 4)
+                }
 
             }
             .padding(.horizontal, 4)

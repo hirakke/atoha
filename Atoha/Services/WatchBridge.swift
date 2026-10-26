@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import WatchConnectivity
+import UserNotifications
 
 /// Apple Watch との橋。ウォッチから届いた「あとで」を Item にし、件数と次の返却時刻をウォッチへ返す。
 @MainActor
@@ -25,7 +26,7 @@ final class WatchBridge: NSObject, WCSessionDelegate {
         let waiting = ItemState.waiting.rawValue
         let descriptor = FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == waiting })
         guard let items = try? context.fetch(descriptor) else { return }
-        var payload: [String: Any] = ["count": items.count]
+        var payload: [String: Any] = ["count": items.count, "capacity": SettingsStore.laterCapacity]
         if let next = items.compactMap(\.returnAt).filter({ $0 > .now }).min() { payload["nextReturn"] = next }
         try? session.updateApplicationContext(payload)
     }
@@ -37,11 +38,21 @@ final class WatchBridge: NSObject, WCSessionDelegate {
         let timing = (info["timing"] as? String).flatMap(ReturnTiming.init(rawValue:)) ?? .tonight
         let createdAt = info["createdAt"] as? Date ?? .now
 
-        // 再配信されても二重にならないよう、同じ時刻・同じ文なら捨てる。
+        // 水槽（あとで）がいっぱいなら入れずに預かっておく。空いたら入れる（書いたものは落とさない）
+        guard ReturnService.laterRoom(in: context) > 0 else {
+            hold(text: text, timing: timing, createdAt: createdAt)
+            pushContext()
+            return
+        }
+        insert(text: text, timing: timing, createdAt: createdAt, in: context)
+        pushContext()
+    }
+
+    /// CaptureView と同じ手順で水槽に入れる。再配信されても二重にならないよう、同じ時刻・同じ文なら入れない。
+    private func insert(text: String, timing: ReturnTiming, createdAt: Date, in context: ModelContext) {
         let existing = FetchDescriptor<Item>(predicate: #Predicate { $0.createdAt == createdAt && $0.text == text })
         if ((try? context.fetchCount(existing)) ?? 0) > 0 { return }
 
-        // CaptureView と同じ手順
         let item = Item(text: text, timing: timing, now: createdAt)
         context.insert(item)
         try? context.save()
@@ -52,7 +63,39 @@ final class WatchBridge: NSObject, WCSessionDelegate {
             await ItemProcessor.process(item, axes: axes)
             try? context.save()
         }
-        pushContext()
+    }
+
+    // MARK: 水槽がいっぱいのときに預かったもの
+
+    private static let heldKey = "watch.held"
+
+    private func hold(text: String, timing: ReturnTiming, createdAt: Date) {
+        var held = UserDefaults.standard.array(forKey: Self.heldKey) as? [[String: Any]] ?? []
+        guard !held.contains(where: { ($0["text"] as? String) == text && ($0["createdAt"] as? Date) == createdAt }) else { return }
+        held.append(["text": text, "timing": timing.rawValue, "createdAt": createdAt])
+        UserDefaults.standard.set(held, forKey: Self.heldKey)
+
+        let content = UNMutableNotificationContent()
+        content.title = "水槽がいっぱいです"
+        content.body = "Apple Watch から回した「\(text)」は預かっています。「あとで」を減らすと水槽に入ります。"
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "watch.held.\(createdAt.timeIntervalSince1970)", content: content, trigger: nil))
+    }
+
+    /// 水槽に空きができたら、預かっていたものを古い順に入れる。
+    func flushHeld() {
+        guard let context else { return }
+        var held = UserDefaults.standard.array(forKey: Self.heldKey) as? [[String: Any]] ?? []
+        guard !held.isEmpty else { return }
+        var moved = false
+        while !held.isEmpty, ReturnService.laterRoom(in: context) > 0 {
+            let info = held.removeFirst()
+            guard let text = info["text"] as? String, let createdAt = info["createdAt"] as? Date else { continue }
+            let timing = (info["timing"] as? String).flatMap(ReturnTiming.init(rawValue:)) ?? .atBreak
+            insert(text: text, timing: timing, createdAt: createdAt, in: context)
+            moved = true
+        }
+        UserDefaults.standard.set(held, forKey: Self.heldKey)
+        if moved { pushContext() }
     }
 
     // MARK: WCSessionDelegate

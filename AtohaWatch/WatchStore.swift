@@ -7,6 +7,10 @@ final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
 
     @Published private(set) var count: Int
     @Published private(set) var nextReturn: Date?
+    /// 水槽（あとで）に入る数。iPhone の設定から届く
+    @Published private(set) var capacity: Int
+    /// 水槽がいっぱい
+    var isFull: Bool { count >= capacity }
 
     private let defaults = UserDefaults.standard
     private let pendingKey = "pendingCaptures"
@@ -14,6 +18,7 @@ final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
     override init() {
         count = defaults.integer(forKey: "count")
         nextReturn = defaults.object(forKey: "nextReturn") as? Date
+        capacity = defaults.object(forKey: "capacity") as? Int ?? 20
         super.init()
     }
 
@@ -50,11 +55,14 @@ final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
     private func apply(_ context: [String: Any]) {
         let newCount = context["count"] as? Int ?? 0
         let next = context["nextReturn"] as? Date
+        let newCapacity = context["capacity"] as? Int ?? capacity
         defaults.set(newCount, forKey: "count")
+        defaults.set(newCapacity, forKey: "capacity")
         if let next { defaults.set(next, forKey: "nextReturn") } else { defaults.removeObject(forKey: "nextReturn") }
         DispatchQueue.main.async {
             self.count = newCount
             self.nextReturn = next
+            self.capacity = newCapacity
         }
     }
 

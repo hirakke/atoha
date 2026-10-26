@@ -74,6 +74,9 @@ enum ReturnService {
     static func sync(in context: ModelContext) {
         try? context.save()
         LiveActivityService.sync(in: context)
+        // 水槽に空きができたら、Apple Watch から預かっていたものを入れる
+        WatchBridge.shared.flushHeld()
+        WatchBridge.shared.pushContext()
     }
 
     /// サンプル用：おすすめの上から n 件を今に入れた状態にする。
