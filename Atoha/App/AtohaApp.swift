@@ -4,15 +4,19 @@ import SwiftData
 @main
 struct AtohaApp: App {
     @State private var router = AppRouter.shared
-    private let container = AtohaStore.makeContainer()
+    private let container = AtohaStore.shared
 
     init() { Theme.registerFonts() }
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environment(router)
-                .tint(Theme.accent)
+            if DebugLaunch.widgetGallery {
+                WidgetGalleryView()
+            } else {
+                RootView()
+                    .environment(router)
+                    .tint(Theme.accent)
+            }
         }
         .modelContainer(container)
     }
@@ -20,6 +24,9 @@ struct AtohaApp: App {
 
 /// SwiftData のストア。ウィジェットと共有できるよう App Group のフォルダに置く。
 enum AtohaStore {
+    /// アプリ全体で1つのストア（ライブアクティビティの「できた」など、画面の外からも使う）
+    static let shared = makeContainer()
+
     static func makeContainer() -> ModelContainer {
         let schema = Schema([Item.self, Axis.self])
         // 署名なしのビルドなどで App Group が使えないときは、アプリ専用の保存場所に置く（ウィジェットとは共有されない）
@@ -119,6 +126,8 @@ struct RootView: View {
             WatchBridge.shared.activate(context: context)
             if !DebugLaunch.skipNotifications { await NotificationScheduler.requestAuthorization() }
         }
+        // ウィジェット・ライブアクティビティからの行き先
+        .onOpenURL { AtohaDeepLink.handle($0, context: context, router: router) }
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active { ReturnService.returnDue(in: context) }
         }
@@ -198,6 +207,15 @@ enum DebugLaunch {
         if let i = args.firstIndex(of: "-atohaCaptureState"), i + 1 < args.count { return args[i + 1] }
         #endif
         return nil
+    }
+
+    /// ウィジェットの見本を並べた画面で起動する（`-atohaWidgetGallery`）
+    static var widgetGallery: Bool {
+        #if DEBUG
+        return args.contains("-atohaWidgetGallery")
+        #else
+        return false
+        #endif
     }
 
     static var skipNotifications: Bool {

@@ -1,5 +1,6 @@
 import Foundation
 import WatchConnectivity
+import WidgetKit
 
 /// ウォッチ側の状態と iPhone との同期。送信待ちは UserDefaults に残し、落とさない。
 final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
@@ -11,6 +12,8 @@ final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
     @Published private(set) var capacity: Int
     /// 水槽がいっぱい
     var isFull: Bool { count >= capacity }
+    /// 今の1匹と集中の様子（iPhone から届く。コンプリケーションと共有）
+    @Published private(set) var snapshot: WatchSnapshot
 
     private let defaults = UserDefaults.standard
     private let pendingKey = "pendingCaptures"
@@ -19,8 +22,60 @@ final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
         count = defaults.integer(forKey: "count")
         nextReturn = defaults.object(forKey: "nextReturn") as? Date
         capacity = defaults.object(forKey: "capacity") as? Int ?? 20
+        snapshot = WatchSnapshot.load()
         super.init()
     }
+
+    // MARK: 今・集中（iPhone へ頼む。届くまで手元は先に変えておく）
+
+    /// ▶ 集中する
+    func startFocus() {
+        guard let text = snapshot.nowText else { return }
+        var s = snapshot
+        s.focusID = s.nowID
+        s.focusText = text
+        s.focusStart = .now
+        setSnapshot(s)
+        send(["action": "focus", "itemID": s.nowID ?? "", "at": Date()])
+    }
+
+    /// できた：持ち帰る（iPhone の金魚鉢へ）
+    func finish() {
+        let id = snapshot.focusID ?? snapshot.nowID
+        var s = snapshot
+        s.focusID = nil
+        s.focusText = nil
+        s.focusStart = nil
+        if s.nowID == id { s.nowID = nil; s.nowText = nil; s.nowDeadline = nil }
+        setSnapshot(s)
+        send(["action": "done", "itemID": id ?? "", "at": Date()])
+    }
+
+    private func setSnapshot(_ s: WatchSnapshot) {
+        s.save()
+        if Thread.isMainThread { snapshot = s } else { DispatchQueue.main.async { self.snapshot = s } }
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// すぐ届くなら sendMessage、だめなら OS のキューに積む。
+    private func send(_ info: [String: Any]) {
+        guard WCSession.isSupported(), WCSession.default.activationState == .activated else { return }
+        let session = WCSession.default
+        if session.isReachable {
+            session.sendMessage(info, replyHandler: nil) { _ in session.transferUserInfo(info) }
+        } else {
+            session.transferUserInfo(info)
+        }
+    }
+
+    #if DEBUG
+    /// 画面の確認用（-watchState now|capture|released|full|focus|empty）
+    func debugSet(count: Int, capacity: Int, snapshot s: WatchSnapshot) {
+        self.count = count
+        self.capacity = capacity
+        setSnapshot(s)
+    }
+    #endif
 
     func activate() {
         guard WCSession.isSupported() else { return }
@@ -64,6 +119,8 @@ final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
             self.nextReturn = next
             self.capacity = newCapacity
         }
+        // 今・集中のキーは iPhone が新しいときだけ送ってくる。古い iPhone アプリなら触らない
+        if context.keys.contains("hasNow") { setSnapshot(WatchSnapshot(context: context)) }
     }
 
     // MARK: WCSessionDelegate

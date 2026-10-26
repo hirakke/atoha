@@ -16,6 +16,20 @@ final class WatchBridge: NSObject, WCSessionDelegate {
         let session = WCSession.default
         session.delegate = self
         if session.activationState == .activated { pushContext() } else { session.activate() }
+        observeFocus()
+    }
+
+    /// 集中が始まった・終わったら、ウォッチへ送り直す（FocusSession は @Observable）。
+    private func observeFocus() {
+        withObservationTracking {
+            _ = FocusSession.shared.itemID
+            _ = FocusSession.shared.endedAt
+        } onChange: {
+            Task { @MainActor in
+                self.pushContext()
+                self.observeFocus()
+            }
+        }
     }
 
     /// 預かり中の件数と次の返却時刻をウォッチへ送る。
@@ -28,10 +42,64 @@ final class WatchBridge: NSObject, WCSessionDelegate {
         guard let items = try? context.fetch(descriptor) else { return }
         var payload: [String: Any] = ["count": items.count, "capacity": SettingsStore.laterCapacity]
         if let next = items.compactMap(\.returnAt).filter({ $0 > .now }).min() { payload["nextReturn"] = next }
+        addNowAndFocus(to: &payload, in: context)
         try? session.updateApplicationContext(payload)
     }
 
+    // MARK: 今の1匹と集中（ウォッチに出す・ウォッチから操作する）
+
+    /// 今の1匹（お椀の先頭＝優先順位の一番高いもの）と、集中しているものを載せる。
+    private func addNowAndFocus(to payload: inout [String: Any], in context: ModelContext) {
+        payload["hasNow"] = true
+        let returnedRaw = ItemState.returned.rawValue
+        let returned = (try? context.fetch(FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == returnedRaw }))) ?? []
+        if let now = returned.max(by: { $0.priority() < $1.priority() }) {
+            payload["nowID"] = now.id.uuidString
+            payload["nowText"] = now.text
+            if let deadline = now.deadline { payload["nowDeadline"] = deadline }
+        }
+        let focus = FocusSession.shared
+        if let id = focus.itemID, focus.endedAt == nil, let item = item(id: id, in: context) {
+            payload["focusID"] = id.uuidString
+            payload["focusText"] = item.text
+            payload["focusStart"] = focus.startedAt
+            if let planned = focus.plannedMinutes { payload["focusPlanned"] = planned }
+        }
+    }
+
+    private func item(id: UUID, in context: ModelContext) -> Item? {
+        var d = FetchDescriptor<Item>(predicate: #Predicate { $0.id == id })
+        d.fetchLimit = 1
+        return try? context.fetch(d).first
+    }
+
+    /// ウォッチの「▶ 集中する」「できた」。
+    private func handleAction(_ action: String, _ info: [String: Any]) {
+        guard let context else { return }
+        let target = (info["itemID"] as? String).flatMap(UUID.init(uuidString:)).flatMap { item(id: $0, in: context) }
+        let focus = FocusSession.shared
+        switch action {
+        case "focus":
+            guard let target, target.state == .returned, !focus.isActive else { break }
+            focus.start(target)
+        case "done":
+            guard let target, target.state == .returned else { break }
+            if focus.itemID == target.id {
+                if let seconds = focus.stop() { target.focusSeconds += seconds }
+                focus.clear()
+            }
+            ReturnService.takeHome(target, in: context)
+        default:
+            break
+        }
+        pushContext()
+    }
+
     private func receive(_ info: [String: Any]) {
+        if let action = info["action"] as? String {
+            handleAction(action, info)
+            return
+        }
         guard let context,
               let text = (info["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty
         else { return }
@@ -117,6 +185,11 @@ final class WatchBridge: NSObject, WCSessionDelegate {
 
     nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         nonisolated(unsafe) let info = userInfo
+        Task { @MainActor in self.receive(info) }
+    }
+
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        nonisolated(unsafe) let info = message
         Task { @MainActor in self.receive(info) }
     }
 }

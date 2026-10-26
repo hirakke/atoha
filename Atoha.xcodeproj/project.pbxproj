@@ -8,21 +8,31 @@
 
 /* Begin PBXBuildFile section */
 		01D64F07B513A250CB83876F /* AtohaLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 825721E40F217E5FE8577B8B /* AtohaLiveActivity.swift */; };
+		090B9BF6D6B98D3C81C71C16 /* KingyoArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F7B5E434AC7BD49A3F7F84 /* KingyoArt.swift */; };
 		0A44B4364053782CC8DF0A30 /* EmbeddingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7497F8A82313BB92CB160DA /* EmbeddingService.swift */; };
 		0A8A9BBEC4C5A59BE69AF1C2 /* ChatGPTAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D60D6CF8EE34F8BC06CB711 /* ChatGPTAuth.swift */; };
 		0B4B4660FDA7F6717A9062F8 /* ChatGPTBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C72563A72BD4D9D3A5EFCF14 /* ChatGPTBackend.swift */; };
 		17854B50F24197314EEB9B39 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0960E4F93277688BDCE5DF3 /* Item.swift */; };
+		19C06BFB391DB138710D1877 /* AtohaWatchWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D25F5FEAB5311F7D17291209 /* AtohaWatchWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1A6582C627855C81EC2FA0B7 /* DotDecor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1E727B68692D76D889DB85 /* DotDecor.swift */; };
 		1F4F3C270DD390AB5BBECD0D /* DotMatrixText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB16D29D20304F9C0305F0CF /* DotMatrixText.swift */; };
+		20958035B860E7EC9188973E /* DotGothic16-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */; };
 		27F34F2D728DB98B48C83734 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5004564EF3F9999682A50EC /* Theme.swift */; };
+		2A5AB08D7638155DF4144019 /* DotGothic16-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */; };
 		2DF3F3EA600C2339083623C2 /* MapControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17591DD356B0BA0D9D74CB8C /* MapControls.swift */; };
 		2E549F6A448D597CC1562980 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5004564EF3F9999682A50EC /* Theme.swift */; };
+		2EBA998B91EBB103E30399BB /* KingyoWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EADF6596270E6BB5F68F6E /* KingyoWidgetViews.swift */; };
+		301770E86C5CC1CE43B9FD36 /* KingyoWidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EADF6596270E6BB5F68F6E /* KingyoWidgetViews.swift */; };
 		3183F1FA06FD004C58919E61 /* PondMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F1EE4ABE20F8451B764C5E /* PondMapView.swift */; };
 		34D15BB0019B4558D122ABC4 /* WatchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24518AD289BABFA8653B0354 /* WatchHomeView.swift */; };
+		35FD1C4BA7C898AD12842EBE /* WatchPixel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAF3767B31FC7224EFC885F /* WatchPixel.swift */; };
 		39C37D0376DA8714091C1C24 /* MapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8585F743E204047C76DBE51E /* MapScreen.swift */; };
 		3A8484FCFCBEC5286838E59A /* ReturnService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E85306D88B0F32B49FF4A79 /* ReturnService.swift */; };
 		3EAD8937BDE1A956B515B81B /* WantMustPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17422227531B7CB838DAF465 /* WantMustPad.swift */; };
 		40A80193E4C063B4538B6C59 /* TankView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB439713DF791CE03B0BB451 /* TankView.swift */; };
+		42DE947325A2CA3DD6699E0A /* DelaGothicOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */; };
+		46D16B9CB505CF222192B332 /* KingyoArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F7B5E434AC7BD49A3F7F84 /* KingyoArt.swift */; };
+		49AFD88B1F1C21A639C4AD0D /* WatchPixel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAF3767B31FC7224EFC885F /* WatchPixel.swift */; };
 		4AC7E26FFA30A580AE381C19 /* ItemPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9860B870BD819E8F3DE055 /* ItemPriority.swift */; };
 		507EFAB99413CC498F5E79B2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B173EBFF3191CA404C9A24A8 /* SettingsView.swift */; };
 		53909A665A0D71F18D27653E /* CubeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6670AC23B3B764E5B741C55 /* CubeButton.swift */; };
@@ -35,17 +45,26 @@
 		63CB5519D571E6F3488C840A /* CubeSegmented.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86A2642AB303F8D121106F1 /* CubeSegmented.swift */; };
 		64C31976D6F31CFBF060F198 /* PCCBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687554505A248D07248E1AEB /* PCCBackend.swift */; };
 		6664DE771FD4ABF7776101A0 /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD68120CB19E067390C9B4 /* CollectionView.swift */; };
+		68E94CE4A7B5168FCA00E677 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15AE3E1B5426CEC00472844C /* WidgetSnapshot.swift */; };
 		68F8EE5E520F9311872756E1 /* AtohaActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */; };
 		6A2A8C48A00D37AEFDE3CE4F /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581466A17A22E30ABA54CFBC /* CaptureView.swift */; };
+		6BA07415554201E9AF860273 /* WidgetGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E8BA8A77ECF48E1D60C3C3 /* WidgetGallery.swift */; };
 		6DEFA19C7E21006155CD1294 /* PoleNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C98EC7405C37474D45B2595 /* PoleNamer.swift */; };
+		777742C6CB4494C72F48561D /* DelaGothicOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */; };
+		7B6BBFA2C020BC7044814E02 /* WatchSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A34C8D987D1C42B58B9FB6 /* WatchSnapshot.swift */; };
+		7B898348348D65B523270B53 /* WidgetSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E54E3F4EB90AF3D3274BE5 /* WidgetSync.swift */; };
+		7CA33D0DF54DC7313F8E3AD0 /* DotGothic16-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */; };
 		7FE01B10BCE98F73C6B8B948 /* FocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929C4CB011EF655A285056A7 /* FocusView.swift */; };
 		8358D89E7F2625D499C04311 /* ItemProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286EBC60507FAC61B3630550 /* ItemProcessor.swift */; };
 		84A689AACF34789E2FA564E7 /* DotMatrixText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB16D29D20304F9C0305F0CF /* DotMatrixText.swift */; };
 		88178274F9CA03C1DB4E212B /* AtohaActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */; };
+		8CEFE3E5417D7A6C15F05C2A /* KingyoWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E8D0002CE70D9277D4F4E29 /* KingyoWidgets.swift */; };
 		8E77F76BE74460405F1E0B83 /* Timeout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F26D2CA6100F4A76569E6C /* Timeout.swift */; };
+		90694AE1A115CD0D401322C1 /* AtohaWatchWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60F0FADF198AF9BA83CE37E /* AtohaWatchWidget.swift */; };
 		952F76FDD7E038239C3BFB6B /* CubeGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFC0A92AC358599C8238C7B /* CubeGlyph.swift */; };
 		98CD02B80DA23FDB36BD9A92 /* CaptureControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E737233AF4867CD2E78DA54C /* CaptureControl.swift */; };
 		9905EECF413A4358B1DC184D /* Ennichi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DA61D9647989201AF36CA5 /* Ennichi.swift */; };
+		9B493ED23947A0141054FCDD /* DelaGothicOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */; };
 		9E75F6AD5DD94094905F63E8 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0960E4F93277688BDCE5DF3 /* Item.swift */; };
 		A1AF3FCEC2EDB9C500BD456C /* AtohaWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 886DCDAC93079CDE90D741FF /* AtohaWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AB0A3766F21270B4DB2AE433 /* AtohaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */; };
@@ -53,8 +72,10 @@
 		AEA7E1181145F207187605A6 /* AtohaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB665108DFCE97CB721B748 /* AtohaApp.swift */; };
 		B1CD9C3291CAEAD4E1B915DD /* DotMatrixText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB16D29D20304F9C0305F0CF /* DotMatrixText.swift */; };
 		B4AD5E87525C82D924061225 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEEE60C4C5DEE69E941BE15 /* Typography.swift */; };
+		BDD81FC924A2EDBB2E09DDB7 /* WatchSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A34C8D987D1C42B58B9FB6 /* WatchSnapshot.swift */; };
 		BE6C8844E36F7D7D5B50603E /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF828FEF511423DBAE058CB9 /* SettingsStore.swift */; };
 		C226A2549D62C7046872725B /* AxisEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1256465E6A6CBB65F08211 /* AxisEngine.swift */; };
+		C22EE2A318145CDBCE373156 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3CB9FA83217C4107E1E793EA /* AppIcon.icon */; };
 		C3290D9300A8B744F3A2DE64 /* DelaGothicOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */; };
 		C91D2861252D7087F38D7AEA /* CaptureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */; };
 		CB62C65EFAABEED95E02953F /* AtohaAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67D5E35926E9D2CC2A601D8 /* AtohaAI.swift */; };
@@ -67,11 +88,13 @@
 		E68EB9C5296BB10CC4A8CFA2 /* OFL-DelaGothicOne.txt in Resources */ = {isa = PBXBuildFile; fileRef = 20FA731411DE6058599A5242 /* OFL-DelaGothicOne.txt */; };
 		E7D0B975281C9385E1D7D185 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2CB09E0B8B11B34B3AEE8 /* Card.swift */; };
 		EB9D97B664048B3D6442112F /* WatchTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62302046C5823B19F386EA37 /* WatchTheme.swift */; };
+		EC234E9BED50BB02DBC20761 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3CB9FA83217C4107E1E793EA /* AppIcon.icon */; };
 		ED2E7483553857BF9AE80390 /* WatchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC801DAC4A3EB7D7298B4E4E /* WatchStore.swift */; };
 		EDED4B8BE6A146A2945608B0 /* DotMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57AE9E94447E9C440FCB6F7D /* DotMark.swift */; };
 		F2082E7673F221BF9FCB4635 /* DotDecor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC1E727B68692D76D889DB85 /* DotDecor.swift */; };
 		F6C8BFFA0F82B07CC4C3FE26 /* AtohaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 859BF8CC4900FA8E8FE50939 /* AtohaShortcuts.swift */; };
 		F711D95B48F7ECC8AC785A3B /* AxesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C803C2953D167886C74E3603 /* AxesView.swift */; };
+		F782F6CC486E22E7C45F8E07 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15AE3E1B5426CEC00472844C /* WidgetSnapshot.swift */; };
 		FA2720C95BC35EFBB25936E1 /* BatchOrganizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2211C8EB8EA84281FBA1731C /* BatchOrganizer.swift */; };
 		FB130CE52829295EAC3F2FC5 /* AtohaWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = B777E38E45D1B169DE2ED7BB /* AtohaWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FC306610D244F141A795CB05 /* LaterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 181004E8315D2D4418DF39FA /* LaterView.swift */; };
@@ -96,6 +119,13 @@
 			remoteGlobalIDString = AEBA787FCE8D0C60D30D4BE1;
 			remoteInfo = AtohaWatch;
 		};
+		B0C4430F148B4CB9E3ED27A5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 84F7E4E319C99836B2666AAB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8EA499124FD77ACB26E3523A;
+			remoteInfo = AtohaWatchWidget;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -106,6 +136,17 @@
 			dstSubfolderSpec = 13;
 			files = (
 				A1AF3FCEC2EDB9C500BD456C /* AtohaWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		44E2974D7FF557AF06095DC7 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				19C06BFB391DB138710D1877 /* AtohaWatchWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -124,7 +165,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0AAF3767B31FC7224EFC885F /* WatchPixel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchPixel.swift; sourceTree = "<group>"; };
 		0E9860B870BD819E8F3DE055 /* ItemPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemPriority.swift; sourceTree = "<group>"; };
+		15AE3E1B5426CEC00472844C /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
 		16F1EE4ABE20F8451B764C5E /* PondMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PondMapView.swift; sourceTree = "<group>"; };
 		17422227531B7CB838DAF465 /* WantMustPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WantMustPad.swift; sourceTree = "<group>"; };
 		17591DD356B0BA0D9D74CB8C /* MapControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapControls.swift; sourceTree = "<group>"; };
@@ -136,6 +179,7 @@
 		286EBC60507FAC61B3630550 /* ItemProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemProcessor.swift; sourceTree = "<group>"; };
 		2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaWatchApp.swift; sourceTree = "<group>"; };
 		3684B8C4F41AB23C4167C288 /* VoxelMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoxelMesh.swift; sourceTree = "<group>"; };
+		3CB9FA83217C4107E1E793EA /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		42DD68120CB19E067390C9B4 /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		4C1256465E6A6CBB65F08211 /* AxisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxisEngine.swift; sourceTree = "<group>"; };
 		4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DotGothic16-Regular.ttf"; sourceTree = "<group>"; };
@@ -143,20 +187,29 @@
 		51AD5090A11780BE3D7B2453 /* StoryBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryBookView.swift; sourceTree = "<group>"; };
 		57AE9E94447E9C440FCB6F7D /* DotMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotMark.swift; sourceTree = "<group>"; };
 		581466A17A22E30ABA54CFBC /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
+		6055977A760A8CF2F0B9EB19 /* AtohaWatchWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AtohaWatchWidget.entitlements; sourceTree = "<group>"; };
 		6131D4A4CC335928C1DE5F0B /* TimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeText.swift; sourceTree = "<group>"; };
 		61A0F723C196A8BC9C7A49B0 /* AtohaWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaWidgetBundle.swift; sourceTree = "<group>"; };
+		61E54E3F4EB90AF3D3274BE5 /* WidgetSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSync.swift; sourceTree = "<group>"; };
 		62302046C5823B19F386EA37 /* WatchTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchTheme.swift; sourceTree = "<group>"; };
 		687554505A248D07248E1AEB /* PCCBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCCBackend.swift; sourceTree = "<group>"; };
+		68F7B5E434AC7BD49A3F7F84 /* KingyoArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KingyoArt.swift; sourceTree = "<group>"; };
 		6AA0243812D8A16BAD80FFAF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		6E8D0002CE70D9277D4F4E29 /* KingyoWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KingyoWidgets.swift; sourceTree = "<group>"; };
+		77E8BA8A77ECF48E1D60C3C3 /* WidgetGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetGallery.swift; sourceTree = "<group>"; };
 		79764144A2C25377F67360B6 /* AtohaActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaActivityAttributes.swift; sourceTree = "<group>"; };
 		7CB665108DFCE97CB721B748 /* AtohaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaApp.swift; sourceTree = "<group>"; };
 		7E85306D88B0F32B49FF4A79 /* ReturnService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReturnService.swift; sourceTree = "<group>"; };
+		7F64DEA7703A3C59BAD856B9 /* AtohaWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AtohaWatch.entitlements; sourceTree = "<group>"; };
 		81FFAF33102FD9B617E9D294 /* OFL-DotGothic16.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "OFL-DotGothic16.txt"; sourceTree = "<group>"; };
 		825721E40F217E5FE8577B8B /* AtohaLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaLiveActivity.swift; sourceTree = "<group>"; };
 		8585F743E204047C76DBE51E /* MapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScreen.swift; sourceTree = "<group>"; };
 		859BF8CC4900FA8E8FE50939 /* AtohaShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaShortcuts.swift; sourceTree = "<group>"; };
+		86A34C8D987D1C42B58B9FB6 /* WatchSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSnapshot.swift; sourceTree = "<group>"; };
 		886DCDAC93079CDE90D741FF /* AtohaWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = AtohaWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		89EADF6596270E6BB5F68F6E /* KingyoWidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KingyoWidgetViews.swift; sourceTree = "<group>"; };
 		8FFC0A92AC358599C8238C7B /* CubeGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubeGlyph.swift; sourceTree = "<group>"; };
+		926A0ED9913FB5453D3CB3A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		929C4CB011EF655A285056A7 /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
 		92E2CB09E0B8B11B34B3AEE8 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		95486C4029E2E89937DD0766 /* PersonalPCA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalPCA.swift; sourceTree = "<group>"; };
@@ -182,6 +235,7 @@
 		CB48C9429997C7C0AB2B86FD /* LanguageBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageBackend.swift; sourceTree = "<group>"; };
 		CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureIntent.swift; sourceTree = "<group>"; };
 		D0F901FE66D0853987E4AB8D /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
+		D25F5FEAB5311F7D17291209 /* AtohaWatchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AtohaWatchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5004564EF3F9999682A50EC /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		D6670AC23B3B764E5B741C55 /* CubeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubeButton.swift; sourceTree = "<group>"; };
 		D7497F8A82313BB92CB160DA /* EmbeddingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddingService.swift; sourceTree = "<group>"; };
@@ -191,6 +245,7 @@
 		E737233AF4867CD2E78DA54C /* CaptureControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureControl.swift; sourceTree = "<group>"; };
 		EC1E727B68692D76D889DB85 /* DotDecor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotDecor.swift; sourceTree = "<group>"; };
 		EF828FEF511423DBAE058CB9 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		F60F0FADF198AF9BA83CE37E /* AtohaWatchWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtohaWatchWidget.swift; sourceTree = "<group>"; };
 		F95C4ECA3ED776A8A4E48CFA /* FocusSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSession.swift; sourceTree = "<group>"; };
 		FDEEE60C4C5DEE69E941BE15 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -220,6 +275,7 @@
 			children = (
 				BEEABFA1B1E7FF5EE32DE786 /* Atoha */,
 				390DF8C9BCCF611A037401F6 /* AtohaWatch */,
+				5779E1E14C6B0AA2876A95B7 /* AtohaWatchWidget */,
 				E2B697D089D57ABC2ABB512A /* AtohaWidget */,
 				6A1E28AB1FF7847D10CD293A /* Products */,
 			);
@@ -245,13 +301,24 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		37D30E8740D6B59A4580FF82 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				0AAF3767B31FC7224EFC885F /* WatchPixel.swift */,
+				86A34C8D987D1C42B58B9FB6 /* WatchSnapshot.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		390DF8C9BCCF611A037401F6 /* AtohaWatch */ = {
 			isa = PBXGroup;
 			children = (
+				7F64DEA7703A3C59BAD856B9 /* AtohaWatch.entitlements */,
 				2C1EE8A714671CDD03189B10 /* AtohaWatchApp.swift */,
 				24518AD289BABFA8653B0354 /* WatchHomeView.swift */,
 				BC801DAC4A3EB7D7298B4E4E /* WatchStore.swift */,
 				62302046C5823B19F386EA37 /* WatchTheme.swift */,
+				37D30E8740D6B59A4580FF82 /* Shared */,
 			);
 			path = AtohaWatch;
 			sourceTree = "<group>";
@@ -284,6 +351,8 @@
 				7CB665108DFCE97CB721B748 /* AtohaApp.swift */,
 				7E85306D88B0F32B49FF4A79 /* ReturnService.swift */,
 				E0F476922DC4619EB51C27AD /* SampleData.swift */,
+				77E8BA8A77ECF48E1D60C3C3 /* WidgetGallery.swift */,
+				61E54E3F4EB90AF3D3274BE5 /* WidgetSync.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -305,6 +374,16 @@
 			path = Focus;
 			sourceTree = "<group>";
 		};
+		5779E1E14C6B0AA2876A95B7 /* AtohaWatchWidget */ = {
+			isa = PBXGroup;
+			children = (
+				6055977A760A8CF2F0B9EB19 /* AtohaWatchWidget.entitlements */,
+				F60F0FADF198AF9BA83CE37E /* AtohaWatchWidget.swift */,
+				926A0ED9913FB5453D3CB3A7 /* Info.plist */,
+			);
+			path = AtohaWatchWidget;
+			sourceTree = "<group>";
+		};
 		62120B7EA1AC08E8028583AB /* Home */ = {
 			isa = PBXGroup;
 			children = (
@@ -321,6 +400,7 @@
 			children = (
 				A569BB229901B2F91CFD2E46 /* Atoha.app */,
 				B777E38E45D1B169DE2ED7BB /* AtohaWatch.app */,
+				D25F5FEAB5311F7D17291209 /* AtohaWatchWidget.appex */,
 				886DCDAC93079CDE90D741FF /* AtohaWidget.appex */,
 			);
 			name = Products;
@@ -361,6 +441,16 @@
 				51AD5090A11780BE3D7B2453 /* StoryBookView.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		71A0E4BE291ABDCE0FF01006 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				68F7B5E434AC7BD49A3F7F84 /* KingyoArt.swift */,
+				89EADF6596270E6BB5F68F6E /* KingyoWidgetViews.swift */,
+				15AE3E1B5426CEC00472844C /* WidgetSnapshot.swift */,
+			);
+			path = Widget;
 			sourceTree = "<group>";
 		};
 		7D11626E501E526C1D777403 /* DesignSystem */ = {
@@ -414,6 +504,7 @@
 		BEEABFA1B1E7FF5EE32DE786 /* Atoha */ = {
 			isa = PBXGroup;
 			children = (
+				3CB9FA83217C4107E1E793EA /* AppIcon.icon */,
 				9CC0A859F1C1C9E07F200D90 /* Atoha.entitlements */,
 				52DC513D8E855F68C363BA2D /* App */,
 				8F83322C6D951A853318D111 /* Intents */,
@@ -421,6 +512,7 @@
 				AA67D4FCBFCE43D8CA3886F3 /* Resources */,
 				6A33229BD07D1A703C5818C4 /* Services */,
 				04A23E65495F7E7F0F523E22 /* UI */,
+				71A0E4BE291ABDCE0FF01006 /* Widget */,
 			);
 			path = Atoha;
 			sourceTree = "<group>";
@@ -443,6 +535,7 @@
 				61A0F723C196A8BC9C7A49B0 /* AtohaWidgetBundle.swift */,
 				E737233AF4867CD2E78DA54C /* CaptureControl.swift */,
 				50F1ABB1D49FA8DC3AB45936 /* Info.plist */,
+				6E8D0002CE70D9277D4F4E29 /* KingyoWidgets.swift */,
 			);
 			path = AtohaWidget;
 			sourceTree = "<group>";
@@ -450,15 +543,36 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		8EA499124FD77ACB26E3523A /* AtohaWatchWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F7FD823D6E529F99509C5FE /* Build configuration list for PBXNativeTarget "AtohaWatchWidget" */;
+			buildPhases = (
+				CE3F509F5F4B6E53EB134B6F /* Sources */,
+				B71EDD29CC613EE247E14743 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AtohaWatchWidget;
+			packageProductDependencies = (
+			);
+			productName = AtohaWatchWidget;
+			productReference = D25F5FEAB5311F7D17291209 /* AtohaWatchWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		AEBA787FCE8D0C60D30D4BE1 /* AtohaWatch */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3C4DE9C4FECD8C989DC49809 /* Build configuration list for PBXNativeTarget "AtohaWatch" */;
 			buildPhases = (
 				D035C2772FCCEFA82AA42CA4 /* Sources */,
+				E40F58C5D33D2763899C89F3 /* Resources */,
+				44E2974D7FF557AF06095DC7 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3E21406B8AC5852085252B36 /* PBXTargetDependency */,
 			);
 			name = AtohaWatch;
 			packageProductDependencies = (
@@ -494,6 +608,7 @@
 			buildConfigurationList = 96E80D2112C0005A030CC100 /* Build configuration list for PBXNativeTarget "AtohaWidget" */;
 			buildPhases = (
 				9D001FB320BADC42EC7DAE39 /* Sources */,
+				6028C1859DABA3EFB6FDE55E /* Resources */,
 			);
 			buildRules = (
 			);
@@ -515,6 +630,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					8EA499124FD77ACB26E3523A = {
+						DevelopmentTeam = 6HY8YSMK7C;
+						ProvisioningStyle = Automatic;
+					};
 					AEBA787FCE8D0C60D30D4BE1 = {
 						DevelopmentTeam = 6HY8YSMK7C;
 						ProvisioningStyle = Automatic;
@@ -545,16 +664,46 @@
 			targets = (
 				CC345D8CB4F0EEAE463F0E2C /* Atoha */,
 				AEBA787FCE8D0C60D30D4BE1 /* AtohaWatch */,
+				8EA499124FD77ACB26E3523A /* AtohaWatchWidget */,
 				DCFD1ED22146948650B69283 /* AtohaWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		6028C1859DABA3EFB6FDE55E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				42DE947325A2CA3DD6699E0A /* DelaGothicOne-Regular.ttf in Resources */,
+				2A5AB08D7638155DF4144019 /* DotGothic16-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B71EDD29CC613EE247E14743 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				777742C6CB4494C72F48561D /* DelaGothicOne-Regular.ttf in Resources */,
+				7CA33D0DF54DC7313F8E3AD0 /* DotGothic16-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E40F58C5D33D2763899C89F3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EC234E9BED50BB02DBC20761 /* AppIcon.icon in Resources */,
+				9B493ED23947A0141054FCDD /* DelaGothicOne-Regular.ttf in Resources */,
+				20958035B860E7EC9188973E /* DotGothic16-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FB471EC34CFC73B2F210C3E0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C22EE2A318145CDBCE373156 /* AppIcon.icon in Resources */,
 				C3290D9300A8B744F3A2DE64 /* DelaGothicOne-Regular.ttf in Resources */,
 				63894C180E92AF13CFD701B9 /* DotGothic16-Regular.ttf in Resources */,
 				E68EB9C5296BB10CC4A8CFA2 /* OFL-DelaGothicOne.txt in Resources */,
@@ -577,7 +726,21 @@
 				FCD8998B29881B4D82B04773 /* CaptureIntent.swift in Sources */,
 				1A6582C627855C81EC2FA0B7 /* DotDecor.swift in Sources */,
 				B1CD9C3291CAEAD4E1B915DD /* DotMatrixText.swift in Sources */,
+				090B9BF6D6B98D3C81C71C16 /* KingyoArt.swift in Sources */,
+				2EBA998B91EBB103E30399BB /* KingyoWidgetViews.swift in Sources */,
+				8CEFE3E5417D7A6C15F05C2A /* KingyoWidgets.swift in Sources */,
 				27F34F2D728DB98B48C83734 /* Theme.swift in Sources */,
+				68E94CE4A7B5168FCA00E677 /* WidgetSnapshot.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE3F509F5F4B6E53EB134B6F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				90694AE1A115CD0D401322C1 /* AtohaWatchWidget.swift in Sources */,
+				49AFD88B1F1C21A639C4AD0D /* WatchPixel.swift in Sources */,
+				BDD81FC924A2EDBB2E09DDB7 /* WatchSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -589,6 +752,8 @@
 				1F4F3C270DD390AB5BBECD0D /* DotMatrixText.swift in Sources */,
 				9E75F6AD5DD94094905F63E8 /* Item.swift in Sources */,
 				34D15BB0019B4558D122ABC4 /* WatchHomeView.swift in Sources */,
+				35FD1C4BA7C898AD12842EBE /* WatchPixel.swift in Sources */,
+				7B6BBFA2C020BC7044814E02 /* WatchSnapshot.swift in Sources */,
 				ED2E7483553857BF9AE80390 /* WatchStore.swift in Sources */,
 				EB9D97B664048B3D6442112F /* WatchTheme.swift in Sources */,
 			);
@@ -627,6 +792,8 @@
 				17854B50F24197314EEB9B39 /* Item.swift in Sources */,
 				4AC7E26FFA30A580AE381C19 /* ItemPriority.swift in Sources */,
 				8358D89E7F2625D499C04311 /* ItemProcessor.swift in Sources */,
+				46D16B9CB505CF222192B332 /* KingyoArt.swift in Sources */,
+				301770E86C5CC1CE43B9FD36 /* KingyoWidgetViews.swift in Sources */,
 				FFF27E1A9DA79F1D84904FF4 /* LanguageBackend.swift in Sources */,
 				FC306610D244F141A795CB05 /* LaterView.swift in Sources */,
 				2DF3F3EA600C2339083623C2 /* MapControls.swift in Sources */,
@@ -649,12 +816,20 @@
 				3EAD8937BDE1A956B515B81B /* WantMustPad.swift in Sources */,
 				CD868A77319FD55143725238 /* WatchBridge.swift in Sources */,
 				E18D05FADACA63DD64294B4A /* WeekDotStrip.swift in Sources */,
+				6BA07415554201E9AF860273 /* WidgetGallery.swift in Sources */,
+				F782F6CC486E22E7C45F8E07 /* WidgetSnapshot.swift in Sources */,
+				7B898348348D65B523270B53 /* WidgetSync.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3E21406B8AC5852085252B36 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8EA499124FD77ACB26E3523A /* AtohaWatchWidget */;
+			targetProxy = B0C4430F148B4CB9E3ED27A5 /* PBXContainerItemProxy */;
+		};
 		CA9053AA8DFB977F1844B6A4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AEBA787FCE8D0C60D30D4BE1 /* AtohaWatch */;
@@ -668,10 +843,30 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		278A52541B33CEA52A1356D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = AtohaWatchWidget/AtohaWatchWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = AtohaWatchWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.atoha.prototype.watchkitapp.widget;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
 		3223B92470188361AA23396E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AtohaWatch/AtohaWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = atoha;
@@ -832,6 +1027,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AtohaWatch/AtohaWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = atoha;
@@ -909,6 +1105,25 @@
 			};
 			name = Debug;
 		};
+		FF4C1FC16FA836A0E20C56E7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = AtohaWatchWidget/AtohaWatchWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = AtohaWatchWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.atoha.prototype.watchkitapp.widget;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -944,6 +1159,15 @@
 			buildConfigurations = (
 				E3580A40C94E1BE403C56CBF /* Debug */,
 				9C476C3FC0D5E65048B5A36C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9F7FD823D6E529F99509C5FE /* Build configuration list for PBXNativeTarget "AtohaWatchWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF4C1FC16FA836A0E20C56E7 /* Debug */,
+				278A52541B33CEA52A1356D6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

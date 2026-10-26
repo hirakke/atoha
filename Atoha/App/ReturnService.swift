@@ -65,6 +65,7 @@ enum ReturnService {
     static func takeHome(_ item: Item, in context: ModelContext) {
         item.state = .done
         item.resolvedAt = .now
+        WidgetSync.markDone(item.text)
         sync(in: context)
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         AppRouter.shared.takenHomeID = item.id
@@ -90,32 +91,7 @@ enum ReturnService {
     }
 }
 
-/// ロック画面／ダイナミックアイランドのライブアクティビティ。預かり中が1件以上の間だけ出す。
-@MainActor
-enum LiveActivityService {
-    static func sync(in context: ModelContext, now: Date = .now) {
-        let waiting = ItemState.waiting.rawValue
-        let descriptor = FetchDescriptor<Item>(predicate: #Predicate { $0.stateRaw == waiting })
-        guard let items = try? context.fetch(descriptor) else { return }
-        let state = AtohaActivityAttributes.ContentState(
-            count: items.count,
-            nextReturn: items.compactMap(\.returnAt).filter { $0 > now }.min())
-        let current = Activity<AtohaActivityAttributes>.activities
-
-        if items.isEmpty {
-            for activity in current {
-                Task { await activity.end(nil, dismissalPolicy: .immediate) }
-            }
-            return
-        }
-        let content = ActivityContent(state: state, staleDate: nil)
-        if let activity = current.first {
-            Task { await activity.update(content) }
-        } else if ActivityAuthorizationInfo().areActivitiesEnabled {
-            _ = try? Activity.request(attributes: AtohaActivityAttributes(), content: content)
-        }
-    }
-}
+// LiveActivityService（集中中だけのライブアクティビティとウィジェットの写し）は WidgetSync.swift
 
 /// 返す時刻にローカル通知を出す。同じ時刻のものは1つの通知にまとめる。
 enum NotificationScheduler {

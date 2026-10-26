@@ -44,6 +44,7 @@ final class FocusSession {
         plannedMinutes = SettingsStore.focusDefaultMinutes
         endedAt = nil
         persist()
+        notifyWidgets()
     }
 
     func setPlanned(_ minutes: Int?) {
@@ -58,6 +59,7 @@ final class FocusSession {
         guard itemID != nil, endedAt == nil else { return nil }
         endedAt = .now
         persist()
+        notifyWidgets()
         cancelNotification()
         return elapsed()
     }
@@ -68,6 +70,12 @@ final class FocusSession {
         plannedMinutes = nil
         endedAt = nil
         persist()
+        notifyWidgets()
+    }
+
+    /// ウィジェットとライブアクティビティに知らせる
+    private func notifyWidgets() {
+        Task { @MainActor in WidgetSync.focusChanged() }
     }
 
     private func persist() {

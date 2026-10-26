@@ -6,3 +6,8 @@ final class AppRouter {
     static let shared = AppRouter()
     var showCapture = false
 }
+
+/// FocusDoneIntent（LiveActivityIntent）はアプリのプロセスで動く。ウィジェット側のこれは使われない。
+enum FocusDoneAction {
+    @MainActor static func run() {}
+}

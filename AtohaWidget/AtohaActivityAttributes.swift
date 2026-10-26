@@ -1,14 +1,19 @@
 import ActivityKit
 import Foundation
 
-/// 預かり中を示すライブアクティビティ。アプリ本体とウィジェットの両方で使う。
+/// 集中しているあいだだけ出すライブアクティビティ。アプリ本体とウィジェットの両方で使う。
 struct AtohaActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
-        /// 預かり中の件数
-        var count: Int
-        /// 次に返す時刻。区切りだけなら nil。
-        var nextReturn: Date?
+        /// 集中している1匹の名前
+        var text: String
+        /// 集中を始めた時刻（経過はこれから数える）
+        var startedAt: Date
+        /// 区切りを押して計測が止まった時刻
+        var endedAt: Date?
     }
+
+    /// 集中している1匹
+    var itemID: UUID
 }
 
 /// アプリ本体とウィジェットで共有する App Group。
