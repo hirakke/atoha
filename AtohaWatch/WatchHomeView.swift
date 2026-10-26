@@ -455,14 +455,7 @@ private struct FullTankScreen: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 4)
         } footer: {
-            // 時計から iPhone のアプリは開けないので、Handoff で iPhone 側に出しつつ今に戻る
-            Button { screen = .home } label: { Text("iPhone で開く") }
-                .buttonStyle(KGlassStyle())
-                .frame(height: 40)
-        }
-        .userActivity("app.atoha.prototype.later") { activity in
-            activity.title = "あとで"
-            activity.isEligibleForHandoff = true
+            EmptyView()
         }
     }
 }
