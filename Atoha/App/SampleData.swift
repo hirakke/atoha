@@ -32,6 +32,20 @@ enum SampleData {
             context.insert(item)
             inserted.append(item)
         }
+        // 金魚鉢を確かめるため、この月と先月に持ち帰ったものも入れる
+        let takenHome: [(String, Int, Double, Double)] = [
+            ("洗濯物を取り込む", 1, 0.2, 0.9), ("美術館の企画展を見に行く", 3, 0.9, 0.3),
+            ("履歴書の写真を撮る", 6, 0.3, 0.8), ("友達に誕生日のメッセージ", 9, 0.8, 0.7), ("自転車の空気を入れる", 34, 0.1, 0.6)
+        ]
+        for (text, daysAgo, want, must) in takenHome {
+            let done = now.addingTimeInterval(-Double(daysAgo) * 86_400)
+            let item = Item(text: text, timing: .atBreak, now: done.addingTimeInterval(-86_400))
+            item.want = want
+            item.must = must
+            item.state = .done
+            item.resolvedAt = done
+            context.insert(item)
+        }
         try? context.save()
         ReturnService.acceptTop(2, in: context, now: now)
         Task { @MainActor in

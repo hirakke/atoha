@@ -84,9 +84,7 @@ struct CollectionView: View {
         }
         .foregroundStyle(.white)
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.band))
-        .background(RoundedRectangle(cornerRadius: Theme.radius).fill(Theme.accent).offset(x: Theme.shadow, y: Theme.shadow))
-        .padding(.trailing, Theme.shadow)
+        .glassBox(radius: Theme.radius, dark: true)
         .accessibilityElement(children: .combine)
     }
 
@@ -149,9 +147,7 @@ struct CollectionView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: 130, alignment: .topLeading)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Theme.surface))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
-        .background(RoundedRectangle(cornerRadius: 16).fill(latest ? Theme.accent : Theme.ink).offset(x: 3, y: 3))
+        .glassBox(radius: 16, edge: latest ? Theme.accent : nil)
         .accessibilityElement(children: .combine)
         .accessibilityHint("詳しく見る")
     }
@@ -234,14 +230,7 @@ struct CollectionView: View {
             }
             .padding(.top, 6)
             .frame(maxWidth: .infinity, minHeight: 56)
-            .background(RoundedRectangle(cornerRadius: 10).fill(picked ? Theme.ink : (future ? Color.clear : Theme.surface)))
-            .overlay {
-                if today && !picked {
-                    RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.accent, lineWidth: 2)
-                } else if future {
-                    RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.faint, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
-                }
-            }
+            .modifier(DayBox(picked: picked, today: today, future: future))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(day.formatted(.dateTime.month().day().locale(.ja)))、\(items.count)匹")
@@ -284,9 +273,7 @@ struct CollectionView: View {
                             .foregroundStyle(isThis ? Theme.accent : (n == 0 ? Theme.quiet : Theme.ink))
                     }
                     .frame(maxWidth: .infinity, minHeight: 84)
-                    .background(RoundedRectangle(cornerRadius: 14).fill(future ? Color.clear : Theme.surface))
-                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(isThis ? Theme.accent : Theme.faint,
-                                                                             style: StrokeStyle(lineWidth: isThis ? 3 : 2, dash: future ? [3, 2] : [])))
+                    .modifier(MonthBox(isThis: isThis, future: future))
                 }
                 .buttonStyle(.plain)
                 .disabled(future)
@@ -304,7 +291,8 @@ struct CollectionView: View {
     private func empty(_ text: String) -> some View {
         Text(text).atype(.small, color: Theme.quiet)
             .frame(maxWidth: .infinity, minHeight: 120)
-            .onPaper()
+            .padding(16)
+            .glassBox(radius: Theme.radius)
     }
 
     /// 金魚鉢では、持ち帰る前の色（やりたい・やらなきゃ）で見せる
@@ -348,9 +336,7 @@ private struct CollectionDetail: View {
                 HStack(spacing: 16) {
                     GoldfishMark(tint: item.isRated ? tint : .black, width: 72)
                         .frame(width: 100, height: 100)
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Theme.surface))
-                        .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Theme.ink, lineWidth: Theme.stroke))
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Theme.ink).offset(x: 4, y: 4))
+                        .glassBox(radius: 20)
                     VStack(alignment: .leading, spacing: 8) {
                         Text(item.text).font(.system(.title3, weight: .black)).foregroundStyle(Theme.ink)
                             .fixedSize(horizontal: false, vertical: true)
@@ -426,6 +412,35 @@ private struct CollectionDetail: View {
 }
 
 /// 家の金魚鉢。丸い鉢に水と、入っている数だけ金魚。ガラスの見え方は設定にしたがう。
+/// カレンダーの1日。これから先の日はガラスにせず、点線だけ
+private struct DayBox: ViewModifier {
+    let picked: Bool
+    let today: Bool
+    let future: Bool
+
+    func body(content: Content) -> some View {
+        if future {
+            content.overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.faint, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
+        } else {
+            content.glassBox(radius: 10, edge: today && !picked ? Theme.accent : nil, dark: picked)
+        }
+    }
+}
+
+/// 1年の1か月。これから先の月はガラスにせず、点線だけ
+private struct MonthBox: ViewModifier {
+    let isThis: Bool
+    let future: Bool
+
+    func body(content: Content) -> some View {
+        if future {
+            content.overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.faint, style: StrokeStyle(lineWidth: 2, dash: [3, 2])))
+        } else {
+            content.glassBox(radius: 14, edge: isThis ? Theme.accent : nil)
+        }
+    }
+}
+
 struct FishbowlIcon: View {
     var count: Int
     var width: CGFloat = 40

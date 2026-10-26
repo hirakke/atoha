@@ -166,3 +166,47 @@ private struct GlassBand: Shape {
         return p
     }
 }
+
+extension View {
+    /// 箱をガラスにする。設定（描いたガラス／Liquid Glass）に合わせる。
+    /// edge は縁の色（目立たせたい箱だけ）、dark は藍の箱（白い文字を載せる）
+    func glassBox(radius: CGFloat, edge: Color? = nil, dark: Bool = false) -> some View {
+        modifier(GlassBox(radius: radius, edge: edge, dark: dark))
+    }
+}
+
+private struct GlassBox: ViewModifier {
+    let radius: CGFloat
+    let edge: Color?
+    let dark: Bool
+    @AppStorage(SettingsKey.tankGlassKey) private var glassRaw = TankGlass.drawn.rawValue
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        if TankGlass(rawValue: glassRaw) == .system {
+            content
+                .glassEffect(dark ? .regular.tint(Theme.band.opacity(0.85)) : (edge.map { .regular.tint($0.opacity(0.12)) } ?? .regular),
+                             in: .rect(cornerRadius: radius))
+                .overlay(shape.strokeBorder(edge ?? .clear, lineWidth: 2))
+        } else {
+            let light = GlassTone.light(scheme)
+            content
+                .background {
+                    // 淡い青のガラスに、左上の斜めの光と上の縁の光の線
+                    shape.fill(dark
+                        ? AnyShapeStyle(LinearGradient(colors: [Theme.band.opacity(0.82), Theme.band], startPoint: .top, endPoint: .bottom))
+                        : AnyShapeStyle(LinearGradient(colors: GlassTone.air(scheme).map { $0.opacity(0.88) }, startPoint: .top, endPoint: .bottom)))
+                    .overlay {
+                        GlassBand().fill(light.opacity(dark ? 0.1 : 0.55)).clipShape(shape)
+                    }
+                    .overlay(alignment: .top) {
+                        Capsule().fill(light.opacity(dark ? 0.45 : 1)).frame(height: 2)
+                            .padding(.horizontal, radius).padding(.top, 3)
+                    }
+                    .shadow(color: Theme.ink.opacity(0.14), radius: 7, y: 5)
+                }
+                .overlay(shape.strokeBorder(edge ?? Theme.ink.opacity(0.4), lineWidth: edge == nil ? 1.5 : 2.5))
+        }
+    }
+}
