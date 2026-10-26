@@ -29,6 +29,7 @@
 		5760CEE6FC6DE6068CE25F69 /* TimeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6131D4A4CC335928C1DE5F0B /* TimeText.swift */; };
 		59FDC94252D497AEFDDCAFA7 /* OFL-DotGothic16.txt in Resources */ = {isa = PBXBuildFile; fileRef = 81FFAF33102FD9B617E9D294 /* OFL-DotGothic16.txt */; };
 		5C636CDA23437FCE1BBFF54A /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F476922DC4619EB51C27AD /* SampleData.swift */; };
+		5DE855C88926CFECB2A1587F /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F901FE66D0853987E4AB8D /* Glass.swift */; };
 		62B434EEEF29E51A0AB35226 /* PersonalPCA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95486C4029E2E89937DD0766 /* PersonalPCA.swift */; };
 		63894C180E92AF13CFD701B9 /* DotGothic16-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4C4EEF75CA2AFE19D30A1350 /* DotGothic16-Regular.ttf */; };
 		63CB5519D571E6F3488C840A /* CubeSegmented.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86A2642AB303F8D121106F1 /* CubeSegmented.swift */; };
@@ -180,6 +181,7 @@
 		C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DelaGothicOne-Regular.ttf"; sourceTree = "<group>"; };
 		CB48C9429997C7C0AB2B86FD /* LanguageBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageBackend.swift; sourceTree = "<group>"; };
 		CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureIntent.swift; sourceTree = "<group>"; };
+		D0F901FE66D0853987E4AB8D /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		D5004564EF3F9999682A50EC /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		D6670AC23B3B764E5B741C55 /* CubeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubeButton.swift; sourceTree = "<group>"; };
 		D7497F8A82313BB92CB160DA /* EmbeddingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddingService.swift; sourceTree = "<group>"; };
@@ -369,6 +371,7 @@
 				8FFC0A92AC358599C8238C7B /* CubeGlyph.swift */,
 				B86A2642AB303F8D121106F1 /* CubeSegmented.swift */,
 				99DA61D9647989201AF36CA5 /* Ennichi.swift */,
+				D0F901FE66D0853987E4AB8D /* Glass.swift */,
 				6131D4A4CC335928C1DE5F0B /* TimeText.swift */,
 				FDEEE60C4C5DEE69E941BE15 /* Typography.swift */,
 			);
@@ -618,6 +621,7 @@
 				9905EECF413A4358B1DC184D /* Ennichi.swift in Sources */,
 				D596C40BA158D9325BCE1ED1 /* FocusSession.swift in Sources */,
 				7FE01B10BCE98F73C6B8B948 /* FocusView.swift in Sources */,
+				5DE855C88926CFECB2A1587F /* Glass.swift in Sources */,
 				DD90ECBA7D5F27CB231DD597 /* Goldfish.swift in Sources */,
 				FF7F58C3FF6FC91714D9592B /* HomeView.swift in Sources */,
 				17854B50F24197314EEB9B39 /* Item.swift in Sources */,

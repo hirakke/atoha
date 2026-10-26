@@ -43,9 +43,13 @@ struct SettingsView: View {
                         CubeSegmented(options: [10, 20, 30], label: { String($0) }, selection: $laterCapacity)
                     }
                     divider
-                    row("水槽のガラス") {
-                        CubeSegmented(options: TankGlass.allCases.map(\.rawValue),
-                                      label: { TankGlass(rawValue: $0)?.label ?? $0 }, selection: $tankGlassRaw)
+                    VStack(alignment: .leading, spacing: 0) {
+                        row("ガラスの見え方") {
+                            CubeSegmented(options: TankGlass.allCases.map(\.rawValue),
+                                          label: { TankGlass(rawValue: $0)?.label ?? $0 }, selection: $tankGlassRaw)
+                        }
+                        Text("水槽・池・金魚鉢のガラスに使います").atype(.small, color: Theme.quiet)
+                            .padding(.bottom, 12)
                     }
                 }
                 section("集中") {

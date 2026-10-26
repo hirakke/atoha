@@ -8,21 +8,6 @@ struct TankCube: Equatable {
     let tint: GoldfishTint
 }
 
-/// 水槽のガラスの見え方。設定で切り替える。
-enum TankGlass: String, CaseIterable {
-    /// 厚い縁、水面のきらめき、底の光の模様を自前で描く
-    case drawn
-    /// システムの Liquid Glass を枠にする
-    case system
-
-    var label: String {
-        switch self {
-        case .drawn: "描いたガラス"
-        case .system: "Liquid Glass"
-        }
-    }
-}
-
 /// あとでを、金魚すくいの水槽で見せる。金魚は傾けると寄る（ジャイロ）。
 struct TankView: View {
     let cubes: [TankCube]
@@ -34,9 +19,9 @@ struct TankView: View {
 
     var body: some View {
         let palette = Theme.paletteID
-        let drawn = (TankGlass(rawValue: glassRaw) ?? .drawn) == .drawn
+        let look = TankGlass(rawValue: glassRaw) ?? .drawn
+        let drawn = look == .drawn
         // 3D の水は切り替えても作り直さないよう、いつも同じ位置に置く。ガラスは周りに足すだけ
-        let inner = RoundedRectangle(cornerRadius: drawn ? 15 : 18, style: .continuous)
         VStack(spacing: 0) {
             if drawn { TankAir() }
             RealityView { content in
@@ -49,26 +34,7 @@ struct TankView: View {
             .frame(height: 160)
             .background(TankWater(caustics: drawn))
         }
-        .overlay {
-            if drawn {
-                GlassFront(tilt: scene.tilt)
-            } else {
-                // Liquid Glass の向こうの水は、少しだけ曇らせる
-                Color.white.opacity(0.12)
-            }
-        }
-        .clipShape(inner)
-        .overlay(inner.strokeBorder(drawn ? Theme.ink.opacity(0.35) : Color.white.opacity(0.9), lineWidth: 1.5))
-        .padding(drawn ? 10 : 14)
-        .background {
-            if drawn {
-                GlassRim(tilt: scene.tilt)
-            } else {
-                Color.clear
-                    .glassEffect(.regular, in: .rect(cornerRadius: 30))
-                    .shadow(color: Theme.ink.opacity(0.12), radius: 9, y: 8)
-            }
-        }
+        .glassFrame(look, radius: drawn ? 15 : 18, tilt: scene.tilt)
         .allowsHitTesting(false)
         .onAppear { visible = true; scene.setActive(scenePhase == .active) }
         .onDisappear { visible = false; scene.setActive(false) }
@@ -82,54 +48,6 @@ struct TankView: View {
 @MainActor @Observable
 final class TankTilt {
     var offset: CGSize = .zero
-}
-
-/// ガラスの色。明るいときは白から淡い青、暗いときは藍の濃淡
-private enum GlassTone {
-    static func rim(_ scheme: ColorScheme) -> [Color] {
-        scheme == .dark
-            ? [Color(UIColor(hex: 0x4A5578)), Color(UIColor(hex: 0x2E3756)), Color(UIColor(hex: 0x1E2540))]
-            : [.white, Color(UIColor(hex: 0xE6EDFA)), Color(UIColor(hex: 0xC7D5EF))]
-    }
-    static func air(_ scheme: ColorScheme) -> [Color] {
-        scheme == .dark
-            ? [Color(UIColor(hex: 0x2A3352)), Color(UIColor(hex: 0x222A47))]
-            : [.white, Color(UIColor(hex: 0xF3F7FF))]
-    }
-    static func light(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color(UIColor(hex: 0xC9D6FF)) : .white
-    }
-}
-
-/// 描いたガラスの厚い縁。白から淡い青のグラデーション、藍の外枠、やわらかい影。上の縁に光の線。
-private struct GlassRim: View {
-    let tilt: TankTilt
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
-        shape
-            .fill(LinearGradient(colors: GlassTone.rim(scheme), startPoint: .topLeading, endPoint: .bottomTrailing))
-            .overlay(shape.strokeBorder(Theme.ink, lineWidth: 2.5))
-            .shadow(color: Theme.ink.opacity(0.16), radius: 9, y: 8)
-            .overlay(alignment: .top) { RimLight(tilt: tilt) }
-    }
-}
-
-/// 上の縁の光の線。傾きで少しだけ横にすべる
-private struct RimLight: View {
-    let tilt: TankTilt
-    @Environment(\.colorScheme) private var scheme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        Capsule()
-            .fill(GlassTone.light(scheme).opacity(scheme == .dark ? 0.5 : 1))
-            .frame(height: 3)
-            .padding(.horizontal, 17)
-            .padding(.top, 4)
-            .offset(x: reduceMotion ? 0 : tilt.offset.width * 0.4)
-    }
 }
 
 /// 水面より上の空気。白い帯に、波打つ水面の線と、水面でまたたくドットの光。
@@ -166,62 +84,6 @@ private struct TankAir: View {
         }
         .frame(height: 20)
         .accessibilityHidden(true)
-    }
-}
-
-/// ガラスの手前。上から薄れる映り込み（動かない）と、傾きですべるハイライト。
-private struct GlassFront: View {
-    let tilt: TankTilt
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        let light = GlassTone.light(scheme)
-        ZStack {
-            LinearGradient(stops: [.init(color: light.opacity(scheme == .dark ? 0.12 : 0.32), location: 0),
-                                   .init(color: light.opacity(0), location: 0.5)],
-                           startPoint: .top, endPoint: .bottom)
-            GlassHighlights(tilt: tilt)
-        }
-        .accessibilityHidden(true)
-    }
-}
-
-/// 左上の斜めの光の帯と、右の縁の細い光の筋。傾けると少しずれる（視差を減らす設定では止める）
-private struct GlassHighlights: View {
-    let tilt: TankTilt
-    @Environment(\.colorScheme) private var scheme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        let light = GlassTone.light(scheme)
-        let o = reduceMotion ? .zero : tilt.offset
-        ZStack(alignment: .topTrailing) {
-            GlassBand()
-                .fill(light.opacity(scheme == .dark ? 0.14 : 0.45))
-                .offset(x: o.width, y: o.height)
-            GeometryReader { geo in
-                Capsule()
-                    .fill(light.opacity(scheme == .dark ? 0.4 : 0.85))
-                    .frame(width: 4, height: geo.size.height * 0.62)
-                    .position(x: geo.size.width - 12, y: geo.size.height * 0.45)
-                    .offset(x: o.width * 0.3, y: o.height * 0.6)
-            }
-        }
-    }
-}
-
-/// 左上の斜めの光の帯（台形）
-private struct GlassBand: Shape {
-    func path(in rect: CGRect) -> Path {
-        let k = rect.height / 164
-        var p = Path()
-        p.move(to: CGPoint(x: 14, y: 4 * k))
-        p.addLine(to: CGPoint(x: 66, y: 4 * k))
-        p.addLine(to: CGPoint(x: 28, y: 112 * k))
-        p.addLine(to: CGPoint(x: 8, y: 112 * k))
-        p.addLine(to: CGPoint(x: 8, y: 14 * k))
-        p.closeSubpath()
-        return p
     }
 }
 

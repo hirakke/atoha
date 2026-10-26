@@ -154,7 +154,6 @@ struct PondMapView: View {
         var water = context
         water.clip(to: pond)
         water.fill(dots, with: .color(Theme.waterDot.opacity(0.3)))
-        context.stroke(pond, with: .color(ink), lineWidth: Theme.stroke)
 
         let c = CGPoint(x: rect.midX, y: rect.midY)
         let e = axisEnds(size)
@@ -413,9 +412,6 @@ struct PondTiltView: View, Animatable {
                     let t = timeline.date.timeIntervalSinceReferenceDate
                     Canvas { context, _ in drawFish(context: context, proj: proj, fish: fish, time: t) }
                 }
-                // 枠（上からのときは水面の縁と重なる）
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .strokeBorder(Theme.ink, lineWidth: Theme.stroke)
             }
             .contentShape(Rectangle())
             .gesture(SpatialTapGesture().onEnded { value in

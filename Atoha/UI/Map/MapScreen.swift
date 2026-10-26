@@ -14,6 +14,7 @@ struct MapScreen: View {
     @AppStorage("mapSide") private var side = false
     @AppStorage("mapShowTakenHome") private var showTakenHome = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage(SettingsKey.tankGlassKey) private var glassRaw = TankGlass.drawn.rawValue
     /// 池の傾きの向き。保存した side は変更がトランザクションに乗らないので、動かす値は別に持つ
     @State private var tiltSide = UserDefaults.standard.bool(forKey: "mapSide")
     /// 「つながり」の並べ方から横からへ倒すあいだ（と起こすあいだ）、傾ける池のままにしておく
@@ -22,6 +23,7 @@ struct MapScreen: View {
 
     enum MapRoute: Hashable { case collection }
 
+    private var glass: TankGlass { TankGlass(rawValue: glassRaw) ?? .drawn }
     private var period: MapPeriod { MapPeriod(rawValue: periodRaw) ?? .month }
     private var mode: MapMode {
         if let m = MapMode(rawValue: modeRaw) { return m }
@@ -62,16 +64,13 @@ struct MapScreen: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .overlay(alignment: .bottomTrailing) { collectionEntry.padding(.bottom, 12) }
                     } else {
+                        // 池はガラスの入れ物に入れる（見え方は設定で切り替える）
                         pond
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Theme.ink)
-                            .offset(x: Theme.shadow + 1, y: Theme.shadow + 1))
+                        .glassFrame(glass, radius: 22)
                         // 金魚鉢の札は池の右下に。金魚を選んでいるあいだは、金魚を隠さないよう引っ込める。横からは下の行に
                         .overlay(alignment: .bottomTrailing) {
-                            if selected == nil && !showsSide { collectionEntry.padding(.trailing, 12).padding(.bottom, 48).transition(.opacity) }
+                            if selected == nil && !showsSide { collectionEntry.padding(.trailing, 24).padding(.bottom, 60).transition(.opacity) }
                         }
-                        .padding(.trailing, Theme.shadow + 1)
-                        .padding(.bottom, Theme.shadow + 1)
                         .padding(.top, 8)
                     }
                     if let item = selected {

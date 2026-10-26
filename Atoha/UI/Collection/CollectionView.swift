@@ -425,29 +425,53 @@ private struct CollectionDetail: View {
     }
 }
 
-/// 家の金魚鉢。丸い鉢に水と、入っている数だけ金魚。
+/// 家の金魚鉢。丸い鉢に水と、入っている数だけ金魚。ガラスの見え方は設定にしたがう。
 struct FishbowlIcon: View {
     var count: Int
     var width: CGFloat = 40
     var onDark = false
+    @AppStorage(SettingsKey.tankGlassKey) private var glassRaw = TankGlass.drawn.rawValue
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         let line = onDark ? Color.white : Theme.ink
         let water = onDark ? Color.white.opacity(0.18) : Theme.ink.opacity(0.12)
+        let c = width / 14
         ZStack {
-            Canvas { context, size in
-                let c = size.width / 14
-                var w = Path(CGRect(x: 2 * c, y: 4 * c, width: 10 * c, height: 5 * c))
-                w.addRect(CGRect(x: 3 * c, y: 9 * c, width: 8 * c, height: c))
-                w.addRect(CGRect(x: 4 * c, y: 10 * c, width: 6 * c, height: c))
-                context.fill(w, with: .color(water))
-                let rects: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-                    (4, 0, 6, 1), (3, 1, 1, 1), (10, 1, 1, 1), (2, 2, 1, 1), (11, 2, 1, 1), (1, 3, 1, 6), (12, 3, 1, 6),
-                    (2, 9, 1, 1), (11, 9, 1, 1), (3, 10, 1, 1), (10, 10, 1, 1), (4, 11, 6, 1),
-                ]
-                var p = Path()
-                for r in rects { p.addRect(CGRect(x: r.0 * c, y: r.1 * c, width: r.2 * c, height: r.3 * c)) }
-                context.fill(p, with: .color(line))
+            if TankGlass(rawValue: glassRaw) == .system {
+                // Liquid Glass の丸い鉢。水は鉢の下半分、白い内側の線
+                let bowl = Circle().inset(by: c * 0.5)
+                ZStack {
+                    Color.clear.glassEffect(.regular, in: .circle)
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        Rectangle().fill(water).frame(height: 7.5 * c)
+                    }
+                    .clipShape(bowl)
+                    bowl.strokeBorder(Color.white.opacity(0.9), lineWidth: max(1, c * 0.5))
+                }
+                .frame(width: 12 * c, height: 12 * c)
+            } else {
+                Canvas { context, size in
+                    let c = size.width / 14
+                    func cells(_ rects: [(CGFloat, CGFloat, CGFloat, CGFloat)]) -> Path {
+                        var p = Path()
+                        for r in rects { p.addRect(CGRect(x: r.0 * c, y: r.1 * c, width: r.2 * c, height: r.3 * c)) }
+                        return p
+                    }
+                    let light = GlassTone.light(scheme)
+                    // ガラスの中の空気（ごく淡く）
+                    context.fill(cells([(4, 1, 6, 1), (3, 2, 8, 1), (2, 3, 10, 1)]), with: .color(light.opacity(onDark ? 0.1 : 0.5)))
+                    context.fill(cells([(2, 4, 10, 5), (3, 9, 8, 1), (4, 10, 6, 1)]), with: .color(water))
+                    // 縁
+                    context.fill(cells([
+                        (4, 0, 6, 1), (3, 1, 1, 1), (10, 1, 1, 1), (2, 2, 1, 1), (11, 2, 1, 1), (1, 3, 1, 6), (12, 3, 1, 6),
+                        (2, 9, 1, 1), (11, 9, 1, 1), (3, 10, 1, 1), (10, 10, 1, 1), (4, 11, 6, 1),
+                    ]), with: .color(line))
+                    // 左上の映り込みと、水面のきらめき
+                    context.fill(cells([(3, 2, 1, 1), (2, 3, 1, 2), (2, 6, 1, 1)]), with: .color(light.opacity(onDark ? 0.6 : 1)))
+                    context.fill(cells([(9, 4, 1, 1)]), with: .color(light.opacity(onDark ? 0.8 : 1)))
+                }
             }
             let spots: [(CGFloat, CGFloat, GoldfishTint)] = [(-0.12, 0.08, .red), (0.16, 0.18, .both), (0.0, 0.3, .black)]
             ForEach(0..<count, id: \.self) { i in
