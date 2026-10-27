@@ -43,35 +43,33 @@ struct SmallNowWidgetView: View {
                         Spacer(minLength: 0)
                         if let deadline {
                             Text(K.deadline(deadline)).font(K.dot(13)).foregroundStyle(a ? Color.white.opacity(0.85) : K.red)
+                                .accessibilityLabel(K.deadlineSpoken(deadline))
                         }
                     }
                 case .focusing(_, let text, let start, let ended):
-                    VStack(alignment: .leading, spacing: 0) {
-                        PixelBowl(bubbles: true, look: a ? .white(water: 0.3) : .color, width: 104)
-                            .frame(maxWidth: .infinity)
-                        Text(text).font(K.item(18)).lineLimit(2).minimumScaleFactor(0.7)
-                            .foregroundStyle(ink).padding(.top, 8)
+                    // 名前は出さず、泡のお椀と経過だけ
+                    VStack(spacing: 0) {
+                        PixelBowl(bubbles: true, look: a ? .white(water: 0.3) : .color, width: 108)
+                            .padding(.top, 4)
                         Spacer(minLength: 0)
-                        FocusTimer(start: start, ended: ended).font(K.dot(30)).foregroundStyle(ink)
+                        FocusTimer(start: start, ended: ended).font(K.dot(36)).foregroundStyle(ink)
+                            .multilineTextAlignment(.center)
                     }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("集中している：\(text)")
                 case .done(let text):
-                    VStack(spacing: 0) {
-                        PixelBag(line: a ? .white : nil, width: 52).padding(.top, 2)
-                        Spacer(minLength: 0)
-                        Text("持ち帰った").font(K.item(17)).foregroundStyle(ink)
-                        Text(text).font(.system(size: 11, weight: .bold)).lineLimit(1)
-                            .foregroundStyle(a ? Color.white.opacity(0.8) : K.quiet).padding(.top, 2)
-                    }
-                    .frame(maxWidth: .infinity)
+                    // 袋に入れて持ち帰った金魚だけ
+                    PixelBag(line: a ? .white : nil, width: 80)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .accessibilityElement()
+                        .accessibilityLabel("できた。持ち帰った：\(text)")
                 case .empty:
-                    VStack(spacing: 0) {
-                        PixelBowl(fish: false, look: a ? .white(water: 0.3) : .color, width: 104).padding(.top, 8)
-                        Spacer(minLength: 0)
-                        Text("お椀はからっぽ").font(K.item(17)).foregroundStyle(ink).lineLimit(1).minimumScaleFactor(0.8)
-                        Text("あとでから1匹すくう").font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(a ? Color.white.opacity(0.8) : K.quiet).padding(.top, 3)
-                    }
-                    .frame(maxWidth: .infinity)
+                    // 水だけのお椀
+                    PixelBowl(fish: false, look: a ? .white(water: 0.3) : .color, width: 132)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .accessibilityElement()
+                        .accessibilityLabel("お椀はからっぽ")
                 }
             }
             .padding(.horizontal, 16).padding(.vertical, 14)
@@ -115,25 +113,17 @@ struct SmallCaptureWidgetView: View {
                 let s = g.size.width / 170
                 ZStack(alignment: .topLeading) {
                     Ripple(color: a ? .white : K.waterDot,
-                           inner: CGSize(width: 76 * s, height: 26 * s), outer: CGSize(width: 116 * s, height: 40 * s))
-                        .position(x: g.size.width / 2, y: 74 * s)
+                           inner: CGSize(width: 92 * s, height: 30 * s), outer: CGSize(width: 136 * s, height: 46 * s))
+                        .position(x: g.size.width / 2, y: g.size.height / 2 + 18 * s)
                     PixelFry(color: (a ? Color.white : K.navy).opacity(0.45), unit: 2.4 * s)
                         .position(x: 26 * s + 10.8 * s, y: 120 * s + 6 * s)
                     PixelFry(color: (a ? Color.white : K.navy).opacity(0.3), unit: 2 * s, mirrored: true)
                         .position(x: 120 * s + 9 * s, y: 28 * s + 5 * s)
-                    VStack(spacing: 0) {
-                        Text("＋").font(.system(size: 30, weight: .black)).foregroundStyle(.white)
-                            .frame(width: 56, height: 56)
-                            .background(Circle().fill(a ? Color.white.opacity(0.25) : K.red))
-                            .background(Circle().fill(a ? Color.clear : K.navy).offset(y: 4))
-                            .padding(.top, 74 * s - 28 - 14)
-                        Spacer(minLength: 0)
-                        Text("あとに回す").font(.system(size: 13, weight: .black)).foregroundStyle(a ? .white : K.navy)
-                            .padding(.vertical, 4).padding(.horizontal, 12)
-                            .background(Capsule().fill(a ? Color.white.opacity(0.25) : .white))
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.vertical, 14)
+                    Text("＋").font(.system(size: 34, weight: .black)).foregroundStyle(.white)
+                        .frame(width: 64, height: 64)
+                        .background(Circle().fill(a ? Color.white.opacity(0.25) : K.red))
+                        .background(Circle().fill(a ? Color.clear : K.navy).offset(y: 4))
+                        .position(x: g.size.width / 2, y: g.size.height / 2 - 2)
                 }
             }
         }
@@ -161,70 +151,65 @@ struct MediumNowWidgetView: View {
     var body: some View {
         AccentedReader(force: accented) { a in
             let ink: Color = a ? .white : K.navy
-            let sub: Color = a ? Color.white.opacity(0.8) : K.quiet
             HStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    Group {
-                        switch display {
-                        case .done:
-                            PixelBag(line: a ? .white : nil, width: 52)
-                        case .empty:
-                            PixelBowl(fish: false, look: a ? .white(water: 0.3) : .color, width: 128)
-                        case .focusing:
-                            PixelBowl(bubbles: true, look: a ? .white(water: 0.3) : .color, width: 128)
-                        case .item:
+                Group {
+                    switch display {
+                    case .done(let text):
+                        // 袋に入った金魚だけ
+                        PixelBag(line: a ? .white : nil, width: 84)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .accessibilityElement()
+                            .accessibilityLabel("できた。持ち帰った：\(text)")
+                    case .empty:
+                        // 水だけのお椀
+                        PixelBowl(fish: false, look: a ? .white(water: 0.3) : .color, width: 168)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .accessibilityElement()
+                            .accessibilityLabel("お椀はからっぽ")
+                    case .item(let id, let text, let deadline):
+                        HStack(spacing: 12) {
                             PixelBowl(look: a ? .white(water: 0.3) : .color, width: 128)
+                                .frame(width: 128).frame(maxHeight: .infinity)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(text).font(K.item(22)).lineLimit(2).minimumScaleFactor(0.7).foregroundStyle(ink).padding(.top, 6)
+                                if let deadline {
+                                    Text(K.deadline(deadline)).font(K.dot(13)).foregroundStyle(a ? Color.white.opacity(0.85) : K.red).padding(.top, 4)
+                                        .accessibilityLabel(K.deadlineSpoken(deadline))
+                                }
+                                Spacer(minLength: 4)
+                                Link(destination: AtohaLink.focus(id)) {
+                                    Image(systemName: "play.fill").font(.system(size: 16, weight: .black)).foregroundStyle(.white)
+                                        .padding(.leading, 3)
+                                        .frame(width: 44, height: 44)
+                                        .background(Circle().fill(a ? Color.white.opacity(0.25) : K.navy))
+                                }
+                                .accessibilityLabel("集中する")
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        }
+                    case .focusing(_, let text, let start, let ended):
+                        HStack(spacing: 12) {
+                            PixelBowl(bubbles: true, look: a ? .white(water: 0.3) : .color, width: 128)
+                                .frame(width: 128).frame(maxHeight: .infinity)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(text).font(K.item(22)).lineLimit(2).minimumScaleFactor(0.7).foregroundStyle(ink).padding(.top, 6)
+                                Spacer(minLength: 4)
+                                FocusTimer(start: start, ended: ended).font(K.dot(30)).foregroundStyle(ink)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         }
                     }
-                    .frame(width: 128)
-                    .frame(maxHeight: .infinity)
-
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("今").font(K.disp(13)).foregroundStyle(a ? .white : K.red)
-                        switch display {
-                        case .item(let id, let text, let deadline):
-                            Text(text).font(K.item(21)).lineLimit(2).minimumScaleFactor(0.7).foregroundStyle(ink).padding(.top, 8)
-                            if let deadline {
-                                Text(K.deadline(deadline)).font(K.dot(13)).foregroundStyle(a ? Color.white.opacity(0.85) : K.red).padding(.top, 4)
-                            }
-                            Spacer(minLength: 4)
-                            Link(destination: AtohaLink.focus(id)) {
-                                NavyCapsule(title: "▶ 集中する", accented: a)
-                            }
-                        case .focusing(_, let text, let start, let ended):
-                            Text(text).font(K.item(21)).lineLimit(2).minimumScaleFactor(0.7).foregroundStyle(ink).padding(.top, 8)
-                            Spacer(minLength: 4)
-                            FocusTimer(start: start, ended: ended).font(K.dot(30)).foregroundStyle(ink)
-                        case .done(let text):
-                            Text("持ち帰った").font(K.item(21)).foregroundStyle(ink).padding(.top, 8)
-                            Text(text).font(.system(size: 12, weight: .bold)).lineLimit(1).foregroundStyle(sub).padding(.top, 4)
-                            Spacer(minLength: 4)
-                            Text("次の1匹へ").font(.system(size: 12, weight: .bold)).foregroundStyle(sub)
-                        case .empty:
-                            Text("お椀はからっぽ").font(K.item(19)).lineLimit(1).minimumScaleFactor(0.8).foregroundStyle(ink).padding(.top, 8)
-                            Text("あとでから1匹すくう").font(.system(size: 12, weight: .bold)).foregroundStyle(sub).padding(.top, 4)
-                            Spacer(minLength: 4)
-                            Link(destination: AtohaLink.later) {
-                                NavyCapsule(title: "あとでを見る", accented: a)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .padding(16)
                 .padding(.trailing, -4)
 
                 Link(destination: AtohaLink.capture) {
-                    VStack(spacing: 6) {
-                        Spacer(minLength: 0)
+                    VStack(spacing: 0) {
                         Text("＋").font(.system(size: 22, weight: .black)).foregroundStyle(.white)
                             .frame(width: 40, height: 40)
                             .background(Circle().fill(a ? Color.white.opacity(0.25) : K.red))
                             .background(Circle().fill(a ? Color.clear : K.navy).offset(y: 3))
-                        Text("あとに\n回す").font(.system(size: 10, weight: .black)).multilineTextAlignment(.center)
-                            .lineSpacing(1).foregroundStyle(ink)
                     }
-                    .padding(.vertical, 16)
                     .frame(width: 70)
                     .frame(maxHeight: .infinity)
                 }
@@ -234,32 +219,22 @@ struct MediumNowWidgetView: View {
     }
 }
 
-private struct NavyCapsule: View {
-    var title: String
-    var accented: Bool
-    var body: some View {
-        Text(title).font(.system(size: 13, weight: .black)).foregroundStyle(.white)
-            .padding(.horizontal, 16).frame(height: 36)
-            .background(Capsule().fill(accented ? Color.white.opacity(0.25) : K.navy))
-    }
-}
-
 // MARK: - ロック画面
 
-/// 1行：「今：母に電話」と金魚
+/// 1行：金魚と名前（「今：」は付けない）
 struct LockInlineView: View {
     var display: NowDisplay
     var body: some View {
         let text: String = switch display {
-        case .item(_, let t, _), .focusing(_, let t, _, _): "今：\(t)"
-        case .done: "持ち帰った"
-        case .empty: "今：からっぽ"
+        case .item(_, let t, _), .focusing(_, let t, _, _): t
+        case .done, .empty: ""
         }
         Label {
             Text(text)
         } icon: {
             Image(uiImage: PixelFish.templateImage(height: 10))
         }
+        .accessibilityLabel(text.isEmpty ? (display == .empty ? "お椀はからっぽ" : "できた") : "今：\(text)")
     }
 }
 
@@ -267,10 +242,27 @@ struct LockInlineView: View {
 struct LockRectangularView: View {
     var display: NowDisplay
     var body: some View {
+        switch display {
+        case .done(let text):
+            // 袋に入った金魚だけ、まんなかに
+            PixelBag(onDark: true, line: .white, width: 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityElement().accessibilityLabel("できた。持ち帰った：\(text)")
+        case .empty:
+            // 水だけのお椀、まんなかに
+            PixelBowl(fish: false, look: .white(water: 0.35), width: 72)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityElement().accessibilityLabel("お椀はからっぽ")
+        default:
+            row
+        }
+    }
+
+    private var row: some View {
         HStack(spacing: 8) {
             switch display {
             case .done:
-                PixelBag(lineOnly: true, line: .white, width: 20).frame(width: 40)
+                EmptyView()
             default:
                 PixelBowl(fish: display != .empty, bubbles: { if case .focusing = display { return true } else { return false } }(),
                           look: .white(water: 0.35), width: 40)
@@ -279,16 +271,14 @@ struct LockRectangularView: View {
                 switch display {
                 case .item(_, let text, let deadline):
                     Text(text).font(K.item(15)).lineLimit(2).minimumScaleFactor(0.8)
-                    if let deadline { Text(K.deadline(deadline)).font(K.dot(11)).opacity(0.8) }
+                    if let deadline { Text(K.deadline(deadline)).font(K.dot(11)).opacity(0.8).accessibilityLabel(K.deadlineSpoken(deadline)) }
                 case .focusing(_, let text, let start, let ended):
                     Text(text).font(K.item(15)).lineLimit(1).minimumScaleFactor(0.8)
                     FocusTimer(start: start, ended: ended).font(K.dot(15))
                 case .done(let text):
-                    Text("持ち帰った").font(K.item(15))
-                    Text(text).font(.system(size: 11, weight: .bold)).lineLimit(1).opacity(0.8)
+                    Color.clear.frame(height: 1).accessibilityElement().accessibilityLabel("できた。持ち帰った：\(text)")
                 case .empty:
-                    Text("お椀はからっぽ").font(K.item(15)).lineLimit(1).minimumScaleFactor(0.8)
-                    Text("あとでから1匹すくう").font(.system(size: 11, weight: .bold)).lineLimit(1).minimumScaleFactor(0.8).opacity(0.8)
+                    Color.clear.frame(height: 1).accessibilityElement().accessibilityLabel("お椀はからっぽ")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -327,11 +317,8 @@ struct LiveBannerView: View {
     var body: some View {
         HStack(spacing: 12) {
             PixelBowl(bubbles: true, width: 74)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("今").font(K.disp(12)).foregroundStyle(K.red)
-                Text(text).font(K.item(18)).lineLimit(1).minimumScaleFactor(0.7).foregroundStyle(K.navy)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(text).font(K.item(18)).lineLimit(1).minimumScaleFactor(0.7).foregroundStyle(K.navy)
+                .frame(maxWidth: .infinity, alignment: .leading)
             FocusTimer(start: start, ended: ended).font(K.dot(32)).foregroundStyle(K.navy)
                 .multilineTextAlignment(.trailing).frame(maxWidth: 96, alignment: .trailing)
             Button(intent: CaptureIntent()) {
@@ -371,16 +358,13 @@ struct IslandButtons: View {
     var body: some View {
         HStack(spacing: 8) {
             Button(intent: CaptureIntent()) {
-                Text("＋ あとに回す").font(.system(size: 13, weight: .black)).foregroundStyle(.white)
+                Text("＋").font(.system(size: 20, weight: .black)).foregroundStyle(.white)
                     .frame(maxWidth: .infinity).frame(height: 40).background(Capsule().fill(K.navy2))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("あとに回す")
             Button(intent: FocusDoneIntent()) {
-                HStack(spacing: 6) {
-                    PixelBag(lineOnly: true, line: .white, width: 12)
-                    Text("できた").font(.system(size: 13, weight: .black))
-                }
-                .foregroundStyle(.white)
+                PixelBag(lineOnly: true, line: .white, width: 18)
                 .frame(maxWidth: .infinity).frame(height: 40).background(Capsule().fill(K.red))
             }
             .buttonStyle(.plain)
@@ -402,5 +386,18 @@ struct IslandExpandedRow: View {
             FocusTimer(start: start, ended: ended).font(K.dot(28)).foregroundStyle(.white)
                 .multilineTextAlignment(.trailing).frame(maxWidth: 90, alignment: .trailing)
         }
+    }
+}
+
+/// アイランド（できたとき、数秒だけ）：袋と金魚。「持ち帰りました」の文字は出さない
+struct IslandDoneView: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            PixelBag(onDark: true, line: .white, width: 14)
+            PixelFish(color: K.red, width: 20)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement()
+        .accessibilityLabel("持ち帰りました")
     }
 }

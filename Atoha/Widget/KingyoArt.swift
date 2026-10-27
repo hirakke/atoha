@@ -18,17 +18,18 @@ enum K {
     /// 名前（太いゴシック）
     static func item(_ size: CGFloat) -> Font { .system(size: size, weight: .black) }
 
-    /// 期限の書き方（18:00 まで／明日まで／10/31 まで）
+    /// 期限の書き方。数字だけ（今日なら 18:00、ほかの日は 10/31）。「まで」は付けない
     static func deadline(_ date: Date, now: Date = .now) -> String {
         let cal = Calendar.current
-        if cal.isDate(date, inSameDayAs: now) {
-            let c = cal.dateComponents([.hour, .minute], from: date)
-            if c.hour == 0 && c.minute == 0 { return "今日まで" }
-            return date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()) + " まで"
+        let c = cal.dateComponents([.hour, .minute], from: date)
+        if cal.isDate(date, inSameDayAs: now), !(c.hour == 0 && c.minute == 0) {
+            return date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute())
         }
-        if let t = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(date, inSameDayAs: t) { return "明日まで" }
-        return date.formatted(.dateTime.month(.defaultDigits).day()) + " まで"
+        return date.formatted(.dateTime.month(.defaultDigits).day())
     }
+
+    /// 読み上げ用の期限（18:00 まで）
+    static func deadlineSpoken(_ date: Date, now: Date = .now) -> String { deadline(date, now: now) + " まで" }
 
     /// 止まった経過時間（12:34 / 1:02:03）
     static func elapsed(_ seconds: TimeInterval) -> String {

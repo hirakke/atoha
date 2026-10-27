@@ -110,6 +110,10 @@ struct WidgetGalleryView: View {
                 .background(Capsule().fill(.black))
                 IslandMinimal().frame(width: 37, height: 37).background(Circle().fill(.black))
             }
+            IslandDoneView()
+                .padding(.horizontal, 14)
+                .frame(width: 250, height: 37)
+                .background(Capsule().fill(.black))
             VStack(spacing: 12) {
                 IslandExpandedRow(text: "母に電話", start: .now.addingTimeInterval(-754), ended: nil)
                 IslandButtons()
