@@ -10,6 +10,8 @@ struct AtohaActivityAttributes: ActivityAttributes {
         var startedAt: Date
         /// 区切りを押して計測が止まった時刻
         var endedAt: Date?
+        /// 持ち帰った時刻。入っていれば数秒だけ袋と金魚を見せて閉じる
+        var takenHomeAt: Date? = nil
     }
 
     /// 集中している1匹

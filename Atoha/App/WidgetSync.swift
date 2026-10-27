@@ -65,6 +65,20 @@ enum LiveActivityService {
         let focus = FocusSession.shared
         let current = Activity<AtohaActivityAttributes>.activities
         guard let id = focus.itemID, let item = WidgetSync.fetch(id, in: context) else {
+            // 持ち帰った直後なら、袋と金魚を数秒だけ見せてから閉じる
+            if let doneAt = WidgetSnapshot.load().doneAt, now.timeIntervalSince(doneAt) < 5 {
+                for activity in current where activity.content.state.takenHomeAt == nil {
+                    var state = activity.content.state
+                    state.takenHomeAt = doneAt
+                    let content = ActivityContent(state: state, staleDate: nil)
+                    Task {
+                        await activity.update(content, alertConfiguration: AlertConfiguration(title: "持ち帰りました", body: "", sound: .default))
+                        try? await Task.sleep(for: .seconds(4))
+                        await activity.end(content, dismissalPolicy: .immediate)
+                    }
+                }
+                return
+            }
             for activity in current {
                 Task { await activity.end(nil, dismissalPolicy: .immediate) }
             }

@@ -389,6 +389,20 @@ struct IslandExpandedRow: View {
     }
 }
 
+/// ロック画面のバナー（できたとき、数秒だけ）：袋と金魚だけ
+struct LiveDoneBannerView: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            PixelBag(width: 34)
+            PixelFish(color: K.red, width: 40)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .accessibilityElement()
+        .accessibilityLabel("持ち帰りました")
+    }
+}
+
 /// アイランド（できたとき、数秒だけ）：袋と金魚。「持ち帰りました」の文字は出さない
 struct IslandDoneView: View {
     var body: some View {
