@@ -1,9 +1,6 @@
 {
   "fill": {
-    "linear-gradient": [
-      "srgb:0.96078,0.97647,1.00000,1.00000",
-      "srgb:0.84706,0.89412,0.98431,1.00000"
-    ]
+    "solid": "srgb:0.93333,0.95686,1.00000,1.00000"
   },
   "groups": [
     {
@@ -48,7 +45,7 @@
           "image-name": "paper.svg",
           "name": "紙",
           "glass": true,
-          "opacity": 0.9
+          "opacity": 1
         }
       ],
       "shadow": {
@@ -58,6 +55,23 @@
       "specular": true,
       "translucency": {
         "enabled": true,
+        "value": 0.2
+      }
+    },
+    {
+      "layers": [
+        {
+          "image-name": "water.svg",
+          "name": "水",
+          "glass": false
+        }
+      ],
+      "shadow": {
+        "kind": "none",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": false,
         "value": 0.5
       }
     }
