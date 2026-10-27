@@ -68,7 +68,7 @@ struct SettingsView: View {
                     CloudStatusRow().frame(minHeight: 56)
                     if FeatureFlags.chatGPTEnabled {
                         divider
-                        ChatGPTRow().frame(minHeight: 56)
+                        ChatGPTRow()
                     }
                 }
                 section("データ") {
@@ -281,27 +281,148 @@ struct CloudStatusRow: View {
 
 struct ChatGPTRow: View {
     @ObservedObject private var auth = ChatGPTAuth.shared
+    @State private var showConsent = false
+    @State private var showWelcome = false
 
     var body: some View {
-        HStack(spacing: 8) {
-            Text("ChatGPT").atype(.body)
-            Spacer(minLength: 12)
-            Button(auth.isSignedIn ? "ログアウト" : (auth.busy ? "…" : "ログイン")) {
-                if auth.isSignedIn { auth.signOut() } else { auth.signIn() }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Text("ChatGPT").atype(.body)
+                Spacer(minLength: 12)
+                if auth.isSignedIn {
+                    Button("ログアウト") { auth.signOut() }
+                        .buttonStyle(.cube(.secondary))
+                }
             }
-            .buttonStyle(.cube(.secondary))
-            .disabled(auth.busy && !auth.isSignedIn)
             if auth.isSignedIn {
-                let reached = ChatGPTStore.reachedToday
-                StatusPill(text: reached ? "今日はここまで" : "使える", strong: reached)
+                // OpenAI の決まり：プランを使っていることと、使用量の管理への入口を並べて出す
+                HStack(spacing: 8) {
+                    Text("Using ChatGPT plan").atype(.small, color: Theme.quiet)
+                    Spacer(minLength: 8)
+                    Link("Manage usage", destination: ChatGPTConsent.manageUsageURL)
+                        .font(.system(.footnote, weight: .bold))
+                        .tint(Theme.accent)
+                }
+                if ChatGPTStore.reachedToday { ChatGPTLimitMessage() }
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Use your ChatGPT plan").atype(.small).fontWeight(.bold)
+                    Text("Complete eligible AI requests in this app with usage included in your ChatGPT plan or credits balance.")
+                        .atype(.small, color: Theme.quiet)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                ContinueWithChatGPTButton(busy: auth.busy) { showConsent = true }
             }
         }
+        .padding(.vertical, 12)
         .sheet(isPresented: Binding(get: { auth.safariURL != nil },
                                     set: { if !$0 { auth.cancel() } })) {
             if let url = auth.safariURL { SafariSheet(url: url).ignoresSafeArea() }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(auth.isSignedIn ? "ChatGPT ログイン中" : "ChatGPT ログインしていない")
+        .background {
+            // 送る前の同意（審査ガイドライン 5.1.2(i)）。同意したときだけログインへ進む
+            Color.clear.sheet(isPresented: $showConsent) {
+                ChatGPTConsentSheet {
+                    ChatGPTConsent.granted = true
+                    showConsent = false
+                    auth.signIn()
+                }
+                .presentationDetents([.large])
+            }
+        }
+        .alert("You're using your ChatGPT plan", isPresented: $showWelcome) {
+            Button("Got it") {}
+        } message: {
+            Text("Eligible usage in this app uses your ChatGPT plan. Manage usage in your ChatGPT settings.")
+        }
+        .onChange(of: auth.isSignedIn) { _, signedIn in
+            // 初めてログインしたときだけ案内を出す
+            if signedIn && !ChatGPTConsent.welcomeShown {
+                ChatGPTConsent.welcomeShown = true
+                showWelcome = true
+            }
+        }
+    }
+}
+
+/// 「Continue with ChatGPT」のボタン（OpenAI の決まりの文言）
+private struct ContinueWithChatGPTButton: View {
+    let busy: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                if busy { ProgressView().tint(.white) }
+                Text("Continue with ChatGPT").font(.system(.subheadline, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(Capsule().fill(Color.black))
+        }
+        .buttonStyle(.plain)
+        .disabled(busy)
+    }
+}
+
+/// 使用量の上限に達したとき（OpenAI の決まりの文言、「Manage usage」をいちばん目立たせる）
+private struct ChatGPTLimitMessage: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Usage limit reached").atype(.small).fontWeight(.bold)
+            Text("Review your plan or this app's limit in ChatGPT settings.")
+                .atype(.small, color: Theme.quiet)
+                .fixedSize(horizontal: false, vertical: true)
+            Link(destination: ChatGPTConsent.manageUsageURL) {
+                Text("Manage usage")
+                    .font(.system(.subheadline, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(Capsule().fill(Theme.accent))
+            }
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.faint, lineWidth: 2))
+    }
+}
+
+/// ChatGPT にメモを送る前にたずねる画面。何を・どこへ・いつ送るか、どうやめるかを書く
+private struct ChatGPTConsentSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let onAgree: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("ChatGPT にメモを送ります").font(Theme.display(.title2)).foregroundStyle(Theme.ink)
+                Text("ChatGPT とつなぐと、メモの整理の一部を OpenAI の ChatGPT が行います。続ける前に、送るものを確かめてください。")
+                    .atype(.body)
+                    .fixedSize(horizontal: false, vertical: true)
+                point("送るもの", "あとに回したメモの文。まとまりの名前を付けるときと、軸の候補を作るときに使います。期限や気持ちの強さ、名前やメールは送りません。")
+                point("送り先", "OpenAI（ChatGPT）。あなたの ChatGPT のプランの使用量を使います。")
+                point("送るとき", "iPhone の中のモデルや Apple の Private Cloud Compute が使えないときだけです。")
+                point("やめるとき", "設定の ChatGPT で「ログアウト」すると、送るのをやめます。")
+                Link("OpenAI のプライバシーポリシー", destination: URL(string: "https://openai.com/policies/privacy-policy/")!)
+                    .font(.system(.footnote, weight: .bold))
+                    .tint(Theme.accent)
+                VStack(spacing: 12) {
+                    Button("同意して続ける", action: onAgree)
+                        .buttonStyle(.cube(.primary, size: .large, fill: true))
+                    Button("やめる") { dismiss() }
+                        .buttonStyle(.cube(.secondary, size: .large, fill: true))
+                }
+                .padding(.top, 8)
+            }
+            .padding(24)
+        }
+        .background(Theme.paper)
+    }
+
+    private func point(_ title: String, _ body: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).atype(.small, color: Theme.quiet).fontWeight(.bold)
+            Text(body).atype(.body).fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 

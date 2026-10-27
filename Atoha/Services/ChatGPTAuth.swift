@@ -17,6 +17,26 @@ enum FeatureFlags {
     }
 }
 
+/// ChatGPT にメモを送ることへの同意（App Store 審査ガイドライン 5.1.2(i)）と、OpenAI の表示の決まり。
+enum ChatGPTConsent {
+    private static let consentKey = "atoha.chatgpt.consented"
+    private static let welcomeKey = "atoha.chatgpt.welcomeShown"
+    /// 「Manage usage」で開く ChatGPT の設定
+    static let manageUsageURL = URL(string: "https://chatgpt.com/settings/usage")!
+
+    /// 送る前に同意をもらっているか。同意がなければ ChatGPT には何も送らない
+    static var granted: Bool {
+        get { UserDefaults.standard.bool(forKey: consentKey) }
+        set { UserDefaults.standard.set(newValue, forKey: consentKey) }
+    }
+
+    /// 初めてのログインのあとに出す案内を出したか
+    static var welcomeShown: Bool {
+        get { UserDefaults.standard.bool(forKey: welcomeKey) }
+        set { UserDefaults.standard.set(newValue, forKey: welcomeKey) }
+    }
+}
+
 /// 保存する認証情報（Keychain）。
 struct ChatGPTCredentials: Codable {
     var clientID: String
@@ -138,6 +158,8 @@ final class ChatGPTAuth: ObservableObject {
         ChatGPTStore.delete("credentials")
         isSignedIn = false
         email = nil
+        // ログアウトしたら同意も外す（次に使うときは、もう一度たずねる）
+        ChatGPTConsent.granted = false
     }
 
     private func runSignIn() async {

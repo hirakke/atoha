@@ -2,7 +2,7 @@ import Foundation
 
 /// ChatGPT のプラン枠で動くまとめ処理（Sign in with ChatGPT）。1件ずつの振り分けは iPhone 内のモデルのまま。
 struct ChatGPTBackend: LanguageBackend {
-    var isAvailable: Bool { FeatureFlags.chatGPTEnabled && ChatGPTStore.loadCredentials() != nil }
+    var isAvailable: Bool { FeatureFlags.chatGPTEnabled && ChatGPTConsent.granted && ChatGPTStore.loadCredentials() != nil }
     var batchLimit: Int { 200 }
 
     func classify(_ text: String) async -> (kind: ItemKind, theme: String?)? { nil }
