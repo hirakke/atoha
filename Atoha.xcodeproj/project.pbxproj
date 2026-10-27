@@ -95,6 +95,7 @@
 		F6C8BFFA0F82B07CC4C3FE26 /* AtohaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 859BF8CC4900FA8E8FE50939 /* AtohaShortcuts.swift */; };
 		F711D95B48F7ECC8AC785A3B /* AxesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C803C2953D167886C74E3603 /* AxesView.swift */; };
 		F782F6CC486E22E7C45F8E07 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15AE3E1B5426CEC00472844C /* WidgetSnapshot.swift */; };
+		F9D8FFDF45E2E791CC065565 /* GoldfishIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA848246C927B248489F6E78 /* GoldfishIntents.swift */; };
 		FA2720C95BC35EFBB25936E1 /* BatchOrganizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2211C8EB8EA84281FBA1731C /* BatchOrganizer.swift */; };
 		FB130CE52829295EAC3F2FC5 /* AtohaWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = B777E38E45D1B169DE2ED7BB /* AtohaWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FC306610D244F141A795CB05 /* LaterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 181004E8315D2D4418DF39FA /* LaterView.swift */; };
@@ -232,6 +233,7 @@
 		C72563A72BD4D9D3A5EFCF14 /* ChatGPTBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTBackend.swift; sourceTree = "<group>"; };
 		C803C2953D167886C74E3603 /* AxesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxesView.swift; sourceTree = "<group>"; };
 		C97BD50B690AA0BA3A825D91 /* DelaGothicOne-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DelaGothicOne-Regular.ttf"; sourceTree = "<group>"; };
+		CA848246C927B248489F6E78 /* GoldfishIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldfishIntents.swift; sourceTree = "<group>"; };
 		CB48C9429997C7C0AB2B86FD /* LanguageBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageBackend.swift; sourceTree = "<group>"; };
 		CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureIntent.swift; sourceTree = "<group>"; };
 		D0F901FE66D0853987E4AB8D /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
@@ -481,6 +483,7 @@
 			children = (
 				859BF8CC4900FA8E8FE50939 /* AtohaShortcuts.swift */,
 				CC650FEC4C35FE0BDAFCFB1C /* CaptureIntent.swift */,
+				CA848246C927B248489F6E78 /* GoldfishIntents.swift */,
 			);
 			path = Intents;
 			sourceTree = "<group>";
@@ -788,6 +791,7 @@
 				7FE01B10BCE98F73C6B8B948 /* FocusView.swift in Sources */,
 				5DE855C88926CFECB2A1587F /* Glass.swift in Sources */,
 				DD90ECBA7D5F27CB231DD597 /* Goldfish.swift in Sources */,
+				F9D8FFDF45E2E791CC065565 /* GoldfishIntents.swift in Sources */,
 				FF7F58C3FF6FC91714D9592B /* HomeView.swift in Sources */,
 				17854B50F24197314EEB9B39 /* Item.swift in Sources */,
 				4AC7E26FFA30A580AE381C19 /* ItemPriority.swift in Sources */,

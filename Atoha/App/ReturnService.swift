@@ -78,6 +78,7 @@ enum ReturnService {
         // 水槽に空きができたら、Apple Watch から預かっていたものを入れる
         WatchBridge.shared.flushHeld()
         WatchBridge.shared.pushContext()
+        GoldfishIndex.update(in: context)
     }
 
     /// サンプル用：おすすめの上から n 件を今に入れた状態にする。
